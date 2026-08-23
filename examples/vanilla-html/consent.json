@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "policyVersion": "2026-08-23",
+  "locale": {
+    "default": "es",
+    "autoDetect": true
+  },
+  "policy": {
+    "privacyUrl": "/politica-privacidad",
+    "cookiesUrl": "/politica-cookies"
+  },
+  "categories": {
+    "necessary": {
+      "required": true,
+      "label": "Necesarias",
+      "description": "Cookies y almacenamiento técnico imprescindible para el funcionamiento de la web."
+    },
+    "analytics": {
+      "required": false,
+      "default": false,
+      "label": "Analítica de uso",
+      "description": "Nos permite medir el uso de la web de forma agregada."
+    },
+    "marketing": {
+      "required": false,
+      "default": false,
+      "label": "Marketing y Vídeo",
+      "description": "Permite la reproducción de vídeos incrustados y personalización."
+    }
+  },
+  "services": {
+    "ga4": {
+      "category": "analytics",
+      "label": "Google Analytics 4",
+      "provider": "Google"
+    },
+    "youtube": {
+      "category": "marketing",
+      "label": "YouTube Embed",
+      "provider": "Google"
+    }
+  }
+}

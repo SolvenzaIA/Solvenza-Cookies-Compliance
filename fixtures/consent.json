@@ -1,0 +1,120 @@
+{
+  "$schema": "../schema.json",
+  "schemaVersion": 1,
+  "policyVersion": "2026-08-22",
+  "jurisdiction": ["ES", "EU"],
+  "locale": {
+    "default": "es",
+    "fallback": "es"
+  },
+  "policy": {
+    "privacyUrl": "/politica-privacidad",
+    "cookiesUrl": "/politica-cookies"
+  },
+  "consent": {
+    "maxAgeDays": 365,
+    "renewOnPolicyChange": true,
+    "reloadOnRevoke": "auto"
+  },
+  "storage": {
+    "type": "cookie",
+    "name": "site_consent",
+    "path": "/",
+    "sameSite": "Lax",
+    "secure": true
+  },
+  "categories": {
+    "necessary": {
+      "required": true,
+      "default": true,
+      "label": "Necesarias",
+      "description": "Imprescindibles para el funcionamiento y seguridad del sitio."
+    },
+    "preferences": {
+      "required": false,
+      "default": false,
+      "label": "Preferencias",
+      "description": "Permiten recordar determinadas opciones seleccionadas por el usuario."
+    },
+    "analytics": {
+      "required": false,
+      "default": false,
+      "label": "Analítica",
+      "description": "Nos permiten medir de forma agregada cómo se utiliza el sitio."
+    },
+    "marketing": {
+      "required": false,
+      "default": false,
+      "label": "Marketing",
+      "description": "Permiten medir campañas o personalizar publicidad."
+    }
+  },
+  "services": {
+    "ga4": {
+      "category": "analytics",
+      "label": "Google Analytics",
+      "provider": "Google",
+      "consent": {
+        "mode": "required"
+      },
+      "domains": [
+        "www.google-analytics.com",
+        "region1.google-analytics.com"
+      ],
+      "cookies": [
+        { "name": "_ga", "duration": "2 años" },
+        { "name": "_ga_*", "duration": "2 años" }
+      ],
+      "adapter": {
+        "type": "google-consent-mode",
+        "config": {
+          "analytics_storage": "analytics",
+          "ad_storage": "marketing",
+          "ad_user_data": "marketing",
+          "ad_personalization": "marketing"
+        }
+      }
+    },
+    "youtube": {
+      "category": "marketing",
+      "label": "YouTube",
+      "provider": "Google",
+      "resources": {
+        "iframes": [
+          "youtube.com",
+          "www.youtube.com",
+          "youtube-nocookie.com"
+        ]
+      },
+      "placeholder": {
+        "enabled": true,
+        "text": "Este contenido está bloqueado hasta que autorices esta finalidad.",
+        "allowButton": "Permitir y mostrar vídeo"
+      }
+    }
+  },
+  "ui": {
+    "position": "bottom",
+    "banner": {
+      "title": "Tu privacidad, bajo tu control",
+      "description": "Usamos tecnologías necesarias para que este sitio funcione. Con tu permiso, también podemos utilizar analítica y marketing.",
+      "accept": "Aceptar",
+      "reject": "Rechazar",
+      "configure": "Configurar"
+    },
+    "preferences": {
+      "title": "Preferencias de privacidad",
+      "save": "Guardar selección",
+      "acceptAll": "Aceptar todas",
+      "rejectAll": "Rechazar todas"
+    }
+  },
+  "logging": {
+    "enabled": false,
+    "endpoint": null
+  },
+  "diagnostics": {
+    "enabled": true,
+    "warnUnknownResources": true
+  }
+}

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solvenza Cookies Compliance - Vanilla HTML5</title>
+  
+  <!-- 1. Carga del script compilado e incrustación automática data-config -->
+  <script src="./consent.min.js" data-config="./consent.json"></script>
+
+  <script>
+    function handleOpenPreferences() {
+      if (window.Consent) window.Consent.openPreferences();
+    }
+
+    function handleWithdraw() {
+      if (window.Consent) window.Consent.withdraw();
+    }
+  </script>
+
+  <!-- 2. Tracker bloqueado dinámicamente -->
+  <script 
+    type="text/plain" 
+    data-consent="analytics" 
+    data-service="ga4" 
+    data-src="https://www.googletagmanager.com/gtag/js?id=G-DEMO123456">
+  </script>
+
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 2.5rem auto; padding: 0 1.5rem; line-height: 1.6; color: #0f172a; background: #f8fafc; }
+    header { border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .card { background: #ffffff; border: 1px solid #e2e8f0; padding: 1.75rem; border-radius: 16px; margin-bottom: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    footer { border-top: 1px solid #e2e8f0; padding-top: 1.5rem; margin-top: 3rem; text-align: center; color: #64748b; font-size: 0.88rem; }
+    button { cursor: pointer; padding: 0.65rem 1.3rem; border-radius: 10px; border: none; background: #0f172a; color: #ffffff; font-weight: 600; font-size: 0.88rem; }
+    .btn-danger { background: #ffffff; color: #ef4444; border: 1px solid #cbd5e1; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div style="display: flex; align-items: center; gap: 0.8rem;">
+      <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #2563eb, #7c3aed); display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 700;">
+        S
+      </div>
+      <span style="font-weight: 700; font-size: 1.05rem;">Solvenza Cookies Compliance</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2 style="font-size: 1.25rem; font-weight: 700; margin: 0 0 0.5rem 0;">Integración Vanilla HTML5 Nativa</h2>
+      <p style="margin: 0; color: #64748b;">Demostración con script nativo <code>&lt;script src="./consent.min.js" data-config="./consent.json"&gt;</code> sin frameworks.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 0.5rem 0;">1. Vídeo Incrustado de YouTube (IFrame Gate)</h3>
+      <p style="color: #64748b; margin-bottom: 1rem;">El iframe permanece bloqueado hasta otorgar permiso en la categoría <code>marketing</code>:</p>
+      
+      <div style="position: relative; border-radius: 12px; overflow: hidden; background: #090d16; aspect-ratio: 16/9; width: 100%;">
+        <iframe 
+          width="100%" 
+          height="100%" 
+          data-consent="marketing" 
+          data-service="youtube" 
+          data-src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+          title="Vídeo de YouTube" 
+          style="border: 0;"
+          allowfullscreen>
+        </iframe>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 0.5rem 0;">2. Gestión de Estado</h3>
+      <p style="color: #64748b; margin-bottom: 1rem;">Abre el panel de preferencias o revoca las elecciones guardadas:</p>
+      <div style="display: flex; gap: 0.8rem;">
+        <button type="button" onclick="handleOpenPreferences()">
+          Abrir Preferencias
+        </button>
+        <button type="button" class="btn-danger" onclick="handleWithdraw()">
+          Revocar Elección
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Solvenza Cookies Compliance &bull; LSSI art. 22.2 &amp; AEPD 2024 &bull; 
+      <button type="button" data-consent-open style="border: none; background: none; color: #2563eb; cursor: pointer; text-decoration: underline; padding: 0;">Configurar cookies</button>
+    </p>
+  </footer>
+
+</body>
+</html>

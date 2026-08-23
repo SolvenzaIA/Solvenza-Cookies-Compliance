@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solvenza Cookies Compliance - Interactive Playground</title>
+  
+  <script src="../dist/consent.min.js"></script>
+
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 2rem; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    header { border-bottom: 1px solid #334155; padding-bottom: 1rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 1.5rem; }
+    h2 { font-size: 1.2rem; margin-top: 0; color: #38bdf8; }
+    button { cursor: pointer; padding: 0.6rem 1.2rem; border-radius: 10px; border: none; background: #3b82f6; color: #ffffff; font-weight: 600; }
+    button.btn-secondary { background: #334155; }
+    button.btn-danger { background: #ef4444; }
+    pre { background: #090d16; padding: 1rem; border-radius: 10px; font-size: 0.85rem; overflow-x: auto; color: #34d399; }
+    .status-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; border-radius: 9999px; font-size: 0.82rem; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div style="display: flex; align-items: center; gap: 0.8rem;">
+        <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem;">
+          S
+        </div>
+        <div>
+          <h1 style="margin: 0; font-size: 1.3rem;">Solvenza Cookies Compliance</h1>
+          <p style="margin: 0; font-size: 0.85rem; color: #94a3b8;">Playground Interactivo &amp; Inspector de Recibos de Consentimiento</p>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <h2>🎮 Controles de Demostración</h2>
+        <p style="color: #94a3b8; font-size: 0.9rem;">Prueba las interacciones del motor en tiempo real:</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1.5rem;">
+          <button type="button" onclick="Consent.openPreferences()">
+            Abrir Modal de Preferencias (Capa 2)
+          </button>
+          <button type="button" class="btn-secondary" onclick="Consent.withdraw()">
+            Simular Revocación de Consentimiento
+          </button>
+          <button type="button" class="btn-danger" onclick="clearCookiesAndReload()">
+            Borrar Cookies &amp; Reiniciar SDK
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📊 Estado Actual del Motor</h2>
+        <div id="status-container" style="margin-bottom: 1rem;">
+          <span class="status-badge" style="background: rgba(239,68,68,0.2); color: #f87171;">
+            Esperando interacción...
+          </span>
+        </div>
+
+        <h3 style="font-size: 0.95rem; color: #94a3b8; margin: 1rem 0 0.5rem 0;">Comprobante Recibo Guardado (JSON):</h3>
+        <pre id="receipt-output">// No hay recibo de consentimiento guardado</pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      Consent.init({
+        schemaVersion: 1,
+        policyVersion: "2026-08-23",
+        security: { secretKey: "playground_secret" },
+        policy: { privacyUrl: "#", cookiesUrl: "#" },
+        categories: {
+          necessary: { required: true, label: "Necesarias", description: "Esenciales para la app." },
+          analytics: { required: false, label: "Analítica de uso", description: "Medición agregada." },
+          marketing: { required: false, label: "Marketing", description: "Personalización y vídeo." }
+        },
+        services: {
+          ga4: { category: "analytics", label: "Google Analytics 4", provider: "Google" },
+          youtube: { category: "marketing", label: "YouTube", provider: "Google" }
+        }
+      }).then(updateInspector);
+
+      Consent.on("consent:changed", updateInspector);
+      Consent.on("consent:withdrawn", updateInspector);
+    });
+
+    function updateInspector() {
+      const state = Consent.getConsent();
+      const outputEl = document.getElementById("receipt-output");
+      const statusEl = document.getElementById("status-container");
+
+      if (state.receipt) {
+        outputEl.textContent = JSON.stringify(state.receipt, null, 2);
+        statusEl.innerHTML = `
+          <span class="status-badge" style="background: rgba(16,185,129,0.2); color: #34d399;">
+            ✔ Consentimiento Registrado (${state.receipt.source})
+          </span>
+        `;
+      } else {
+        outputEl.textContent = "// No hay recibo guardado";
+        statusEl.innerHTML = `
+          <span class="status-badge" style="background: rgba(239,68,68,0.2); color: #f87171;">
+            Pendiente de decisión
+          </span>
+        `;
+      }
+    }
+
+    function clearCookiesAndReload() {
+      document.cookie = "site_consent=; Path=/; Max-Age=0;";
+      window.location.reload();
+    }
+  </script>
+</body>
+</html>

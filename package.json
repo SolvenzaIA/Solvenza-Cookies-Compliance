@@ -1,0 +1,74 @@
+{
+  "name": "@solvenza/cookies-compliance",
+  "version": "1.0.0",
+  "description": "SDK minimalista, local-first y sin dependencias de gestión de consentimiento para España (LSSI art 22.2, AEPD, RGPD y LOPDGDD)",
+  "type": "module",
+  "main": "./dist/consent.esm.js",
+  "module": "./dist/consent.esm.js",
+  "types": "./dist/consent.esm.d.ts",
+  "bin": {
+    "consent-audit": "./bin/audit-cli.js",
+    "consent-init": "./bin/init-cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/consent.esm.d.ts",
+      "import": "./dist/consent.esm.js",
+      "require": "./dist/consent.esm.cjs"
+    },
+    "./react": {
+      "types": "./dist/wrappers/react.d.ts",
+      "import": "./dist/wrappers/react.js"
+    },
+    "./angular": {
+      "types": "./dist/wrappers/angular.d.ts",
+      "import": "./dist/wrappers/angular.js"
+    },
+    "./next": {
+      "types": "./dist/wrappers/next.d.ts",
+      "import": "./dist/wrappers/next.js"
+    },
+    "./wordpress": {
+      "types": "./dist/wrappers/wordpress.d.ts",
+      "import": "./dist/wrappers/wordpress.js"
+    }
+  },
+  "files": [
+    "dist",
+    "bin",
+    "schema.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "playground": "node playground/server.mjs",
+    "prepublishOnly": "npm run typecheck && npm run test && npm run build"
+  },
+  "keywords": [
+    "solvenza",
+    "cookies",
+    "compliance",
+    "consent",
+    "consent-sdk",
+    "gdpr",
+    "rgpd",
+    "lssi",
+    "aepd",
+    "privacy",
+    "local-first"
+  ],
+  "author": "Solvenza Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@angular/core": "^17.3.0",
+    "@types/react": "^19.2.18",
+    "happy-dom": "^17.4.4",
+    "react": "^19.2.8",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ConsentConfigSchema",
+  "type": "object",
+  "required": ["schemaVersion", "policyVersion", "categories"],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "policyVersion": {
+      "type": "string"
+    },
+    "jurisdiction": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "locale": {
+      "type": "object",
+      "properties": {
+        "default": { "type": "string" },
+        "fallback": { "type": "string" }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "properties": {
+        "privacyUrl": { "type": "string" },
+        "cookiesUrl": { "type": "string" }
+      }
+    },
+    "consent": {
+      "type": "object",
+      "properties": {
+        "maxAgeDays": { "type": "integer", "default": 365 },
+        "renewOnPolicyChange": { "type": "boolean", "default": true },
+        "reloadOnRevoke": { "type": "string", "enum": ["auto", "always", "never"] }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["cookie", "memory"] },
+        "name": { "type": "string" },
+        "path": { "type": "string" },
+        "sameSite": { "type": "string", "enum": ["Lax", "Strict", "None"] },
+        "secure": { "type": "boolean" }
+      }
+    },
+    "categories": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["required", "label", "description"],
+        "properties": {
+          "required": { "type": "boolean" },
+          "default": { "type": "boolean" },
+          "label": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "services": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["category", "label"],
+        "properties": {
+          "category": { "type": "string" },
+          "label": { "type": "string" },
+          "provider": { "type": "string" },
+          "consent": {
+            "type": "object",
+            "properties": {
+              "mode": { "type": "string", "enum": ["required", "exempt"] },
+              "legalReviewRequired": { "type": "boolean" },
+              "reviewReference": { "type": "string" }
+            }
+          },
+          "domains": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "cookies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "duration": { "type": "string" }
+              }
+            }
+          },
+          "resources": {
+            "type": "object",
+            "properties": {
+              "iframes": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "scripts": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          },
+          "placeholder": {
+            "type": "object",
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "text": { "type": "string" },
+              "allowButton": { "type": "string" }
+            }
+          },
+          "adapter": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string" },
+              "config": { "type": "object" }
+            }
+          }
+        }
+      }
+    },
+    "ui": {
+      "type": "object",
+      "properties": {
+        "position": { "type": "string", "enum": ["bottom", "top", "modal"] },
+        "banner": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "description": { "type": "string" },
+            "accept": { "type": "string" },
+            "reject": { "type": "string" },
+            "configure": { "type": "string" }
+          }
+        },
+        "preferences": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "save": { "type": "string" },
+            "acceptAll": { "type": "string" },
+            "rejectAll": { "type": "string" }
+          }
+        }
+      }
+    },
+    "logging": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "endpoint": { "type": ["string", "null"] }
+      }
+    },
+    "diagnostics": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "warnUnknownResources": { "type": "boolean" }
+      }
+    }
+  }
+}
