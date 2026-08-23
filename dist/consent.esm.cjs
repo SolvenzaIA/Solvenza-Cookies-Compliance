@@ -472,8 +472,8 @@ var CookieStorageProvider = class {
   set(key, value, options) {
     CookieStore.set(key, value, options);
   }
-  remove(key, path = "/") {
-    CookieStore.remove(key, path);
+  remove(key, path = "/", domain) {
+    CookieStore.remove(key, path, domain);
   }
 };
 var CookieStore = class {
@@ -500,14 +500,21 @@ var CookieStore = class {
     const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
     const secure = (_b = options.secure) != null ? _b : isHttps;
     let cookieStr = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; Path=${path}; Max-Age=${maxAgeSeconds}; SameSite=${sameSite}`;
+    if (options.domain) {
+      cookieStr += `; Domain=${options.domain}`;
+    }
     if (secure) {
       cookieStr += "; Secure";
     }
     document.cookie = cookieStr;
   }
-  static remove(name, path = "/") {
+  static remove(name, path = "/", domain) {
     if (typeof document === "undefined") return;
-    document.cookie = `${encodeURIComponent(name)}=; Path=${path}; Max-Age=0; SameSite=Lax`;
+    let cookieStr = `${encodeURIComponent(name)}=; Path=${path}; Max-Age=0; SameSite=Lax`;
+    if (domain) {
+      cookieStr += `; Domain=${domain}`;
+    }
+    document.cookie = cookieStr;
   }
 };
 
@@ -1778,7 +1785,7 @@ var ConsentEngine = class {
     this.preferencesModal.close();
   }
   withdraw() {
-    var _a, _b;
+    var _a, _b, _c, _d;
     const previousChoices = this.stateManager.getChoices();
     const config = this.stateManager.getConfig();
     if (!config) return;
@@ -1786,7 +1793,7 @@ var ConsentEngine = class {
     if (((_b = config.storage) == null ? void 0 : _b.type) === "memory") {
       MemoryStore.remove(cookieName);
     } else {
-      CookieStore.remove(cookieName);
+      CookieStore.remove(cookieName, ((_c = config.storage) == null ? void 0 : _c.path) || "/", (_d = config.storage) == null ? void 0 : _d.domain);
     }
     this.stateManager.clearChoices();
     GoogleConsentAdapter.update(this.stateManager.getChoices());
@@ -1825,7 +1832,7 @@ var ConsentEngine = class {
     }
   }
   saveChoices(choices, source) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _i;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
     const config = this.stateManager.getConfig();
     if (!config) return;
     const receipt = createReceipt(
@@ -1845,7 +1852,8 @@ var ConsentEngine = class {
         path: ((_d = config.storage) == null ? void 0 : _d.path) || "/",
         maxAgeDays: (_f = (_e = config.consent) == null ? void 0 : _e.maxAgeDays) != null ? _f : 365,
         sameSite: ((_g = config.storage) == null ? void 0 : _g.sameSite) || "Lax",
-        secure: (_h = config.storage) == null ? void 0 : _h.secure
+        secure: (_h = config.storage) == null ? void 0 : _h.secure,
+        domain: (_i = config.storage) == null ? void 0 : _i.domain
       });
     }
     GoogleConsentAdapter.update(choices);
@@ -1853,7 +1861,7 @@ var ConsentEngine = class {
       (cat) => this.has(cat),
       (srv) => this.hasService(srv)
     );
-    if (((_i = config.logging) == null ? void 0 : _i.enabled) && config.logging.endpoint) {
+    if (((_j = config.logging) == null ? void 0 : _j.enabled) && config.logging.endpoint) {
       try {
         fetch(config.logging.endpoint, {
           method: "POST",

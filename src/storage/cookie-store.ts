@@ -11,8 +11,8 @@ export class CookieStorageProvider implements IStorageProvider {
     CookieStore.set(key, value, options);
   }
 
-  remove(key: string, path = "/"): void {
-    CookieStore.remove(key, path);
+  remove(key: string, path = "/", domain?: string): void {
+    CookieStore.remove(key, path, domain);
   }
 }
 
@@ -45,6 +45,10 @@ export class CookieStore {
 
     let cookieStr = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; Path=${path}; Max-Age=${maxAgeSeconds}; SameSite=${sameSite}`;
 
+    if (options.domain) {
+      cookieStr += `; Domain=${options.domain}`;
+    }
+
     if (secure) {
       cookieStr += "; Secure";
     }
@@ -52,8 +56,12 @@ export class CookieStore {
     document.cookie = cookieStr;
   }
 
-  static remove(name: string, path = "/"): void {
+  static remove(name: string, path = "/", domain?: string): void {
     if (typeof document === "undefined") return;
-    document.cookie = `${encodeURIComponent(name)}=; Path=${path}; Max-Age=0; SameSite=Lax`;
+    let cookieStr = `${encodeURIComponent(name)}=; Path=${path}; Max-Age=0; SameSite=Lax`;
+    if (domain) {
+      cookieStr += `; Domain=${domain}`;
+    }
+    document.cookie = cookieStr;
   }
 }

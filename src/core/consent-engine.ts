@@ -194,7 +194,7 @@ export class ConsentEngine implements ConsentSDKInterface {
     if (config.storage?.type === "memory") {
       MemoryStore.remove(cookieName);
     } else {
-      CookieStore.remove(cookieName);
+      CookieStore.remove(cookieName, config.storage?.path || "/", config.storage?.domain);
     }
 
     this.stateManager.clearChoices();
@@ -275,6 +275,7 @@ export class ConsentEngine implements ConsentSDKInterface {
         maxAgeDays: config.consent?.maxAgeDays ?? 365,
         sameSite: config.storage?.sameSite || "Lax",
         secure: config.storage?.secure,
+        domain: config.storage?.domain,
       });
     }
 

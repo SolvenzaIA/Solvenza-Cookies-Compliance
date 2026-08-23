@@ -1,5 +1,5 @@
-import { C as CategoryConfig, S as ServiceConfig, a as ConsentConfig, b as ConsentChoices, c as ConsentReceipt, D as DiagnosticReport } from './consent-engine-BvsH_wqV.js';
-export { d as Consent, e as ConsentEngine, f as ConsentEvent, g as ConsentEventDetailMap, h as ConsentEventHandler, i as ConsentSDKInterface, j as ConsentState } from './consent-engine-BvsH_wqV.js';
+import { C as CategoryConfig, S as ServiceConfig, a as ConsentConfig, b as ConsentChoices, c as ConsentReceipt, D as DiagnosticReport } from './consent-engine-D3ApY7o3.js';
+export { d as Consent, e as ConsentEngine, f as ConsentEvent, g as ConsentEventDetailMap, h as ConsentEventHandler, i as ConsentSDKInterface, j as ConsentState } from './consent-engine-D3ApY7o3.js';
 
 declare class ConsentConfigBuilder {
     private config;
@@ -28,11 +28,12 @@ interface CookieOptions {
     maxAgeDays?: number;
     sameSite?: "Lax" | "Strict" | "None";
     secure?: boolean;
+    domain?: string;
 }
 interface IStorageProvider {
     get(key: string): string | null;
     set(key: string, value: string, options?: CookieOptions): void;
-    remove(key: string, path?: string): void;
+    remove(key: string, path?: string, domain?: string): void;
     clear?(): void;
 }
 
@@ -43,12 +44,12 @@ declare class StorageFactory {
 declare class CookieStorageProvider implements IStorageProvider {
     get(key: string): string | null;
     set(key: string, value: string, options?: CookieOptions): void;
-    remove(key: string, path?: string): void;
+    remove(key: string, path?: string, domain?: string): void;
 }
 declare class CookieStore {
     static get(name: string): string | null;
     static set(name: string, value: string, options?: CookieOptions): void;
-    static remove(name: string, path?: string): void;
+    static remove(name: string, path?: string, domain?: string): void;
 }
 
 declare class MemoryStorageProvider implements IStorageProvider {

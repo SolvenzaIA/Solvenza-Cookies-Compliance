@@ -40,6 +40,7 @@ export interface ConsentConfig {
     sameSite?: "Strict" | "Lax" | "None";
     secure?: boolean;
     path?: string;
+    domain?: string;
   };
   consent?: {
     maxAgeDays?: number;
