@@ -6,6 +6,17 @@
   "main": "./dist/consent.esm.js",
   "module": "./dist/consent.esm.js",
   "types": "./dist/consent.esm.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SolvenzaIA/Solvenza-Cookies-Compliance.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SolvenzaIA/Solvenza-Cookies-Compliance/issues"
+  },
+  "homepage": "https://github.com/SolvenzaIA/Solvenza-Cookies-Compliance#readme",
   "bin": {
     "consent-audit": "./bin/audit-cli.js",
     "consent-init": "./bin/init-cli.js"
