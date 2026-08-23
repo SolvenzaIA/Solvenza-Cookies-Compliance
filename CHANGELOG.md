@@ -6,6 +6,16 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
+## [1.1.0] - 2026-08-24
+
+### Añadido
+- **Soporte para Subdominios Wildcard (`*.dominio.com`)**:
+  - Añadida la opción `storage.domain` en `ConsentConfig` y `CookieOptions` (`src/storage/cookie-store.ts`).
+  - Sincronización automática de preferencias y revocaciones de cookies a través de todos los subdominios de primer y segundo nivel (`.dominio.com`).
+  - Pruebas unitarias para almacenamiento de cookies en subdominios (`tests/unit/cookie-store.test.ts`).
+
+---
+
 ## [1.0.0] - 2026-08-23
 
 ### Añadido
