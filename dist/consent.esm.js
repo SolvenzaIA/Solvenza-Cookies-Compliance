@@ -22,7 +22,7 @@ import {
   sanitizeHtml,
   validateConfig,
   verifyReceiptIntegrity
-} from "./chunk-CNAXWXBL.js";
+} from "./chunk-FBRP4MSA.js";
 import {
   __spreadProps,
   __spreadValues

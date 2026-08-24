@@ -1,6 +1,6 @@
 import {
   Consent
-} from "../chunk-CNAXWXBL.js";
+} from "../chunk-FBRP4MSA.js";
 import "../chunk-DDAAVRWG.js";
 
 // src/wrappers/next.ts

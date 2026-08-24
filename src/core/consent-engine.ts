@@ -73,6 +73,7 @@ export class ConsentEngine implements ConsentSDKInterface {
       GoogleConsentAdapter.initDefault();
       if (evalResult.isValid) {
         GoogleConsentAdapter.update(evalResult.choices);
+        this.dispatchDomEvent("solvenza:restored", { state: this.getConsent() });
       }
 
       // Initialize Blocker System
@@ -91,7 +92,7 @@ export class ConsentEngine implements ConsentSDKInterface {
         },
       );
 
-      // Attach global listeners for permanent revocation trigger [data-consent-open]
+      // Attach global listeners for permanent revocation trigger [data-consent-open] and CustomEvents
       this.setupGlobalRevocationTrigger();
 
       this.resolveReady?.();
@@ -197,9 +198,17 @@ export class ConsentEngine implements ConsentSDKInterface {
       CookieStore.remove(cookieName, config.storage?.path || "/", config.storage?.domain);
     }
 
+    // Auto-clear all service cookies for optional categories
+    for (const catId of Object.keys(config.categories)) {
+      if (catId !== "necessary") {
+        CookieStore.clearServiceCookies(config, catId);
+      }
+    }
+
     this.stateManager.clearChoices();
     GoogleConsentAdapter.update(this.stateManager.getChoices());
     this.eventBus.emit("consent:withdrawn", { previousChoices });
+    this.dispatchDomEvent("solvenza:updated", { choices: this.stateManager.getChoices() });
 
     this.showBanner();
   }
@@ -263,6 +272,13 @@ export class ConsentEngine implements ConsentSDKInterface {
 
     this.stateManager.updateChoices(receipt);
 
+    // Auto-clear cookies for revoked categories
+    for (const [catId, isAllowed] of Object.entries(choices)) {
+      if (!isAllowed) {
+        CookieStore.clearServiceCookies(config, catId);
+      }
+    }
+
     // Persist receipt
     const cookieName = config.storage?.name || "site_consent";
     const receiptJson = JSON.stringify(receipt);
@@ -301,6 +317,7 @@ export class ConsentEngine implements ConsentSDKInterface {
 
     this.banner.remove();
     this.eventBus.emit("consent:changed", { choices, receipt });
+    this.dispatchDomEvent("solvenza:updated", { choices, receipt });
   }
 
   private showBanner(): void {
@@ -313,6 +330,7 @@ export class ConsentEngine implements ConsentSDKInterface {
       onConfigure: () => this.openPreferences(),
     });
     this.eventBus.emit("banner:shown", undefined);
+    this.dispatchDomEvent("solvenza:show", undefined);
   }
 
   private setupGlobalRevocationTrigger(): void {
@@ -325,6 +343,23 @@ export class ConsentEngine implements ConsentSDKInterface {
         this.openPreferences();
       }
     });
+
+    // Support zero-code DOM CustomEvents dispatching (e.g. document.dispatchEvent(new Event('solvenza:show')))
+    document.addEventListener("solvenza:show", () => {
+      this.showBanner();
+    });
+
+    document.addEventListener("solvenza:preferences", () => {
+      this.openPreferences();
+    });
+  }
+
+  private dispatchDomEvent(name: string, detail: unknown): void {
+    if (typeof document === "undefined") return;
+    try {
+      const customEvent = new CustomEvent(name, { detail, bubbles: true });
+      document.dispatchEvent(customEvent);
+    } catch {}
   }
 }
 

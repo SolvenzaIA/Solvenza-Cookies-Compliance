@@ -475,6 +475,19 @@ var CookieStore = class {
     }
     document.cookie = cookieStr;
   }
+  static clearServiceCookies(config, revokedCategory) {
+    var _a, _b;
+    if (typeof document === "undefined" || !config.services) return;
+    const path = ((_a = config.storage) == null ? void 0 : _a.path) || "/";
+    const domain = (_b = config.storage) == null ? void 0 : _b.domain;
+    for (const service of Object.values(config.services)) {
+      if (service.category === revokedCategory && service.cookies) {
+        for (const cookieItem of service.cookies) {
+          this.remove(cookieItem.name, path, domain || cookieItem.domain);
+        }
+      }
+    }
+  }
 };
 
 // src/storage/memory-store.ts
@@ -1634,6 +1647,7 @@ var ConsentEngine = class {
       GoogleConsentAdapter.initDefault();
       if (evalResult.isValid) {
         GoogleConsentAdapter.update(evalResult.choices);
+        this.dispatchDomEvent("solvenza:restored", { state: this.getConsent() });
       }
       this.blockerRegistry.init(
         (cat) => this.has(cat),
@@ -1730,9 +1744,15 @@ var ConsentEngine = class {
     } else {
       CookieStore.remove(cookieName, ((_c = config.storage) == null ? void 0 : _c.path) || "/", (_d = config.storage) == null ? void 0 : _d.domain);
     }
+    for (const catId of Object.keys(config.categories)) {
+      if (catId !== "necessary") {
+        CookieStore.clearServiceCookies(config, catId);
+      }
+    }
     this.stateManager.clearChoices();
     GoogleConsentAdapter.update(this.stateManager.getChoices());
     this.eventBus.emit("consent:withdrawn", { previousChoices });
+    this.dispatchDomEvent("solvenza:updated", { choices: this.stateManager.getChoices() });
     this.showBanner();
   }
   when(categoryOrService, callback) {
@@ -1778,6 +1798,11 @@ var ConsentEngine = class {
       (_a = config.security) == null ? void 0 : _a.secretKey
     );
     this.stateManager.updateChoices(receipt);
+    for (const [catId, isAllowed] of Object.entries(choices)) {
+      if (!isAllowed) {
+        CookieStore.clearServiceCookies(config, catId);
+      }
+    }
     const cookieName = ((_b = config.storage) == null ? void 0 : _b.name) || "site_consent";
     const receiptJson = JSON.stringify(receipt);
     if (((_c = config.storage) == null ? void 0 : _c.type) === "memory") {
@@ -1809,6 +1834,7 @@ var ConsentEngine = class {
     }
     this.banner.remove();
     this.eventBus.emit("consent:changed", { choices, receipt });
+    this.dispatchDomEvent("solvenza:updated", { choices, receipt });
   }
   showBanner() {
     const config = this.stateManager.getConfig();
@@ -1819,6 +1845,7 @@ var ConsentEngine = class {
       onConfigure: () => this.openPreferences()
     });
     this.eventBus.emit("banner:shown", void 0);
+    this.dispatchDomEvent("solvenza:show", void 0);
   }
   setupGlobalRevocationTrigger() {
     if (typeof document === "undefined") return;
@@ -1829,6 +1856,20 @@ var ConsentEngine = class {
         this.openPreferences();
       }
     });
+    document.addEventListener("solvenza:show", () => {
+      this.showBanner();
+    });
+    document.addEventListener("solvenza:preferences", () => {
+      this.openPreferences();
+    });
+  }
+  dispatchDomEvent(name, detail) {
+    if (typeof document === "undefined") return;
+    try {
+      const customEvent = new CustomEvent(name, { detail, bubbles: true });
+      document.dispatchEvent(customEvent);
+    } catch (e) {
+    }
   }
 };
 var globalScope = typeof window !== "undefined" ? window : globalThis;

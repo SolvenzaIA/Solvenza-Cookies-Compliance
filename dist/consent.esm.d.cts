@@ -1,5 +1,5 @@
-import { C as CategoryConfig, S as ServiceConfig, a as ConsentConfig, b as ConsentChoices, c as ConsentReceipt, D as DiagnosticReport } from './consent-engine-D3ApY7o3.cjs';
-export { d as Consent, e as ConsentEngine, f as ConsentEvent, g as ConsentEventDetailMap, h as ConsentEventHandler, i as ConsentSDKInterface, j as ConsentState } from './consent-engine-D3ApY7o3.cjs';
+import { C as CategoryConfig, S as ServiceConfig, a as ConsentConfig, b as ConsentChoices, c as ConsentReceipt, D as DiagnosticReport } from './consent-engine-DOMyEKfk.cjs';
+export { d as Consent, e as ConsentEngine, f as ConsentEvent, g as ConsentEventDetailMap, h as ConsentEventHandler, i as ConsentSDKInterface, j as ConsentState } from './consent-engine-DOMyEKfk.cjs';
 
 declare class ConsentConfigBuilder {
     private config;
@@ -50,6 +50,7 @@ declare class CookieStore {
     static get(name: string): string | null;
     static set(name: string, value: string, options?: CookieOptions): void;
     static remove(name: string, path?: string, domain?: string): void;
+    static clearServiceCookies(config: ConsentConfig, revokedCategory: string): void;
 }
 
 declare class MemoryStorageProvider implements IStorageProvider {

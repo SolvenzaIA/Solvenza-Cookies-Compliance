@@ -1,3 +1,4 @@
+import type { ConsentConfig } from "../core/types.js";
 import type { CookieOptions, IStorageProvider } from "../core/contracts/storage.interface.js";
 
 export type { CookieOptions };
@@ -63,5 +64,20 @@ export class CookieStore {
       cookieStr += `; Domain=${domain}`;
     }
     document.cookie = cookieStr;
+  }
+
+  static clearServiceCookies(config: ConsentConfig, revokedCategory: string): void {
+    if (typeof document === "undefined" || !config.services) return;
+
+    const path = config.storage?.path || "/";
+    const domain = config.storage?.domain;
+
+    for (const service of Object.values(config.services)) {
+      if (service.category === revokedCategory && service.cookies) {
+        for (const cookieItem of service.cookies) {
+          this.remove(cookieItem.name, path, domain || cookieItem.domain);
+        }
+      }
+    }
   }
 }
