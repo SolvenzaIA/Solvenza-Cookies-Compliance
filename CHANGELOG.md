@@ -6,13 +6,24 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
-## [1.1.0] - 2026-08-24
+## [1.2.1] - 2026-08-24
+
+### Añadido
+- **Borrado Automático de Cookies de Servicios Revocados (`clearServiceCookies`)**:
+  - Eliminación automática en `document.cookie` de cookies propias y de terceros declaradas cuando un usuario desautoriza una categoría o revoca consentimientos.
+- **Eventos Nativos del DOM (`solvenza:show`, `solvenza:preferences`, `solvenza:updated`, `solvenza:restored`)**:
+  - Activación sin código del banner o panel de preferencias mediante dispatch de CustomEvents nativos en `document`.
+- **Archivo LICENSE Oficial**:
+  - Declaración formal de licencia MIT con derechos de autor © 2026 Solvenza IA.
+
+---
+
+## [1.2.0] - 2026-08-24
 
 ### Añadido
 - **Soporte para Subdominios Wildcard (`*.dominio.com`)**:
   - Añadida la opción `storage.domain` en `ConsentConfig` y `CookieOptions` (`src/storage/cookie-store.ts`).
   - Sincronización automática de preferencias y revocaciones de cookies a través de todos los subdominios de primer y segundo nivel (`.dominio.com`).
-  - Pruebas unitarias para almacenamiento de cookies en subdominios (`tests/unit/cookie-store.test.ts`).
 
 ---
 
@@ -28,8 +39,3 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
   - Next.js 14 App Router (`@solvenza/cookies-compliance/next`).
   - Angular 20 Standalone (`@solvenza/cookies-compliance/angular` con `provideAppInitializer()` y **Signals**).
   - WordPress (`@solvenza/cookies-compliance/wordpress`).
-- **Google Consent Mode v2**: Adaptador integrado con soporte nativo para `ad_storage`, `analytics_storage`, `ad_user_data` y `ad_personalization`.
-- **Herramientas CLI**:
-  - `npx @solvenza/cookies-compliance consent-init`: Asistente interactivo en terminal para la generación guiada de `consent.json`.
-  - `npx @solvenza/cookies-compliance consent-audit`: Herramienta de auditoría de fugas de red previas al consentimiento.
-- **Entorno de Pruebas**: Playground interactivo en `npm run playground` a través del puerto 4000 con inspector de recibos JSON en tiempo real.
