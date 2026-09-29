@@ -305,10 +305,7 @@ export class ConsentEngine implements ConsentSDKInterface {
     const badgeConfig = this.resolveFloatingBadgeConfig(config);
     if (!badgeConfig.enabled) return;
 
-    const hasReceipt = !!this.getReceipt();
-    if (hasReceipt || badgeConfig.visibility === "always") {
-      this.showFloatingBadge();
-    }
+    this.showFloatingBadge();
   }
 
   private getResolvedConfig(): ConsentConfig | null {
@@ -355,13 +352,15 @@ export class ConsentEngine implements ConsentSDKInterface {
     const badgeConfig = this.resolveFloatingBadgeConfig(config);
     if (!badgeConfig.enabled) return;
 
-    if (!this.floatingBadge.hasElement()) {
+    const el = this.floatingBadge.getElement();
+    if (!el || !el.parentNode) {
       this.floatingBadge.render(config, {
         onClick: () => this.openPreferences(),
       });
     }
     this.floatingBadge.show();
     this.eventBus.emit("floating-badge:shown", undefined);
+    this.dispatchDomEvent("solvenza:badge:show", undefined);
   }
 
   hideFloatingBadge(): void {
@@ -540,7 +539,10 @@ export class ConsentEngine implements ConsentSDKInterface {
     config?: ConsentConfig,
   ): FloatingBadgeConfig & { enabled: boolean } {
     const raw = config?.ui?.floatingBadge;
-    if (raw === true) {
+    if (raw === false) {
+      return { enabled: false };
+    }
+    if (raw === true || raw === undefined) {
       return {
         enabled: true,
         position: "bottom-left",
@@ -559,7 +561,7 @@ export class ConsentEngine implements ConsentSDKInterface {
         visibility: raw.visibility || "after-consent",
       };
     }
-    return { enabled: false };
+    return { enabled: true, position: "bottom-left", icon: "cookie", visibility: "after-consent" };
   }
 
   private dispatchDomEvent(name: string, detail: unknown): void {

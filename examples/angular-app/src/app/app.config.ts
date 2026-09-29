@@ -16,6 +16,7 @@ export const appConfig: ApplicationConfig = {
         locale: {
           default: "es",
           autoDetect: true,
+          supported: ["es", "en", "ca", "eu", "gl"],
         },
         translations: {
           en: {

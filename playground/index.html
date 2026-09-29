@@ -45,10 +45,12 @@
           <div style="display: flex; flex-direction: column; gap: 0.4rem; background: #090d16; padding: 0.8rem; border-radius: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 0.82rem; color: #94a3b8; font-weight: 600;">🌐 Sincronización con App Padre (&lt;html lang="..."&gt;):</span>
-              <div style="display: flex; gap: 0.4rem;">
-                <button type="button" class="btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="document.documentElement.lang = 'es';">ES</button>
-                <button type="button" class="btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="document.documentElement.lang = 'en';">EN</button>
-                <button type="button" class="btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="document.documentElement.lang = 'ca';">CA</button>
+              <div style="display: flex; gap: 0.3rem;">
+                <button type="button" class="btn-secondary" style="padding: 0.3rem 0.5rem; font-size: 0.8rem;" onclick="document.documentElement.lang = 'es'; Consent.syncLocale('es');">ES</button>
+                <button type="button" class="btn-secondary" style="padding: 0.3rem 0.5rem; font-size: 0.8rem;" onclick="document.documentElement.lang = 'en'; Consent.syncLocale('en');">EN</button>
+                <button type="button" class="btn-secondary" style="padding: 0.3rem 0.5rem; font-size: 0.8rem;" onclick="document.documentElement.lang = 'ca'; Consent.syncLocale('ca');">CA</button>
+                <button type="button" class="btn-secondary" style="padding: 0.3rem 0.5rem; font-size: 0.8rem;" onclick="document.documentElement.lang = 'eu'; Consent.syncLocale('eu');">EU</button>
+                <button type="button" class="btn-secondary" style="padding: 0.3rem 0.5rem; font-size: 0.8rem;" onclick="document.documentElement.lang = 'gl'; Consent.syncLocale('gl');">GL</button>
               </div>
             </div>
             <span style="font-size: 0.72rem; color: #64748b;">Al cambiar el idioma de la app padre, la librería sincroniza el banner, modal y badge automáticamente (cero boilerplate).</span>

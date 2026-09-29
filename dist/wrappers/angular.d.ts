@@ -1,4 +1,4 @@
-import { a as ConsentConfig, j as ConsentState, b as ConsentChoices, d as Consent } from '../consent-engine-DdqvmKFJ.js';
+import { a as ConsentConfig, b as ConsentState, c as ConsentChoices, d as ConsentEvent, e as ConsentEventHandler } from '../types-Q-VHdVEd.js';
 
 /**
  * Angular Consent Service helper.
@@ -21,7 +21,7 @@ declare class ConsentService {
     setPreferences(choices: ConsentChoices): void;
     openPreferences(): void;
     withdraw(): void;
-    on(event: Parameters<typeof Consent.on>[0], handler: Parameters<typeof Consent.on>[1]): () => void;
+    on<E extends ConsentEvent>(event: E, handler: ConsentEventHandler<E>): () => void;
 }
 
 export { ConsentService };

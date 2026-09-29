@@ -113,6 +113,10 @@ export class FloatingBadge {
     return this.element !== null;
   }
 
+  getElement(): HTMLElement | null {
+    return this.element;
+  }
+
   remove(): void {
     if (this.element && this.element.parentNode) {
       this.element.parentNode.removeChild(this.element);

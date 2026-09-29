@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { FloatingBadge } from "../../src/ui/floating-badge.js";
 import { ConsentEngine } from "../../src/core/consent-engine.js";
+import { MemoryStore } from "../../src/storage/memory-store.js";
 import type { ConsentConfig } from "../../src/core/types.js";
 
 class MockElement {
@@ -237,6 +238,7 @@ describe("ConsentEngine with FloatingBadge Integration", () => {
   };
 
   beforeEach(() => {
+    MemoryStore.clear();
     const body = new MockElement("BODY");
     const head = new MockElement("HEAD");
     (globalThis as any).document = {
@@ -353,4 +355,19 @@ describe("ConsentEngine with FloatingBadge Integration", () => {
 
     expect(shownEventFired).toBe(true);
   });
+
+  it("should show floating badge when modal is closed even before any consent receipt exists", async () => {
+    await engine.init(testConfig);
+    expect(engine.getReceipt()).toBeNull();
+
+    engine.openPreferences();
+    engine.closePreferences();
+
+    const badge = (globalThis as any).document.body.children.find((c: any) =>
+      c.classList.contains("consent-floating-badge"),
+    );
+    expect(badge).toBeDefined();
+    expect(badge.classList.contains("is-visible")).toBe(true);
+  });
 });
+

@@ -1,5 +1,11 @@
 import { Consent } from "../core/consent-engine.js";
-import type { ConsentChoices, ConsentConfig, ConsentState } from "../core/types.js";
+import type {
+  ConsentChoices,
+  ConsentConfig,
+  ConsentEvent,
+  ConsentEventHandler,
+  ConsentState,
+} from "../core/types.js";
 
 /**
  * Angular Consent Service helper.
@@ -58,7 +64,7 @@ export class ConsentService {
     Consent.withdraw();
   }
 
-  on(event: Parameters<typeof Consent.on>[0], handler: Parameters<typeof Consent.on>[1]) {
+  on<E extends ConsentEvent>(event: E, handler: ConsentEventHandler<E>): () => void {
     return Consent.on(event, handler);
   }
 }

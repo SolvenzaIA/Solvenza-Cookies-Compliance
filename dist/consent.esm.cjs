@@ -1867,6 +1867,9 @@ var FloatingBadge = class {
   hasElement() {
     return this.element !== null;
   }
+  getElement() {
+    return this.element;
+  }
   remove() {
     if (this.element && this.element.parentNode) {
       this.element.parentNode.removeChild(this.element);
@@ -2598,10 +2601,7 @@ var ConsentEngine = class {
     if (!config) return;
     const badgeConfig = this.resolveFloatingBadgeConfig(config);
     if (!badgeConfig.enabled) return;
-    const hasReceipt = !!this.getReceipt();
-    if (hasReceipt || badgeConfig.visibility === "always") {
-      this.showFloatingBadge();
-    }
+    this.showFloatingBadge();
   }
   getResolvedConfig() {
     const rawConfig = this.stateManager.getConfig();
@@ -2639,13 +2639,15 @@ var ConsentEngine = class {
     if (!config) return;
     const badgeConfig = this.resolveFloatingBadgeConfig(config);
     if (!badgeConfig.enabled) return;
-    if (!this.floatingBadge.hasElement()) {
+    const el = this.floatingBadge.getElement();
+    if (!el || !el.parentNode) {
       this.floatingBadge.render(config, {
         onClick: () => this.openPreferences()
       });
     }
     this.floatingBadge.show();
     this.eventBus.emit("floating-badge:shown", void 0);
+    this.dispatchDomEvent("solvenza:badge:show", void 0);
   }
   hideFloatingBadge() {
     this.floatingBadge.hide();
@@ -2783,7 +2785,10 @@ var ConsentEngine = class {
   resolveFloatingBadgeConfig(config) {
     var _a;
     const raw = (_a = config == null ? void 0 : config.ui) == null ? void 0 : _a.floatingBadge;
-    if (raw === true) {
+    if (raw === false) {
+      return { enabled: false };
+    }
+    if (raw === true || raw === void 0) {
       return {
         enabled: true,
         position: "bottom-left",
@@ -2802,7 +2807,7 @@ var ConsentEngine = class {
         visibility: raw.visibility || "after-consent"
       };
     }
-    return { enabled: false };
+    return { enabled: true, position: "bottom-left", icon: "cookie", visibility: "after-consent" };
   }
   dispatchDomEvent(name, detail) {
     if (typeof document === "undefined") return;

@@ -25,7 +25,7 @@ import {
   sanitizeHtml,
   validateConfig,
   verifyReceiptIntegrity
-} from "./chunk-ZFUPOORM.js";
+} from "./chunk-YARV6W6E.js";
 import {
   __spreadProps,
   __spreadValues

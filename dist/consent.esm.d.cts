@@ -1,5 +1,51 @@
-import { T as TranslationConfig, F as FloatingBadgeConfig, C as CategoryConfig, S as ServiceConfig, a as ConsentConfig, b as ConsentChoices, c as ConsentReceipt, D as DiagnosticReport } from './consent-engine-DdqvmKFJ.cjs';
-export { B as BannerUIConfig, d as Consent, e as ConsentEngine, f as ConsentEvent, g as ConsentEventDetailMap, h as ConsentEventHandler, i as ConsentSDKInterface, j as ConsentState, L as LocaleConfig, P as PreferencesUIConfig } from './consent-engine-DdqvmKFJ.cjs';
+import { C as ConsentSDKInterface, a as ConsentConfig, b as ConsentState, c as ConsentChoices, d as ConsentEvent, e as ConsentEventHandler, f as ConsentReceipt, D as DiagnosticReport, T as TranslationConfig, F as FloatingBadgeConfig, g as CategoryConfig, S as ServiceConfig } from './types-Q-VHdVEd.cjs';
+export { B as BannerUIConfig, h as ConsentEventDetailMap, L as LocaleConfig, P as PreferencesUIConfig } from './types-Q-VHdVEd.cjs';
+
+declare class ConsentEngine implements ConsentSDKInterface {
+    private stateManager;
+    private eventBus;
+    private blockerRegistry;
+    private banner;
+    private preferencesModal;
+    private floatingBadge;
+    private i18n;
+    private stopLocaleSync;
+    private initPromise;
+    private resolveReady;
+    private readyPromise;
+    init(configInput: ConsentConfig | string): Promise<void>;
+    ready(): Promise<void>;
+    getConsent(): ConsentState;
+    has(category: string): boolean;
+    hasService(serviceId: string): boolean;
+    acceptAll(): void;
+    rejectAll(): void;
+    setPreferences(choices: ConsentChoices): void;
+    openPreferences(): void;
+    closePreferences(): void;
+    getLocale(): string;
+    setLocale(locale: string): void;
+    /**
+     * Synchronize active locale with parent application i18n state.
+     */
+    syncLocale(locale: string): void;
+    private restoreFloatingBadgeIfNeeded;
+    private getResolvedConfig;
+    withdraw(): void;
+    showFloatingBadge(): void;
+    hideFloatingBadge(): void;
+    when(categoryOrService: string, callback: () => void): () => void;
+    on<E extends ConsentEvent>(event: E, handler: ConsentEventHandler<E>): () => void;
+    getReceipt(): ConsentReceipt | null;
+    rescan(): DiagnosticReport;
+    mountPolicy(targetContainer: HTMLElement | string): void;
+    private saveChoices;
+    private showBanner;
+    private setupGlobalRevocationTrigger;
+    private resolveFloatingBadgeConfig;
+    private dispatchDomEvent;
+}
+declare const Consent: ConsentEngine;
 
 declare class ConsentConfigBuilder {
     private config;
@@ -168,7 +214,8 @@ declare class FloatingBadge {
     hide(): void;
     getIsVisible(): boolean;
     hasElement(): boolean;
+    getElement(): HTMLElement | null;
     remove(): void;
 }
 
-export { BUILTIN_TRANSLATIONS, CategoryConfig, ConfigValidationError, ConsentChoices, ConsentConfig, ConsentConfigBuilder, ConsentReceipt, CookieStorageProvider, CookieStore, DiagnosticReport, FloatingBadge, FloatingBadgeConfig, GoogleConsentAdapter, I18nEngine, IframeGate, IframeResourceBlocker, ImageResourceBlocker, MemoryStorageProvider, MemoryStore, PolicyGenerator, ResourceGate, ResourceScanner, ScriptGate, ScriptResourceBlocker, ServiceConfig, StorageFactory, TranslationConfig, computeReceiptSignature, createReceipt, isReceiptExpired, parseReceipt, sanitizeHtml, validateConfig, verifyReceiptIntegrity };
+export { BUILTIN_TRANSLATIONS, CategoryConfig, ConfigValidationError, Consent, ConsentChoices, ConsentConfig, ConsentConfigBuilder, ConsentEngine, ConsentEvent, ConsentEventHandler, ConsentReceipt, ConsentSDKInterface, ConsentState, CookieStorageProvider, CookieStore, DiagnosticReport, FloatingBadge, FloatingBadgeConfig, GoogleConsentAdapter, I18nEngine, IframeGate, IframeResourceBlocker, ImageResourceBlocker, MemoryStorageProvider, MemoryStore, PolicyGenerator, ResourceGate, ResourceScanner, ScriptGate, ScriptResourceBlocker, ServiceConfig, StorageFactory, TranslationConfig, computeReceiptSignature, createReceipt, isReceiptExpired, parseReceipt, sanitizeHtml, validateConfig, verifyReceiptIntegrity };

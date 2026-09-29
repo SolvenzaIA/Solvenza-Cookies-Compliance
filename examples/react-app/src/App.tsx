@@ -16,7 +16,7 @@ export function App() {
   useEffect(() => {
     const config = new ConsentConfigBuilder("2026-08-23")
       .setPolicyUrls("/politica-privacidad", "/politica-cookies")
-      .setLocale("es", true, ["es", "en"])
+      .setLocale("es", true, ["es", "en", "ca", "eu", "gl"])
       .setFloatingBadge({
         enabled: true,
         position: "bottom-left",
@@ -113,39 +113,28 @@ export function App() {
 
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           {/* Host App Language Switcher (automatically synced to cookie engine via useSyncConsentLocale) */}
-          <div style={{ display: "flex", background: "#f1f5f9", borderRadius: "8px", padding: "2px" }}>
-            <button
-              onClick={() => setParentAppLocale("es")}
-              style={{
-                border: "none",
-                background: parentAppLocale === "es" ? "#ffffff" : "transparent",
-                color: parentAppLocale === "es" ? "#0f172a" : "#64748b",
-                boxShadow: parentAppLocale === "es" ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
-                padding: "0.3rem 0.6rem",
-                borderRadius: "6px",
-                fontWeight: 600,
-                fontSize: "0.8rem",
-                cursor: "pointer",
-              }}
-            >
-              ES
-            </button>
-            <button
-              onClick={() => setParentAppLocale("en")}
-              style={{
-                border: "none",
-                background: parentAppLocale === "en" ? "#ffffff" : "transparent",
-                color: parentAppLocale === "en" ? "#0f172a" : "#64748b",
-                boxShadow: parentAppLocale === "en" ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
-                padding: "0.3rem 0.6rem",
-                borderRadius: "6px",
-                fontWeight: 600,
-                fontSize: "0.8rem",
-                cursor: "pointer",
-              }}
-            >
-              EN
-            </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", background: "#f1f5f9", borderRadius: "8px", padding: "3px 6px" }}>
+            <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", paddingRight: "4px" }}>🌐 i18n:</span>
+            {(["es", "en", "ca", "eu", "gl"] as const).map((lang) => (
+              <button
+                key={lang}
+                type="button"
+                onClick={() => setParentAppLocale(lang)}
+                style={{
+                  border: "none",
+                  background: parentAppLocale === lang ? "#0f172a" : "transparent",
+                  color: parentAppLocale === lang ? "#ffffff" : "#475569",
+                  padding: "0.25rem 0.55rem",
+                  borderRadius: "6px",
+                  fontWeight: 700,
+                  fontSize: "0.75rem",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                {lang.toUpperCase()}
+              </button>
+            ))}
           </div>
 
           <nav style={{ display: "flex", gap: "0.4rem" }}>

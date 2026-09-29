@@ -3,7 +3,8 @@
   "policyVersion": "2026-08-23",
   "locale": {
     "default": "es",
-    "autoDetect": true
+    "autoDetect": true,
+    "supported": ["es", "en", "ca", "eu", "gl"]
   },
   "policy": {
     "privacyUrl": "/politica-privacidad",
