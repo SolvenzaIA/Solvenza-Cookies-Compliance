@@ -1,6 +1,6 @@
 import {
   Consent
-} from "../chunk-FBRP4MSA.js";
+} from "../chunk-D4ZDUIXH.js";
 import "../chunk-DDAAVRWG.js";
 
 // src/wrappers/react.ts

@@ -450,6 +450,152 @@ export function injectStyles(nonce?: string): void {
         flex-direction: row;
       }
     }
+
+    /* Floating Revocation & Preference Badge */
+    .consent-floating-badge {
+      position: fixed;
+      z-index: 2147483640;
+      font-family: var(--consent-font);
+      opacity: 0;
+      transform: scale(0.85);
+      pointer-events: none;
+      transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .consent-floating-badge.is-visible {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .consent-floating-badge--bottom-left {
+      bottom: 1.25rem;
+      left: 1.25rem;
+    }
+
+    .consent-floating-badge--bottom-right {
+      bottom: 1.25rem;
+      right: 1.25rem;
+    }
+
+    .consent-floating-badge--top-left {
+      top: 1.25rem;
+      left: 1.25rem;
+    }
+
+    .consent-floating-badge--top-right {
+      top: 1.25rem;
+      right: 1.25rem;
+    }
+
+    .consent-floating-badge-inner {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .consent-floating-badge-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 46px;
+      height: 46px;
+      min-width: 46px;
+      border-radius: 9999px;
+      background: var(--consent-bg);
+      color: var(--consent-fg);
+      border: 1px solid var(--consent-border);
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+      cursor: pointer;
+      padding: 0;
+      margin: 0;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      outline: none;
+    }
+
+    .consent-floating-badge-btn.has-label {
+      width: auto;
+      padding: 0 1rem;
+    }
+
+    .consent-floating-badge-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px -6px rgba(15, 23, 42, 0.2), 0 6px 10px -3px rgba(15, 23, 42, 0.08);
+      border-color: var(--consent-accent);
+      color: var(--consent-accent);
+    }
+
+    .consent-floating-badge-btn:active {
+      transform: translateY(0) scale(0.96);
+    }
+
+    .consent-floating-badge-btn:focus-visible {
+      box-shadow: 0 0 0 3px var(--consent-focus-ring), 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+      border-color: var(--consent-accent);
+    }
+
+    .consent-floating-badge-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+    }
+
+    .consent-floating-badge-text {
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .consent-floating-badge-tooltip {
+      position: absolute;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      background: var(--consent-primary);
+      color: var(--consent-primary-fg);
+      font-size: 0.76rem;
+      font-weight: 500;
+      padding: 0.4rem 0.75rem;
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+      z-index: 2147483641;
+    }
+
+    .consent-floating-badge--bottom-left .consent-floating-badge-tooltip {
+      bottom: calc(100% + 8px);
+      left: 0;
+      transform: translateY(4px);
+    }
+
+    .consent-floating-badge--bottom-right .consent-floating-badge-tooltip {
+      bottom: calc(100% + 8px);
+      right: 0;
+      transform: translateY(4px);
+    }
+
+    .consent-floating-badge--top-left .consent-floating-badge-tooltip {
+      top: calc(100% + 8px);
+      left: 0;
+      transform: translateY(-4px);
+    }
+
+    .consent-floating-badge--top-right .consent-floating-badge-tooltip {
+      top: calc(100% + 8px);
+      right: 0;
+      transform: translateY(-4px);
+    }
+
+    .consent-floating-badge-inner:hover .consent-floating-badge-tooltip,
+    .consent-floating-badge-btn:focus-visible + .consent-floating-badge-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
   `;
   document.head.appendChild(styleEl);
 }

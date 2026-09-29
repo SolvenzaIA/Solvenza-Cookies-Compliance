@@ -1,10 +1,13 @@
 import {
+  BUILTIN_TRANSLATIONS,
   ConfigValidationError,
   Consent,
   ConsentEngine,
   CookieStorageProvider,
   CookieStore,
+  FloatingBadge,
   GoogleConsentAdapter,
+  I18nEngine,
   IframeGate,
   IframeResourceBlocker,
   ImageResourceBlocker,
@@ -22,7 +25,7 @@ import {
   sanitizeHtml,
   validateConfig,
   verifyReceiptIntegrity
-} from "./chunk-FBRP4MSA.js";
+} from "./chunk-D4ZDUIXH.js";
 import {
   __spreadProps,
   __spreadValues
@@ -53,11 +56,30 @@ var ConsentConfigBuilder = class {
     this.config.policy = { privacyUrl, cookiesUrl };
     return this;
   }
-  setLocale(defaultLocale, autoDetect = true) {
+  setLocale(defaultLocale, autoDetect = true, supported) {
     this.config.locale = {
       default: defaultLocale,
-      autoDetect
+      autoDetect,
+      supported
     };
+    return this;
+  }
+  setTranslations(translations) {
+    this.config.translations = translations;
+    return this;
+  }
+  addTranslation(locale, translation) {
+    if (!this.config.translations) {
+      this.config.translations = {};
+    }
+    this.config.translations[locale.toLowerCase()] = translation;
+    return this;
+  }
+  setFloatingBadge(badgeConfig) {
+    if (!this.config.ui) {
+      this.config.ui = {};
+    }
+    this.config.ui.floatingBadge = badgeConfig;
     return this;
   }
   addCategory(id, category) {
@@ -106,25 +128,6 @@ var StorageFactory = class {
   }
 };
 
-// src/i18n/engine.ts
-var I18nEngine = class {
-  constructor() {
-    this.locale = "es";
-  }
-  setLocale(locale) {
-    this.locale = locale;
-  }
-  getLocale() {
-    return this.locale;
-  }
-  detectBrowserLocale() {
-    if (typeof navigator !== "undefined" && navigator.language) {
-      return navigator.language.split("-")[0].toLowerCase();
-    }
-    return "es";
-  }
-};
-
 // src/index.ts
 if (typeof window !== "undefined") {
   window.Consent = Consent;
@@ -134,6 +137,7 @@ if (typeof window !== "undefined") {
     ConsentConfigBuilder,
     validateConfig,
     PolicyGenerator,
+    FloatingBadge,
     ResourceScanner
   };
 }
@@ -154,12 +158,14 @@ if (typeof document !== "undefined") {
   }
 }
 export {
+  BUILTIN_TRANSLATIONS,
   ConfigValidationError,
   Consent,
   ConsentConfigBuilder,
   ConsentEngine,
   CookieStorageProvider,
   CookieStore,
+  FloatingBadge,
   GoogleConsentAdapter,
   I18nEngine,
   IframeGate,

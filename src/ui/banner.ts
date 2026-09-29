@@ -25,6 +25,9 @@ export class ConsentBanner {
     const acceptText = sanitizeHtml(bannerConfig.accept || "Aceptar todas");
     const rejectText = sanitizeHtml(bannerConfig.reject || "Rechazar todas");
     const configureText = sanitizeHtml(bannerConfig.configure || "Configurar");
+    const cookiesPolicyText = sanitizeHtml(bannerConfig.cookiesPolicy || "Política de cookies");
+    const privacyPolicyText = sanitizeHtml(bannerConfig.privacyPolicy || "Política de privacidad");
+    const bannerAriaLabel = sanitizeHtml(bannerConfig.ariaLabel || "Gestión de consentimiento de privacidad");
 
     const privacyUrl = sanitizeUrl(config.policy?.privacyUrl || "/politica-privacidad");
     const cookiesUrl = sanitizeUrl(config.policy?.cookiesUrl || "/politica-cookies");
@@ -34,7 +37,7 @@ export class ConsentBanner {
     wrapper.setAttribute("role", "region");
     wrapper.setAttribute(
       "aria-label",
-      "Gestión de consentimiento de privacidad",
+      bannerAriaLabel,
     );
 
     wrapper.innerHTML = `
@@ -50,8 +53,8 @@ export class ConsentBanner {
           </h2>
           <p class="consent-banner-desc">${descText}</p>
           <div class="consent-banner-links">
-            <a href="${cookiesUrl}" target="_blank" rel="noopener">Política de cookies</a>
-            <a href="${privacyUrl}" target="_blank" rel="noopener">Política de privacidad</a>
+            <a href="${cookiesUrl}" target="_blank" rel="noopener">${cookiesPolicyText}</a>
+            <a href="${privacyUrl}" target="_blank" rel="noopener">${privacyPolicyText}</a>
           </div>
         </div>
         <div class="consent-banner-actions">
@@ -90,6 +93,10 @@ export class ConsentBanner {
 
     document.body.appendChild(wrapper);
     this.element = wrapper;
+  }
+
+  getIsVisible(): boolean {
+    return this.element !== null;
   }
 
   remove(): void {

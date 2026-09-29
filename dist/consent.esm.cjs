@@ -37,12 +37,14 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var src_exports = {};
 __export(src_exports, {
+  BUILTIN_TRANSLATIONS: () => BUILTIN_TRANSLATIONS,
   ConfigValidationError: () => ConfigValidationError,
   Consent: () => Consent,
   ConsentConfigBuilder: () => ConsentConfigBuilder,
   ConsentEngine: () => ConsentEngine,
   CookieStorageProvider: () => CookieStorageProvider,
   CookieStore: () => CookieStore,
+  FloatingBadge: () => FloatingBadge,
   GoogleConsentAdapter: () => GoogleConsentAdapter,
   I18nEngine: () => I18nEngine,
   IframeGate: () => IframeGate,
@@ -144,6 +146,9 @@ var StateManager = class {
       receipt,
       choices
     };
+  }
+  setLocale(locale) {
+    this.state.locale = locale;
   }
   getConfig() {
     return this.config;
@@ -1320,6 +1325,152 @@ function injectStyles(nonce) {
         flex-direction: row;
       }
     }
+
+    /* Floating Revocation & Preference Badge */
+    .consent-floating-badge {
+      position: fixed;
+      z-index: 2147483640;
+      font-family: var(--consent-font);
+      opacity: 0;
+      transform: scale(0.85);
+      pointer-events: none;
+      transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .consent-floating-badge.is-visible {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .consent-floating-badge--bottom-left {
+      bottom: 1.25rem;
+      left: 1.25rem;
+    }
+
+    .consent-floating-badge--bottom-right {
+      bottom: 1.25rem;
+      right: 1.25rem;
+    }
+
+    .consent-floating-badge--top-left {
+      top: 1.25rem;
+      left: 1.25rem;
+    }
+
+    .consent-floating-badge--top-right {
+      top: 1.25rem;
+      right: 1.25rem;
+    }
+
+    .consent-floating-badge-inner {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .consent-floating-badge-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 46px;
+      height: 46px;
+      min-width: 46px;
+      border-radius: 9999px;
+      background: var(--consent-bg);
+      color: var(--consent-fg);
+      border: 1px solid var(--consent-border);
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+      cursor: pointer;
+      padding: 0;
+      margin: 0;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      outline: none;
+    }
+
+    .consent-floating-badge-btn.has-label {
+      width: auto;
+      padding: 0 1rem;
+    }
+
+    .consent-floating-badge-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px -6px rgba(15, 23, 42, 0.2), 0 6px 10px -3px rgba(15, 23, 42, 0.08);
+      border-color: var(--consent-accent);
+      color: var(--consent-accent);
+    }
+
+    .consent-floating-badge-btn:active {
+      transform: translateY(0) scale(0.96);
+    }
+
+    .consent-floating-badge-btn:focus-visible {
+      box-shadow: 0 0 0 3px var(--consent-focus-ring), 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+      border-color: var(--consent-accent);
+    }
+
+    .consent-floating-badge-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+    }
+
+    .consent-floating-badge-text {
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .consent-floating-badge-tooltip {
+      position: absolute;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      background: var(--consent-primary);
+      color: var(--consent-primary-fg);
+      font-size: 0.76rem;
+      font-weight: 500;
+      padding: 0.4rem 0.75rem;
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+      z-index: 2147483641;
+    }
+
+    .consent-floating-badge--bottom-left .consent-floating-badge-tooltip {
+      bottom: calc(100% + 8px);
+      left: 0;
+      transform: translateY(4px);
+    }
+
+    .consent-floating-badge--bottom-right .consent-floating-badge-tooltip {
+      bottom: calc(100% + 8px);
+      right: 0;
+      transform: translateY(4px);
+    }
+
+    .consent-floating-badge--top-left .consent-floating-badge-tooltip {
+      top: calc(100% + 8px);
+      left: 0;
+      transform: translateY(-4px);
+    }
+
+    .consent-floating-badge--top-right .consent-floating-badge-tooltip {
+      top: calc(100% + 8px);
+      right: 0;
+      transform: translateY(-4px);
+    }
+
+    .consent-floating-badge-inner:hover .consent-floating-badge-tooltip,
+    .consent-floating-badge-btn:focus-visible + .consent-floating-badge-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
   `;
   document.head.appendChild(styleEl);
 }
@@ -1342,6 +1493,9 @@ var ConsentBanner = class {
     const acceptText = sanitizeHtml(bannerConfig.accept || "Aceptar todas");
     const rejectText = sanitizeHtml(bannerConfig.reject || "Rechazar todas");
     const configureText = sanitizeHtml(bannerConfig.configure || "Configurar");
+    const cookiesPolicyText = sanitizeHtml(bannerConfig.cookiesPolicy || "Pol\xEDtica de cookies");
+    const privacyPolicyText = sanitizeHtml(bannerConfig.privacyPolicy || "Pol\xEDtica de privacidad");
+    const bannerAriaLabel = sanitizeHtml(bannerConfig.ariaLabel || "Gesti\xF3n de consentimiento de privacidad");
     const privacyUrl = sanitizeUrl(((_c = config.policy) == null ? void 0 : _c.privacyUrl) || "/politica-privacidad");
     const cookiesUrl = sanitizeUrl(((_d = config.policy) == null ? void 0 : _d.cookiesUrl) || "/politica-cookies");
     const wrapper = document.createElement("div");
@@ -1349,7 +1503,7 @@ var ConsentBanner = class {
     wrapper.setAttribute("role", "region");
     wrapper.setAttribute(
       "aria-label",
-      "Gesti\xF3n de consentimiento de privacidad"
+      bannerAriaLabel
     );
     wrapper.innerHTML = `
       <div class="consent-banner-container">
@@ -1364,8 +1518,8 @@ var ConsentBanner = class {
           </h2>
           <p class="consent-banner-desc">${descText}</p>
           <div class="consent-banner-links">
-            <a href="${cookiesUrl}" target="_blank" rel="noopener">Pol\xEDtica de cookies</a>
-            <a href="${privacyUrl}" target="_blank" rel="noopener">Pol\xEDtica de privacidad</a>
+            <a href="${cookiesUrl}" target="_blank" rel="noopener">${cookiesPolicyText}</a>
+            <a href="${privacyUrl}" target="_blank" rel="noopener">${privacyPolicyText}</a>
           </div>
         </div>
         <div class="consent-banner-actions">
@@ -1395,6 +1549,9 @@ var ConsentBanner = class {
     document.body.appendChild(wrapper);
     this.element = wrapper;
   }
+  getIsVisible() {
+    return this.element !== null;
+  }
   remove() {
     if (this.element && this.element.parentNode) {
       this.element.parentNode.removeChild(this.element);
@@ -1417,9 +1574,19 @@ var PreferencesModal = class {
     this.lastFocusedElement = document.activeElement;
     const prefConfig = ((_b = config.ui) == null ? void 0 : _b.preferences) || {};
     const modalTitle = sanitizeHtml(prefConfig.title || "Preferencias de privacidad");
+    const modalSubtitle = sanitizeHtml(
+      prefConfig.subtitle || "Gestiona tus permisos de almacenamiento por finalidad (LSSI art. 22.2 & RGPD)."
+    );
     const saveText = sanitizeHtml(prefConfig.save || "Guardar selecci\xF3n");
     const acceptAllText = sanitizeHtml(prefConfig.acceptAll || "Permitir todas");
     const rejectAllText = sanitizeHtml(prefConfig.rejectAll || "Rechazar opcionales");
+    const closeLabel = sanitizeHtml(prefConfig.closeLabel || "Cerrar ventana");
+    const requiredBadge = sanitizeHtml(prefConfig.requiredBadge || "Requerida");
+    const optionalBadge = sanitizeHtml(prefConfig.optionalBadge || "Opcional");
+    const servicesLabel = sanitizeHtml(prefConfig.servicesLabel || "Servicios incluidos");
+    const viewServices = sanitizeHtml(prefConfig.viewServices || "Ver servicios");
+    const hideServices = sanitizeHtml(prefConfig.hideServices || "Ocultar servicios");
+    const thirdParty = sanitizeHtml(prefConfig.thirdParty || "Terceros");
     const backdrop = document.createElement("div");
     backdrop.className = "consent-dialog-backdrop";
     const dialog = document.createElement("div");
@@ -1433,10 +1600,10 @@ var PreferencesModal = class {
       <div>
         <h2 class="consent-dialog-title" id="consent-dialog-title-id">${modalTitle}</h2>
         <p style="margin: 0.2rem 0 0 0; font-size: 0.84rem; color: var(--consent-muted); font-weight: 400;">
-          Gestiona tus permisos de almacenamiento por finalidad (LSSI art. 22.2 &amp; RGPD).
+          ${modalSubtitle}
         </p>
       </div>
-      <button type="button" class="consent-dialog-close" aria-label="Cerrar ventana">
+      <button type="button" class="consent-dialog-close" aria-label="${closeLabel}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -1457,14 +1624,14 @@ var PreferencesModal = class {
         servicesHtml = `
           <div class="consent-category-services" id="cat-services-${catId}" style="display: none; margin-top: 0.75rem; padding-top: 0.6rem; border-top: 1px dashed var(--consent-divider); font-size: 0.82rem;">
             <div style="font-weight: 600; color: var(--consent-muted); margin-bottom: 0.4rem; font-size: 0.75rem; letter-spacing: 0.02em;">
-              Servicios incluidos (${associatedServices.length})
+              ${servicesLabel} (${associatedServices.length})
             </div>
             <div style="display: flex; flex-direction: column; gap: 0.3rem;">
               ${associatedServices.map(
           ([srvId, srv]) => `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.2rem 0;">
                   <span style="font-weight: 500;">${sanitizeHtml(srv.label || srvId)}</span>
-                  <span style="color: var(--consent-muted); font-size: 0.78rem;">${sanitizeHtml(srv.provider || "Terceros")}</span>
+                  <span style="color: var(--consent-muted); font-size: 0.78rem;">${sanitizeHtml(srv.provider || thirdParty)}</span>
                 </div>
               `
         ).join("")}
@@ -1477,11 +1644,11 @@ var PreferencesModal = class {
           <div style="flex: 1; padding-right: 1rem;">
             <div style="display: flex; align-items: center; gap: 0.4rem;">
               <span class="consent-category-name">${sanitizeHtml(catConfig.label)}</span>
-              ${isRequired ? '<span class="consent-badge consent-badge-required">Requerida</span>' : '<span class="consent-badge consent-badge-optional">Opcional</span>'}
+              ${isRequired ? `<span class="consent-badge consent-badge-required">${requiredBadge}</span>` : `<span class="consent-badge consent-badge-optional">${optionalBadge}</span>`}
             </div>
             <p class="consent-category-desc">${sanitizeHtml(catConfig.description)}</p>
             ${associatedServices.length > 0 ? `<button type="button" class="consent-toggle-services-btn" data-target="cat-services-${catId}">
-                    Ver servicios (${associatedServices.length}) \u25BE
+                    ${viewServices} (${associatedServices.length}) \u25BE
                    </button>` : ""}
           </div>
           <label class="consent-toggle">
@@ -1510,7 +1677,7 @@ var PreferencesModal = class {
             if (targetEl) {
               const isHidden = targetEl.style.display === "none";
               targetEl.style.display = isHidden ? "block" : "none";
-              toggleServicesBtn.textContent = isHidden ? `Ocultar servicios (${associatedServices.length}) \u25B4` : `Ver servicios (${associatedServices.length}) \u25BE`;
+              toggleServicesBtn.textContent = isHidden ? `${hideServices} (${associatedServices.length}) \u25B4` : `${viewServices} (${associatedServices.length}) \u25BE`;
             }
           }
         });
@@ -1539,6 +1706,12 @@ var PreferencesModal = class {
     (_d = header.querySelector(".consent-dialog-close")) == null ? void 0 : _d.addEventListener("click", () => {
       handlers.onClose();
       this.close();
+    });
+    backdrop.addEventListener("click", (e) => {
+      if (e.target === backdrop) {
+        handlers.onClose();
+        this.close();
+      }
     });
     (_e = footer.querySelector("#consent-pref-reject")) == null ? void 0 : _e.addEventListener("click", () => {
       handlers.onRejectAll();
@@ -1584,6 +1757,9 @@ var PreferencesModal = class {
     const firstFocusable = dialog.querySelector("button");
     firstFocusable == null ? void 0 : firstFocusable.focus();
   }
+  getIsOpen() {
+    return this.backdrop !== null;
+  }
   close() {
     if (this._keyListener) {
       document.removeEventListener("keydown", this._keyListener);
@@ -1596,6 +1772,106 @@ var PreferencesModal = class {
     if (this.lastFocusedElement && typeof this.lastFocusedElement.focus === "function") {
       this.lastFocusedElement.focus();
       this.lastFocusedElement = null;
+    }
+  }
+};
+
+// src/ui/floating-badge.ts
+var FloatingBadge = class {
+  constructor() {
+    this.element = null;
+    this.isVisible = false;
+  }
+  getIconSvg(icon) {
+    switch (icon) {
+      case "shield":
+        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>`;
+      case "settings":
+        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>`;
+      case "cookie":
+      default:
+        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/>
+          <path d="M8.5 8.5v.01"/>
+          <path d="M16 15.5v.01"/>
+          <path d="M12 12v.01"/>
+          <path d="M11 17v.01"/>
+          <path d="M7 13v.01"/>
+        </svg>`;
+    }
+  }
+  render(config, handlers) {
+    var _a, _b, _c;
+    if (typeof document === "undefined") return;
+    this.remove();
+    injectStyles((_a = config.csp) == null ? void 0 : _a.nonce);
+    const badgeConfig = typeof ((_b = config.ui) == null ? void 0 : _b.floatingBadge) === "object" && ((_c = config.ui) == null ? void 0 : _c.floatingBadge) !== null ? config.ui.floatingBadge : {};
+    const position = badgeConfig.position || "bottom-left";
+    const labelText = badgeConfig.label ? sanitizeHtml(badgeConfig.label) : "";
+    const ariaLabel = badgeConfig.ariaLabel ? sanitizeHtml(badgeConfig.ariaLabel) : labelText || "Configuraci\xF3n y revocaci\xF3n de cookies";
+    const tooltipText = badgeConfig.tooltip ? sanitizeHtml(badgeConfig.tooltip) : labelText || "Configurar o declinar cookies";
+    const showLabel = badgeConfig.showLabel === true && !!labelText;
+    const iconSvg = this.getIconSvg(badgeConfig.icon);
+    const container = document.createElement("div");
+    container.className = `consent-floating-badge consent-floating-badge--${position}`;
+    container.setAttribute("role", "complementary");
+    container.setAttribute("aria-label", ariaLabel);
+    container.innerHTML = `
+      <div class="consent-floating-badge-inner">
+        <button
+          type="button"
+          class="consent-floating-badge-btn ${showLabel ? "has-label" : ""}"
+          id="consent-floating-trigger"
+          data-consent-open
+          aria-label="${ariaLabel}"
+        >
+          <span class="consent-floating-badge-icon" aria-hidden="true">
+            ${iconSvg}
+          </span>
+          ${showLabel ? `<span class="consent-floating-badge-text">${labelText}</span>` : ""}
+        </button>
+        <div class="consent-floating-badge-tooltip" role="tooltip" aria-hidden="true">
+          ${tooltipText}
+        </div>
+      </div>
+    `;
+    const button = container.querySelector("#consent-floating-trigger");
+    button == null ? void 0 : button.addEventListener("click", (e) => {
+      e.preventDefault();
+      handlers.onClick();
+    });
+    document.body.appendChild(container);
+    this.element = container;
+  }
+  show() {
+    if (this.element) {
+      this.element.classList.add("is-visible");
+      this.isVisible = true;
+    }
+  }
+  hide() {
+    if (this.element) {
+      this.element.classList.remove("is-visible");
+      this.isVisible = false;
+    }
+  }
+  getIsVisible() {
+    return this.isVisible;
+  }
+  hasElement() {
+    return this.element !== null;
+  }
+  remove() {
+    if (this.element && this.element.parentNode) {
+      this.element.parentNode.removeChild(this.element);
+      this.element = null;
+      this.isVisible = false;
     }
   }
 };
@@ -1672,6 +1948,349 @@ var PolicyGenerator = class {
   }
 };
 
+// src/i18n/engine.ts
+var BUILTIN_TRANSLATIONS = {
+  es: {
+    ui: {
+      banner: {
+        title: "Tu privacidad, bajo tu control",
+        description: "Usamos tecnolog\xEDas necesarias para el funcionamiento del sitio. Con tu permiso, tambi\xE9n podemos utilizar anal\xEDtica y marketing.",
+        accept: "Aceptar todas",
+        reject: "Rechazar todas",
+        configure: "Configurar",
+        cookiesPolicy: "Pol\xEDtica de cookies",
+        privacyPolicy: "Pol\xEDtica de privacidad",
+        ariaLabel: "Gesti\xF3n de consentimiento de privacidad"
+      },
+      preferences: {
+        title: "Preferencias de privacidad",
+        subtitle: "Gestiona tus permisos de almacenamiento por finalidad (LSSI art. 22.2 & RGPD).",
+        save: "Guardar selecci\xF3n",
+        acceptAll: "Permitir todas",
+        rejectAll: "Rechazar opcionales",
+        closeLabel: "Cerrar ventana",
+        requiredBadge: "Requerida",
+        optionalBadge: "Opcional",
+        servicesLabel: "Servicios incluidos",
+        viewServices: "Ver servicios",
+        hideServices: "Ocultar servicios",
+        thirdParty: "Terceros"
+      },
+      floatingBadge: {
+        label: "Cookies",
+        ariaLabel: "Configuraci\xF3n y revocaci\xF3n de cookies",
+        tooltip: "Configurar o declinar cookies"
+      }
+    },
+    categories: {
+      necessary: {
+        label: "Cookies T\xE9cnicas y Necesarias",
+        description: "Imprescindibles para que el sitio web funcione y no pueden ser desactivadas."
+      },
+      analytics: {
+        label: "Medici\xF3n y Rendimiento",
+        description: "Nos permiten analizar las visitas y fuentes de tr\xE1fico para optimizar el sitio."
+      },
+      marketing: {
+        label: "Publicidad Personalizada",
+        description: "Utilizadas para mostrar anuncios relevantes seg\xFAn tus intereses y navegaci\xF3n."
+      },
+      preferences: {
+        label: "Preferencias y Personalizaci\xF3n",
+        description: "Permiten recordar informaci\xF3n que cambia el aspecto o comportamiento del sitio."
+      }
+    }
+  },
+  en: {
+    ui: {
+      banner: {
+        title: "Your privacy, under your control",
+        description: "We use essential technologies for our website to function. With your consent, we may also use analytics and marketing technologies.",
+        accept: "Accept all",
+        reject: "Reject all",
+        configure: "Customize",
+        cookiesPolicy: "Cookie policy",
+        privacyPolicy: "Privacy policy",
+        ariaLabel: "Privacy consent management"
+      },
+      preferences: {
+        title: "Privacy Preferences",
+        subtitle: "Manage your storage permissions by purpose (GDPR & ePrivacy compliant).",
+        save: "Save preferences",
+        acceptAll: "Allow all",
+        rejectAll: "Reject optional",
+        closeLabel: "Close dialog",
+        requiredBadge: "Required",
+        optionalBadge: "Optional",
+        servicesLabel: "Included services",
+        viewServices: "View services",
+        hideServices: "Hide services",
+        thirdParty: "Third-party"
+      },
+      floatingBadge: {
+        label: "Cookies",
+        ariaLabel: "Cookie preferences and revocation",
+        tooltip: "Customize or decline cookies"
+      }
+    },
+    categories: {
+      necessary: {
+        label: "Strictly Necessary Cookies",
+        description: "Essential for the website to function properly and cannot be deactivated."
+      },
+      analytics: {
+        label: "Performance & Analytics",
+        description: "Help us understand visitor behavior and traffic sources to optimize performance."
+      },
+      marketing: {
+        label: "Targeted Advertising",
+        description: "Used to deliver relevant ads and track campaign effectiveness across websites."
+      },
+      preferences: {
+        label: "Preferences & Personalization",
+        description: "Enable the website to remember user choices like language and layout settings."
+      }
+    }
+  },
+  ca: {
+    ui: {
+      banner: {
+        title: "La teva privacitat, sota el teu control",
+        description: "Utilitzem tecnologies necess\xE0ries per al funcionament del lloc. Amb el teu perm\xEDs, tamb\xE9 podem utilitzar anal\xEDtica i m\xE0rqueting.",
+        accept: "Acceptar-les totes",
+        reject: "Rebutjar-les totes",
+        configure: "Configurar",
+        cookiesPolicy: "Pol\xEDtica de cookies",
+        privacyPolicy: "Pol\xEDtica de privacitat",
+        ariaLabel: "Gesti\xF3 de consentiment de privacitat"
+      },
+      preferences: {
+        title: "Prefer\xE8ncies de privacitat",
+        subtitle: "Gestiona els teus permisos d'emmagatzematge per finalitat (LSSI art. 22.2 & RGPD).",
+        save: "Desar selecci\xF3",
+        acceptAll: "Permetre-les totes",
+        rejectAll: "Rebutjar opcionals",
+        closeLabel: "Tancar finestra",
+        requiredBadge: "Requerida",
+        optionalBadge: "Opcional",
+        servicesLabel: "Serveis inclosos",
+        viewServices: "Veure serveis",
+        hideServices: "Amagar serveis",
+        thirdParty: "Tercers"
+      },
+      floatingBadge: {
+        label: "Cookies",
+        ariaLabel: "Configuraci\xF3 i revocaci\xF3 de cookies",
+        tooltip: "Configurar o declinar cookies"
+      }
+    },
+    categories: {
+      necessary: {
+        label: "Cookies T\xE8cniques i Necess\xE0ries",
+        description: "Imprescindibles perqu\xE8 el lloc web funcioni correctament i no es poden desactivar."
+      },
+      analytics: {
+        label: "Mesurament i Rendiment",
+        description: "Ens permeten analitzar les visites i fonts de tr\xE0nsit per optimitzar el lloc."
+      },
+      marketing: {
+        label: "Publicidad Personalitzada",
+        description: "Utilitzades per mostrar anuncis rellevants segons els teus interessos i navegaci\xF3."
+      },
+      preferences: {
+        label: "Prefer\xE8ncies i Personalitzaci\xF3",
+        description: "Permeten recordar informaci\xF3 que canvia l'aspecte o comportament del lloc."
+      }
+    }
+  },
+  eu: {
+    ui: {
+      banner: {
+        title: "Zure pribatutasuna, zure kontrolpean",
+        description: "Webguneak funtzionatzeko beharrezkoak diren teknologiak erabiltzen ditugu. Zure baimenarekin, analitika eta marketina ere erabil ditzakegu.",
+        accept: "Onartu guztiak",
+        reject: "Baztertu guztiak",
+        configure: "Konfiguratu",
+        cookiesPolicy: "Cookie politika",
+        privacyPolicy: "Pribatutasun politika",
+        ariaLabel: "Pribatutasun-baimenen kudeaketa"
+      },
+      preferences: {
+        title: "Pribatutasun-hobespenak",
+        subtitle: "Kudeatu zure biltegiratze-baimenak helburuaren arabera (RGPD).",
+        save: "Gorde hautapena",
+        acceptAll: "Onartu guztiak",
+        rejectAll: "Baztertu aukerakoak",
+        closeLabel: "Itxi leihoa",
+        requiredBadge: "Beharrezkoa",
+        optionalBadge: "Aukerakoa",
+        servicesLabel: "Barne dauden zerbitzuak",
+        viewServices: "Ikusi zerbitzuak",
+        hideServices: "Ezkutatu zerbitzuak",
+        thirdParty: "Hirugarrenak"
+      },
+      floatingBadge: {
+        label: "Cookieak",
+        ariaLabel: "Cookien ezarpenak eta ezeztapena",
+        tooltip: "Konfiguratu edo baztertu cookieak"
+      }
+    }
+  },
+  gl: {
+    ui: {
+      banner: {
+        title: "A t\xFAa privacidade, baixo o teu control",
+        description: "Empregamos tecnolox\xEDas necesarias para o funcionamento do sitio. Co teu permiso, tam\xE9n podemos utilizar anal\xEDtica e m\xE1rketing.",
+        accept: "Aceptar todas",
+        reject: "Rexeitar todas",
+        configure: "Configurar",
+        cookiesPolicy: "Pol\xEDtica de cookies",
+        privacyPolicy: "Pol\xEDtica de privacidade",
+        ariaLabel: "Xesti\xF3n de consentimento de privacidade"
+      },
+      preferences: {
+        title: "Preferencias de privacidade",
+        subtitle: "Xestiona os teus permisos de almacenamento por finalidade (LSSI art. 22.2 & RGPD).",
+        save: "Gardar selecci\xF3n",
+        acceptAll: "Permitir todas",
+        rejectAll: "Rexeitar opcionais",
+        closeLabel: "Pechar xanela",
+        requiredBadge: "Requirida",
+        optionalBadge: "Opcional",
+        servicesLabel: "Servizos inclu\xEDdos",
+        viewServices: "Ver servizos",
+        hideServices: "Ocultar servizos",
+        thirdParty: "Terceiros"
+      },
+      floatingBadge: {
+        label: "Cookies",
+        ariaLabel: "Configuraci\xF3n e revocaci\xF3n de cookies",
+        tooltip: "Configurar ou declinar cookies"
+      }
+    }
+  }
+};
+var I18nEngine = class {
+  constructor(defaultLocale = "es") {
+    this.locale = "es";
+    this.locale = defaultLocale;
+  }
+  setLocale(locale) {
+    this.locale = locale.toLowerCase();
+  }
+  getLocale() {
+    return this.locale;
+  }
+  detectBrowserLocale(supportedLocales) {
+    if (typeof navigator !== "undefined" && navigator.language) {
+      const detected = navigator.language.split("-")[0].toLowerCase();
+      if (supportedLocales && supportedLocales.length > 0) {
+        const normalized = supportedLocales.map((l) => l.toLowerCase());
+        if (normalized.includes(detected)) {
+          return detected;
+        }
+        return normalized[0];
+      }
+      return detected;
+    }
+    return "es";
+  }
+  resolveConfig(config, targetLocale) {
+    var _a, _b;
+    const baseLocale = (((_a = config.locale) == null ? void 0 : _a.default) || "es").toLowerCase();
+    const locale = (targetLocale || this.locale || baseLocale).toLowerCase();
+    const resolved = JSON.parse(JSON.stringify(config));
+    const builtin = BUILTIN_TRANSLATIONS[locale];
+    if (builtin) {
+      const isBaseLocale = locale === baseLocale;
+      this.applyTranslation(resolved, builtin, !isBaseLocale);
+    }
+    const custom = (_b = config.translations) == null ? void 0 : _b[locale];
+    if (custom) {
+      this.applyTranslation(resolved, custom, true);
+    }
+    return resolved;
+  }
+  applyTranslation(target, translation, overwriteExisting) {
+    if (translation.policy) {
+      if (!target.policy) target.policy = {};
+      if (translation.policy.privacyUrl && (overwriteExisting || !target.policy.privacyUrl)) {
+        target.policy.privacyUrl = translation.policy.privacyUrl;
+      }
+      if (translation.policy.cookiesUrl && (overwriteExisting || !target.policy.cookiesUrl)) {
+        target.policy.cookiesUrl = translation.policy.cookiesUrl;
+      }
+    }
+    if (translation.ui) {
+      if (!target.ui) target.ui = {};
+      if (translation.ui.banner) {
+        if (!target.ui.banner) target.ui.banner = {};
+        for (const [key, value] of Object.entries(this.filterDefined(translation.ui.banner))) {
+          if (overwriteExisting || !target.ui.banner[key]) {
+            target.ui.banner[key] = value;
+          }
+        }
+      }
+      if (translation.ui.preferences) {
+        if (!target.ui.preferences) target.ui.preferences = {};
+        for (const [key, value] of Object.entries(this.filterDefined(translation.ui.preferences))) {
+          if (overwriteExisting || !target.ui.preferences[key]) {
+            target.ui.preferences[key] = value;
+          }
+        }
+      }
+      if (translation.ui.floatingBadge) {
+        if (typeof target.ui.floatingBadge === "object" && target.ui.floatingBadge !== null) {
+          for (const [key, value] of Object.entries(this.filterDefined(translation.ui.floatingBadge))) {
+            if (overwriteExisting || !target.ui.floatingBadge[key]) {
+              target.ui.floatingBadge[key] = value;
+            }
+          }
+        } else if (target.ui.floatingBadge === true) {
+          target.ui.floatingBadge = __spreadValues({
+            enabled: true,
+            position: "bottom-left",
+            icon: "cookie"
+          }, this.filterDefined(translation.ui.floatingBadge));
+        }
+      }
+    }
+    if (translation.categories && target.categories) {
+      for (const [catId, catTrans] of Object.entries(translation.categories)) {
+        if (target.categories[catId]) {
+          if (catTrans.label && (overwriteExisting || !target.categories[catId].label)) {
+            target.categories[catId].label = catTrans.label;
+          }
+          if (catTrans.description && (overwriteExisting || !target.categories[catId].description)) {
+            target.categories[catId].description = catTrans.description;
+          }
+        }
+      }
+    }
+    if (translation.services && target.services) {
+      for (const [srvId, srvTrans] of Object.entries(translation.services)) {
+        if (target.services[srvId]) {
+          if (srvTrans.label && (overwriteExisting || !target.services[srvId].label)) {
+            target.services[srvId].label = srvTrans.label;
+          }
+          if (srvTrans.provider && (overwriteExisting || !target.services[srvId].provider)) {
+            target.services[srvId].provider = srvTrans.provider;
+          }
+        }
+      }
+    }
+  }
+  filterDefined(obj) {
+    const result = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== void 0 && value !== null) {
+        result[key] = value;
+      }
+    }
+    return result;
+  }
+};
+
 // src/core/consent-engine.ts
 var ConsentEngine = class {
   constructor() {
@@ -1680,6 +2299,8 @@ var ConsentEngine = class {
     this.blockerRegistry = new BlockerRegistry();
     this.banner = new ConsentBanner();
     this.preferencesModal = new PreferencesModal();
+    this.floatingBadge = new FloatingBadge();
+    this.i18n = new I18nEngine();
     this.initPromise = null;
     this.resolveReady = null;
     this.readyPromise = new Promise((resolve) => {
@@ -1689,7 +2310,7 @@ var ConsentEngine = class {
   async init(configInput) {
     if (this.initPromise) return this.initPromise;
     this.initPromise = (async () => {
-      var _a, _b, _c;
+      var _a, _b, _c, _d, _e, _f;
       let config;
       if (typeof configInput === "string") {
         const response = await fetch(configInput);
@@ -1703,12 +2324,18 @@ var ConsentEngine = class {
         config = configInput;
       }
       validateConfig(config);
-      const cookieName = ((_a = config.storage) == null ? void 0 : _a.name) || "site_consent";
-      const rawReceipt = ((_b = config.storage) == null ? void 0 : _b.type) === "memory" ? MemoryStore.get(cookieName) : CookieStore.get(cookieName);
+      let initialLocale = ((_a = config.locale) == null ? void 0 : _a.default) || "es";
+      if ((_b = config.locale) == null ? void 0 : _b.autoDetect) {
+        initialLocale = this.i18n.detectBrowserLocale((_c = config.locale) == null ? void 0 : _c.supported);
+      }
+      this.i18n.setLocale(initialLocale);
+      const cookieName = ((_d = config.storage) == null ? void 0 : _d.name) || "site_consent";
+      const rawReceipt = ((_e = config.storage) == null ? void 0 : _e.type) === "memory" ? MemoryStore.get(cookieName) : CookieStore.get(cookieName);
       const savedReceipt = rawReceipt ? parseReceipt(rawReceipt) : null;
       const evalResult = evaluatePolicy(config, savedReceipt);
       const activeReceipt = evalResult.isValid ? savedReceipt : null;
       this.stateManager.init(config, evalResult.choices, activeReceipt);
+      this.stateManager.setLocale(initialLocale);
       GoogleConsentAdapter.initDefault();
       if (evalResult.isValid) {
         GoogleConsentAdapter.update(evalResult.choices);
@@ -1729,7 +2356,17 @@ var ConsentEngine = class {
         }
       );
       this.setupGlobalRevocationTrigger();
-      (_c = this.resolveReady) == null ? void 0 : _c.call(this);
+      const resolvedConfig = this.getResolvedConfig() || config;
+      const badgeConfig = this.resolveFloatingBadgeConfig(resolvedConfig);
+      if (badgeConfig.enabled) {
+        this.floatingBadge.render(resolvedConfig, {
+          onClick: () => this.openPreferences()
+        });
+        if (evalResult.isValid || badgeConfig.visibility === "always") {
+          this.showFloatingBadge();
+        }
+      }
+      (_f = this.resolveReady) == null ? void 0 : _f.call(this);
       this.eventBus.emit("ready", { state: this.getConsent() });
       if (!evalResult.isValid) {
         this.showBanner();
@@ -1783,13 +2420,24 @@ var ConsentEngine = class {
     this.saveChoices(sanitizedChoices, "preferences");
   }
   openPreferences() {
-    const config = this.stateManager.getConfig();
+    const config = this.getResolvedConfig();
     if (!config) return;
+    this.hideFloatingBadge();
     this.preferencesModal.render(config, this.stateManager.getChoices(), {
-      onSave: (choices) => this.setPreferences(choices),
-      onAcceptAll: () => this.acceptAll(),
-      onRejectAll: () => this.rejectAll(),
+      onSave: (choices) => {
+        this.setPreferences(choices);
+        this.restoreFloatingBadgeIfNeeded();
+      },
+      onAcceptAll: () => {
+        this.acceptAll();
+        this.restoreFloatingBadgeIfNeeded();
+      },
+      onRejectAll: () => {
+        this.rejectAll();
+        this.restoreFloatingBadgeIfNeeded();
+      },
       onClose: () => {
+        this.restoreFloatingBadgeIfNeeded();
         this.eventBus.emit("preferences:closed", void 0);
       }
     });
@@ -1797,6 +2445,73 @@ var ConsentEngine = class {
   }
   closePreferences() {
     this.preferencesModal.close();
+    this.restoreFloatingBadgeIfNeeded();
+    this.eventBus.emit("preferences:closed", void 0);
+  }
+  getLocale() {
+    return this.i18n.getLocale();
+  }
+  setLocale(locale) {
+    const previousLocale = this.i18n.getLocale();
+    if (locale.toLowerCase() === previousLocale.toLowerCase()) return;
+    this.i18n.setLocale(locale);
+    this.stateManager.setLocale(locale);
+    const config = this.getResolvedConfig();
+    if (!config) return;
+    if (this.banner.getIsVisible()) {
+      this.banner.render(config, {
+        onAcceptAll: () => this.acceptAll(),
+        onRejectAll: () => this.rejectAll(),
+        onConfigure: () => this.openPreferences()
+      });
+    }
+    if (this.preferencesModal.getIsOpen()) {
+      this.preferencesModal.render(config, this.stateManager.getChoices(), {
+        onSave: (choices) => {
+          this.setPreferences(choices);
+          this.restoreFloatingBadgeIfNeeded();
+        },
+        onAcceptAll: () => {
+          this.acceptAll();
+          this.restoreFloatingBadgeIfNeeded();
+        },
+        onRejectAll: () => {
+          this.rejectAll();
+          this.restoreFloatingBadgeIfNeeded();
+        },
+        onClose: () => {
+          this.restoreFloatingBadgeIfNeeded();
+          this.eventBus.emit("preferences:closed", void 0);
+        }
+      });
+    }
+    const badgeConfig = this.resolveFloatingBadgeConfig(config);
+    if (badgeConfig.enabled) {
+      const wasVisible = this.floatingBadge.getIsVisible();
+      this.floatingBadge.render(config, {
+        onClick: () => this.openPreferences()
+      });
+      if (wasVisible) {
+        this.floatingBadge.show();
+      }
+    }
+    this.eventBus.emit("locale:changed", { locale, previousLocale });
+    this.dispatchDomEvent("solvenza:locale:changed", { locale, previousLocale });
+  }
+  restoreFloatingBadgeIfNeeded() {
+    const config = this.getResolvedConfig();
+    if (!config) return;
+    const badgeConfig = this.resolveFloatingBadgeConfig(config);
+    if (!badgeConfig.enabled) return;
+    const hasReceipt = !!this.getReceipt();
+    if (hasReceipt || badgeConfig.visibility === "always") {
+      this.showFloatingBadge();
+    }
+  }
+  getResolvedConfig() {
+    const rawConfig = this.stateManager.getConfig();
+    if (!rawConfig) return null;
+    return this.i18n.resolveConfig(rawConfig, this.getLocale());
   }
   withdraw() {
     var _a, _b, _c, _d;
@@ -1818,7 +2533,28 @@ var ConsentEngine = class {
     GoogleConsentAdapter.update(this.stateManager.getChoices());
     this.eventBus.emit("consent:withdrawn", { previousChoices });
     this.dispatchDomEvent("solvenza:updated", { choices: this.stateManager.getChoices() });
+    const badgeConfig = this.resolveFloatingBadgeConfig(this.getResolvedConfig() || config);
+    if (badgeConfig.enabled && badgeConfig.visibility !== "always") {
+      this.hideFloatingBadge();
+    }
     this.showBanner();
+  }
+  showFloatingBadge() {
+    const config = this.getResolvedConfig();
+    if (!config) return;
+    const badgeConfig = this.resolveFloatingBadgeConfig(config);
+    if (!badgeConfig.enabled) return;
+    if (!this.floatingBadge.hasElement()) {
+      this.floatingBadge.render(config, {
+        onClick: () => this.openPreferences()
+      });
+    }
+    this.floatingBadge.show();
+    this.eventBus.emit("floating-badge:shown", void 0);
+  }
+  hideFloatingBadge() {
+    this.floatingBadge.hide();
+    this.eventBus.emit("floating-badge:hidden", void 0);
   }
   when(categoryOrService, callback) {
     return CustomServiceAdapter.createWhen(
@@ -1898,12 +2634,21 @@ var ConsentEngine = class {
       }
     }
     this.banner.remove();
+    const resolvedConfig = this.getResolvedConfig() || config;
+    const badgeConfig = this.resolveFloatingBadgeConfig(resolvedConfig);
+    if (badgeConfig.enabled) {
+      this.showFloatingBadge();
+    }
     this.eventBus.emit("consent:changed", { choices, receipt });
     this.dispatchDomEvent("solvenza:updated", { choices, receipt });
   }
   showBanner() {
-    const config = this.stateManager.getConfig();
+    const config = this.getResolvedConfig() || this.stateManager.getConfig();
     if (!config) return;
+    const badgeConfig = this.resolveFloatingBadgeConfig(config);
+    if (badgeConfig.enabled && badgeConfig.visibility !== "always") {
+      this.hideFloatingBadge();
+    }
     this.banner.render(config, {
       onAcceptAll: () => this.acceptAll(),
       onRejectAll: () => this.rejectAll(),
@@ -1927,6 +2672,42 @@ var ConsentEngine = class {
     document.addEventListener("solvenza:preferences", () => {
       this.openPreferences();
     });
+    document.addEventListener("solvenza:badge:show", () => {
+      this.showFloatingBadge();
+    });
+    document.addEventListener("solvenza:badge:hide", () => {
+      this.hideFloatingBadge();
+    });
+    document.addEventListener("solvenza:locale", (e) => {
+      var _a;
+      if ((_a = e == null ? void 0 : e.detail) == null ? void 0 : _a.locale) {
+        this.setLocale(e.detail.locale);
+      }
+    });
+  }
+  resolveFloatingBadgeConfig(config) {
+    var _a;
+    const raw = (_a = config == null ? void 0 : config.ui) == null ? void 0 : _a.floatingBadge;
+    if (raw === true) {
+      return {
+        enabled: true,
+        position: "bottom-left",
+        icon: "cookie",
+        visibility: "after-consent"
+      };
+    }
+    if (typeof raw === "object" && raw !== null) {
+      return {
+        enabled: raw.enabled !== false,
+        position: raw.position || "bottom-left",
+        label: raw.label,
+        ariaLabel: raw.ariaLabel,
+        showLabel: raw.showLabel,
+        icon: raw.icon || "cookie",
+        visibility: raw.visibility || "after-consent"
+      };
+    }
+    return { enabled: false };
   }
   dispatchDomEvent(name, detail) {
     if (typeof document === "undefined") return;
@@ -1968,11 +2749,30 @@ var ConsentConfigBuilder = class {
     this.config.policy = { privacyUrl, cookiesUrl };
     return this;
   }
-  setLocale(defaultLocale, autoDetect = true) {
+  setLocale(defaultLocale, autoDetect = true, supported) {
     this.config.locale = {
       default: defaultLocale,
-      autoDetect
+      autoDetect,
+      supported
     };
+    return this;
+  }
+  setTranslations(translations) {
+    this.config.translations = translations;
+    return this;
+  }
+  addTranslation(locale, translation) {
+    if (!this.config.translations) {
+      this.config.translations = {};
+    }
+    this.config.translations[locale.toLowerCase()] = translation;
+    return this;
+  }
+  setFloatingBadge(badgeConfig) {
+    if (!this.config.ui) {
+      this.config.ui = {};
+    }
+    this.config.ui.floatingBadge = badgeConfig;
     return this;
   }
   addCategory(id, category) {
@@ -2021,25 +2821,6 @@ var StorageFactory = class {
   }
 };
 
-// src/i18n/engine.ts
-var I18nEngine = class {
-  constructor() {
-    this.locale = "es";
-  }
-  setLocale(locale) {
-    this.locale = locale;
-  }
-  getLocale() {
-    return this.locale;
-  }
-  detectBrowserLocale() {
-    if (typeof navigator !== "undefined" && navigator.language) {
-      return navigator.language.split("-")[0].toLowerCase();
-    }
-    return "es";
-  }
-};
-
 // src/index.ts
 if (typeof window !== "undefined") {
   window.Consent = Consent;
@@ -2049,6 +2830,7 @@ if (typeof window !== "undefined") {
     ConsentConfigBuilder,
     validateConfig,
     PolicyGenerator,
+    FloatingBadge,
     ResourceScanner
   };
 }
@@ -2070,12 +2852,14 @@ if (typeof document !== "undefined") {
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  BUILTIN_TRANSLATIONS,
   ConfigValidationError,
   Consent,
   ConsentConfigBuilder,
   ConsentEngine,
   CookieStorageProvider,
   CookieStore,
+  FloatingBadge,
   GoogleConsentAdapter,
   I18nEngine,
   IframeGate,

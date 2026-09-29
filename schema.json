@@ -19,7 +19,54 @@
       "type": "object",
       "properties": {
         "default": { "type": "string" },
-        "fallback": { "type": "string" }
+        "autoDetect": { "type": "boolean" },
+        "supported": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "translations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "policy": {
+            "type": "object",
+            "properties": {
+              "privacyUrl": { "type": "string" },
+              "cookiesUrl": { "type": "string" }
+            }
+          },
+          "ui": {
+            "type": "object",
+            "properties": {
+              "banner": { "type": "object" },
+              "preferences": { "type": "object" },
+              "floatingBadge": { "type": "object" }
+            }
+          },
+          "categories": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "label": { "type": "string" },
+                "description": { "type": "string" }
+              }
+            }
+          },
+          "services": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "label": { "type": "string" },
+                "provider": { "type": "string" }
+              }
+            }
+          }
+        }
       }
     },
     "policy": {
@@ -144,6 +191,32 @@
             "acceptAll": { "type": "string" },
             "rejectAll": { "type": "string" }
           }
+        },
+        "floatingBadge": {
+          "oneOf": [
+            { "type": "boolean" },
+            {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "position": {
+                  "type": "string",
+                  "enum": ["bottom-left", "bottom-right", "top-left", "top-right"]
+                },
+                "label": { "type": "string" },
+                "ariaLabel": { "type": "string" },
+                "showLabel": { "type": "boolean" },
+                "icon": {
+                  "type": "string",
+                  "enum": ["cookie", "shield", "settings"]
+                },
+                "visibility": {
+                  "type": "string",
+                  "enum": ["always", "after-consent"]
+                }
+              }
+            }
+          ]
         }
       }
     },

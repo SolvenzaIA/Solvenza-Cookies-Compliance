@@ -56,6 +56,14 @@ Ejemplo de `consent.json`:
     "privacyUrl": "/politica-privacidad",
     "cookiesUrl": "/politica-cookies"
   },
+  "ui": {
+    "floatingBadge": {
+      "enabled": true,
+      "position": "bottom-left",
+      "icon": "cookie",
+      "label": "Cookies"
+    }
+  },
   "categories": {
     "necessary": {
       "required": true,
@@ -82,14 +90,164 @@ Ejemplo de `consent.json`:
 
 ---
 
-## Uso por Frameworks
+## Botón Flotante de Revocación Permanente (AEPD / RGPD)
+
+De acuerdo con la **Guía de la AEPD sobre el uso de cookies**, el usuario debe tener a su disposición un mecanismo permanente y fácilmente accesible para modificar sus preferencias o **declinar/revocar el consentimiento en cualquier momento**.
+
+Puedes activarlo directamente en `consent.json`:
+
+```json
+{
+  "ui": {
+    "floatingBadge": {
+      "enabled": true,
+      "position": "bottom-left",
+      "icon": "cookie",
+      "label": "Cookies",
+      "showLabel": false,
+      "visibility": "after-consent"
+    }
+  }
+}
+```
+
+O de forma abreviada:
+```json
+{
+  "ui": {
+    "floatingBadge": true
+  }
+}
+```
+
+### Opciones de configuración:
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `enabled` | `boolean` | `true` (si se declara objeto) | Activa o desactiva el widget flotante |
+| `position` | `"bottom-left"` \| `"bottom-right"` \| `"top-left"` \| `"top-right"` | `"bottom-left"` | Esquina de anclaje en pantalla |
+| `icon` | `"cookie"` \| `"shield"` \| `"settings"` | `"cookie"` | Icono SVG estilizado |
+| `label` | `string` | `"Cookies"` | Texto accesible y etiqueta en píldora |
+| `tooltip` | `string` | `"Configurar o declinar cookies"` | Texto descriptivo emergente al pasar el cursor (hover) |
+| `showLabel` | `boolean` | `false` | Muestra la etiqueta de texto junto al icono en forma de píldora |
+| `visibility` | `"after-consent"` \| `"always"` | `"after-consent"` | Muestra el botón tras cerrar el banner o en todo momento |
+
+> **Ciclo de vida automático con el modal**: Para garantizar una experiencia de usuario impecable y sin elementos superpuestos, el botón flotante se oculta mientras el modal de preferencias está abierto. **En cuanto el modal se cierra** (mediante el botón 'X', clic en el backdrop, tecla Escape o al guardar la selección), **el botón flotante reaparece de inmediato**.
+
+### API Programática:
+```ts
+// Mostrar u ocultar manualmente
+Consent.showFloatingBadge();
+Consent.hideFloatingBadge();
+
+// Eventos
+Consent.on("floating-badge:shown", () => console.log("Badge visible"));
+Consent.on("floating-badge:hidden", () => console.log("Badge oculto"));
+
+// Eventos nativos DOM (Zero-code)
+document.dispatchEvent(new Event("solvenza:badge:show"));
+document.dispatchEvent(new Event("solvenza:badge:hide"));
+```
+
+---
+
+## Internacionalización y Multi-idioma (i18n)
+
+El SDK cuenta con un motor de internacionalización nativo y reactivo (`I18nEngine`) con diccionarios integrados y soporte para traducciones personalizadas en la configuración.
+
+### Idiomas Integrados por Defecto
+El SDK incluye diccionarios oficiales para la normativa española y europea:
+- **Español (`es`)** [Por defecto]
+- **Inglés (`en`)**
+- **Catalán (`ca`)**
+- **Euskera (`eu`)**
+- **Gallego (`gl`)**
+
+### Configuración Declarativa en `consent.json`:
+
+```json
+{
+  "locale": {
+    "default": "es",
+    "autoDetect": true,
+    "supported": ["es", "en", "ca"]
+  },
+  "translations": {
+    "en": {
+      "policy": {
+        "privacyUrl": "/en/privacy-policy",
+        "cookiesUrl": "/en/cookie-policy"
+      },
+      "ui": {
+        "banner": {
+          "title": "Your privacy, your choice",
+          "accept": "Accept all",
+          "reject": "Reject all",
+          "configure": "Configure"
+        },
+        "preferences": {
+          "title": "Privacy Preferences",
+          "save": "Save preferences"
+        },
+        "floatingBadge": {
+          "label": "Cookies",
+          "tooltip": "Configure or decline cookies"
+        }
+      },
+      "categories": {
+        "analytics": {
+          "label": "Usage Analytics",
+          "description": "Allows aggregated performance measurement."
+        }
+      }
+    }
+  }
+}
+```
+
+### Cambio Dinámico de Idioma (API Programática):
+```ts
+// Obtener idioma activo
+console.log(Consent.getLocale()); // "es"
+
+// Cambiar idioma en tiempo real (actualiza el banner, modal y badge activos al instante)
+Consent.setLocale("en");
+
+// Escuchar cambios de idioma
+Consent.on("locale:changed", ({ locale, previousLocale }) => {
+  console.log(`Idioma cambiado de ${previousLocale} a ${locale}`);
+});
+
+// Conmutación mediante CustomEvent del DOM (Zero-code / Microfrontends)
+document.dispatchEvent(new CustomEvent("solvenza:locale", { detail: { locale: "en" } }));
+```
+
+### Configuración con `ConsentConfigBuilder` (TypeScript):
+```ts
+const config = new ConsentConfigBuilder("1.0.0")
+  .setLocale("es", true, ["es", "en", "ca"])
+  .addTranslation("en", {
+    ui: {
+      banner: { title: "Your privacy, your choice" },
+      floatingBadge: { tooltip: "Cookie Settings" }
+    },
+    categories: {
+      analytics: { label: "Analytics", description: "Aggregated telemetry." }
+    }
+  })
+  .build();
+```
+
+---
 
 ### Vanilla HTML5
 
-Para bloquear scripts o elementos dinámicos, usa los atributos `data-consent` y `data-src`:
+Incrusta el script compilado y tu configuración. El botón flotante de revocación se activará automáticamente según lo definido en `consent.json`:
 
 ```html
-<!-- Script analítico bloqueado previamente -->
+<!-- 1. Carga automática con script compilado y configuración JSON -->
+<script src="./consent.min.js" data-config="./consent.json"></script>
+
+<!-- 2. Scripts y recursos bloqueados previamente -->
 <script 
   type="text/plain" 
   data-consent="analytics" 
@@ -97,7 +255,6 @@ Para bloquear scripts o elementos dinámicos, usa los atributos `data-consent` y
   data-src="https://www.googletagmanager.com/gtag/js?id=G-DEMO123">
 </script>
 
-<!-- IFrame de YouTube bloqueado previamente -->
 <iframe 
   data-consent="marketing" 
   data-service="youtube" 
@@ -105,22 +262,40 @@ Para bloquear scripts o elementos dinámicos, usa los atributos `data-consent` y
   width="560" height="315">
 </iframe>
 
-<!-- Botón de revocación de consentimiento en footer -->
-<button type="button" data-consent-open>Configurar cookies</button>
+<!-- 3. Botón de revocación opcional en footer (adicional al badge flotante permanente) -->
+<button type="button" data-consent-open>Gestionar cookies</button>
 ```
 
 ### React 18+ / Vite
 
+Puedes inicializar con archivo JSON o crear tu configuración fluida con `ConsentConfigBuilder`, activando el botón flotante:
+
 ```tsx
 import { useEffect } from "react";
-import { Consent } from "@solvenza/cookies-compliance";
+import { Consent, ConsentConfigBuilder } from "@solvenza/cookies-compliance";
 import { useConsent } from "@solvenza/cookies-compliance/react";
 
 export function App() {
   const isAnalyticsAllowed = useConsent("analytics");
 
   useEffect(() => {
-    void Consent.init("/consent.json");
+    // Inicialización declarativa con FloatingBadge activado
+    const config = new ConsentConfigBuilder("2026-08-23")
+      .setPolicyUrls("/politica-privacidad", "/politica-cookies")
+      .setFloatingBadge({
+        enabled: true,
+        position: "bottom-left",
+        icon: "cookie",
+        label: "Cookies",
+      })
+      .addCategory("analytics", {
+        required: false,
+        label: "Analítica de uso",
+        description: "Permite medir de forma agregada el uso de la web.",
+      })
+      .build();
+
+    void Consent.init(config);
   }, []);
 
   return (
@@ -134,6 +309,8 @@ export function App() {
 
 ### Next.js (App Router)
 
+Configura el SDK en el `RootLayout` con `strategy="beforeInteractive"`. El archivo `public/consent.json` define el comportamiento del widget flotante para todo el sitio:
+
 ```tsx
 // app/layout.tsx
 import Script from "next/script";
@@ -142,6 +319,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <head>
+        {/* El SDK inyecta el widget flotante tras interactuar con el banner */}
         <Script
           src="/vendor/consent.min.js"
           data-config="/consent.json"
@@ -156,6 +334,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ### Angular 20 Standalone
 
+Carga la configuración con `provideAppInitializer` inyectando `ConsentService`. Si configuras `floatingBadge`, el botón permanecerá anclado en pantalla:
+
 ```typescript
 // app.config.ts
 import { ApplicationConfig, provideAppInitializer, inject } from "@angular/core";
@@ -166,10 +346,44 @@ export const appConfig: ApplicationConfig = {
     ConsentService,
     provideAppInitializer(async () => {
       const consentService = inject(ConsentService);
-      await consentService.init("/assets/consent.json");
+      await consentService.init({
+        schemaVersion: 1,
+        policyVersion: "2026-08-23",
+        policy: { privacyUrl: "/politica-privacidad", cookiesUrl: "/politica-cookies" },
+        ui: {
+          floatingBadge: {
+            enabled: true,
+            position: "bottom-left",
+            icon: "cookie",
+            label: "Cookies",
+          },
+        },
+        categories: {
+          necessary: { required: true, label: "Necesarias", description: "Imprescindibles." },
+          analytics: { required: false, label: "Analítica", description: "Medición agregada." },
+        },
+      });
     }),
   ],
 };
+```
+
+### WordPress
+
+```php
+// functions.php o plugin personalizado
+function enqueue_solvenza_cookies() {
+    wp_enqueue_script(
+        "solvenza-cookies",
+        get_template_directory_uri() . "/vendor/consent.min.js",
+        array(),
+        "1.3.0",
+        false // En <head> para cumplir LSSI antes de scripts de analítica
+    );
+    // Asocia la configuración JSON con el badge flotante habilitado
+    wp_script_add_data("solvenza-cookies", "data-config", get_template_directory_uri() . "/consent.json");
+}
+add_action("wp_enqueue_scripts", "enqueue_solvenza_cookies");
 ```
 
 ---

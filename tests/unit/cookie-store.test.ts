@@ -1,17 +1,23 @@
-// @vitest-environment happy-dom
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import { CookieStore } from "../../src/storage/cookie-store.js";
 
 describe("CookieStore Subdomain / Wildcard Support", () => {
+  const originalDoc = (globalThis as any).document;
+
+  afterEach(() => {
+    (globalThis as any).document = originalDoc;
+  });
+
   it("should format cookie string with Domain attribute when domain is supplied", () => {
     let lastSetCookie = "";
-    Object.defineProperty(document, "cookie", {
-      get: () => lastSetCookie,
-      set: (val) => {
+    (globalThis as any).document = {
+      get cookie() {
+        return lastSetCookie;
+      },
+      set cookie(val: string) {
         lastSetCookie = val;
       },
-      configurable: true,
-    });
+    };
 
     CookieStore.set("site_consent", "test_payload", {
       path: "/",

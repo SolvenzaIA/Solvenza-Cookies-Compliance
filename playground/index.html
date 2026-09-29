@@ -42,9 +42,25 @@
         <p style="color: #94a3b8; font-size: 0.9rem;">Prueba las interacciones del motor en tiempo real:</p>
         
         <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; background: #090d16; padding: 0.6rem 0.8rem; border-radius: 8px;">
+            <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 600;">🌐 Idioma / i18n:</span>
+            <div style="display: flex; gap: 0.4rem;">
+              <button type="button" class="btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="Consent.setLocale('es')">ES</button>
+              <button type="button" class="btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="Consent.setLocale('en')">EN</button>
+              <button type="button" class="btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="Consent.setLocale('ca')">CA</button>
+            </div>
+          </div>
           <button type="button" onclick="Consent.openPreferences()">
             Abrir Modal de Preferencias (Capa 2)
           </button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="button" class="btn-secondary" style="flex: 1;" onclick="Consent.showFloatingBadge()">
+              Mostrar Badge Flotante
+            </button>
+            <button type="button" class="btn-secondary" style="flex: 1;" onclick="Consent.hideFloatingBadge()">
+              Ocultar Badge Flotante
+            </button>
+          </div>
           <button type="button" class="btn-secondary" onclick="Consent.withdraw()">
             Simular Revocación de Consentimiento
           </button>
@@ -73,8 +89,41 @@
       Consent.init({
         schemaVersion: 1,
         policyVersion: "2026-08-23",
+        locale: { default: "es", autoDetect: true },
         security: { secretKey: "playground_secret" },
         policy: { privacyUrl: "#", cookiesUrl: "#" },
+        ui: {
+          floatingBadge: {
+            enabled: true,
+            position: "bottom-left",
+            icon: "cookie",
+            label: "Cookies"
+          }
+        },
+        translations: {
+          en: {
+            ui: {
+              banner: {
+                title: "Your privacy, your choice",
+                accept: "Accept all"
+              },
+              floatingBadge: {
+                label: "Cookies",
+                tooltip: "Cookie preferences & revocation"
+              }
+            },
+            categories: {
+              analytics: {
+                label: "Usage Analytics",
+                description: "Aggregated telemetry and usage statistics."
+              },
+              marketing: {
+                label: "Marketing & Video",
+                description: "Personalization and video embeds."
+              }
+            }
+          }
+        },
         categories: {
           necessary: { required: true, label: "Necesarias", description: "Esenciales para la app." },
           analytics: { required: false, label: "Analítica de uso", description: "Medición agregada." },
@@ -88,6 +137,7 @@
 
       Consent.on("consent:changed", updateInspector);
       Consent.on("consent:withdrawn", updateInspector);
+      Consent.on("locale:changed", updateInspector);
     });
 
     function updateInspector() {
@@ -95,12 +145,15 @@
       const outputEl = document.getElementById("receipt-output");
       const statusEl = document.getElementById("status-container");
 
+      const localeTag = `<span style="margin-left: 0.5rem; background: #334155; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">locale: ${state.locale || 'es'}</span>`;
+
       if (state.receipt) {
         outputEl.textContent = JSON.stringify(state.receipt, null, 2);
         statusEl.innerHTML = `
           <span class="status-badge" style="background: rgba(16,185,129,0.2); color: #34d399;">
             ✔ Consentimiento Registrado (${state.receipt.source})
           </span>
+          ${localeTag}
         `;
       } else {
         outputEl.textContent = "// No hay recibo guardado";
@@ -108,6 +161,7 @@
           <span class="status-badge" style="background: rgba(239,68,68,0.2); color: #f87171;">
             Pendiente de decisión
           </span>
+          ${localeTag}
         `;
       }
     }

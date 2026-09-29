@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-examples/*/node_modules/
+**/node_modules/
 examples/*/.angular/
 .vite/
 

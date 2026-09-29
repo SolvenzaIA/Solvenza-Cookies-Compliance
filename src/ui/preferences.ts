@@ -26,9 +26,20 @@ export class PreferencesModal {
 
     const prefConfig = config.ui?.preferences || {};
     const modalTitle = sanitizeHtml(prefConfig.title || "Preferencias de privacidad");
+    const modalSubtitle = sanitizeHtml(
+      prefConfig.subtitle ||
+        "Gestiona tus permisos de almacenamiento por finalidad (LSSI art. 22.2 & RGPD).",
+    );
     const saveText = sanitizeHtml(prefConfig.save || "Guardar selección");
     const acceptAllText = sanitizeHtml(prefConfig.acceptAll || "Permitir todas");
     const rejectAllText = sanitizeHtml(prefConfig.rejectAll || "Rechazar opcionales");
+    const closeLabel = sanitizeHtml(prefConfig.closeLabel || "Cerrar ventana");
+    const requiredBadge = sanitizeHtml(prefConfig.requiredBadge || "Requerida");
+    const optionalBadge = sanitizeHtml(prefConfig.optionalBadge || "Opcional");
+    const servicesLabel = sanitizeHtml(prefConfig.servicesLabel || "Servicios incluidos");
+    const viewServices = sanitizeHtml(prefConfig.viewServices || "Ver servicios");
+    const hideServices = sanitizeHtml(prefConfig.hideServices || "Ocultar servicios");
+    const thirdParty = sanitizeHtml(prefConfig.thirdParty || "Terceros");
 
     const backdrop = document.createElement("div");
     backdrop.className = "consent-dialog-backdrop";
@@ -46,10 +57,10 @@ export class PreferencesModal {
       <div>
         <h2 class="consent-dialog-title" id="consent-dialog-title-id">${modalTitle}</h2>
         <p style="margin: 0.2rem 0 0 0; font-size: 0.84rem; color: var(--consent-muted); font-weight: 400;">
-          Gestiona tus permisos de almacenamiento por finalidad (LSSI art. 22.2 &amp; RGPD).
+          ${modalSubtitle}
         </p>
       </div>
-      <button type="button" class="consent-dialog-close" aria-label="Cerrar ventana">
+      <button type="button" class="consent-dialog-close" aria-label="${closeLabel}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -79,7 +90,7 @@ export class PreferencesModal {
         servicesHtml = `
           <div class="consent-category-services" id="cat-services-${catId}" style="display: none; margin-top: 0.75rem; padding-top: 0.6rem; border-top: 1px dashed var(--consent-divider); font-size: 0.82rem;">
             <div style="font-weight: 600; color: var(--consent-muted); margin-bottom: 0.4rem; font-size: 0.75rem; letter-spacing: 0.02em;">
-              Servicios incluidos (${associatedServices.length})
+              ${servicesLabel} (${associatedServices.length})
             </div>
             <div style="display: flex; flex-direction: column; gap: 0.3rem;">
               ${associatedServices
@@ -87,7 +98,7 @@ export class PreferencesModal {
                   ([srvId, srv]) => `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.2rem 0;">
                   <span style="font-weight: 500;">${sanitizeHtml(srv.label || srvId)}</span>
-                  <span style="color: var(--consent-muted); font-size: 0.78rem;">${sanitizeHtml(srv.provider || "Terceros")}</span>
+                  <span style="color: var(--consent-muted); font-size: 0.78rem;">${sanitizeHtml(srv.provider || thirdParty)}</span>
                 </div>
               `,
                 )
@@ -104,15 +115,15 @@ export class PreferencesModal {
               <span class="consent-category-name">${sanitizeHtml(catConfig.label)}</span>
               ${
                 isRequired
-                  ? '<span class="consent-badge consent-badge-required">Requerida</span>'
-                  : '<span class="consent-badge consent-badge-optional">Opcional</span>'
+                  ? `<span class="consent-badge consent-badge-required">${requiredBadge}</span>`
+                  : `<span class="consent-badge consent-badge-optional">${optionalBadge}</span>`
               }
             </div>
             <p class="consent-category-desc">${sanitizeHtml(catConfig.description)}</p>
             ${
               associatedServices.length > 0
                 ? `<button type="button" class="consent-toggle-services-btn" data-target="cat-services-${catId}">
-                    Ver servicios (${associatedServices.length}) ▾
+                    ${viewServices} (${associatedServices.length}) ▾
                    </button>`
                 : ""
             }
@@ -146,8 +157,8 @@ export class PreferencesModal {
               const isHidden = targetEl.style.display === "none";
               targetEl.style.display = isHidden ? "block" : "none";
               toggleServicesBtn.textContent = isHidden
-                ? `Ocultar servicios (${associatedServices.length}) ▴`
-                : `Ver servicios (${associatedServices.length}) ▾`;
+                ? `${hideServices} (${associatedServices.length}) ▴`
+                : `${viewServices} (${associatedServices.length}) ▾`;
             }
           }
         });
@@ -185,6 +196,14 @@ export class PreferencesModal {
         handlers.onClose();
         this.close();
       });
+
+    // Close on clicking backdrop outside dialog
+    backdrop.addEventListener("click", (e) => {
+      if (e.target === backdrop) {
+        handlers.onClose();
+        this.close();
+      }
+    });
 
     footer
       .querySelector("#consent-pref-reject")
@@ -245,6 +264,10 @@ export class PreferencesModal {
     // Focus first element
     const firstFocusable = dialog.querySelector<HTMLElement>("button");
     firstFocusable?.focus();
+  }
+
+  getIsOpen(): boolean {
+    return this.backdrop !== null;
   }
 
   close(): void {

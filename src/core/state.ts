@@ -31,6 +31,10 @@ export class StateManager {
     };
   }
 
+  setLocale(locale: string): void {
+    this.state.locale = locale;
+  }
+
   getConfig(): ConsentConfig | null {
     return this.config;
   }

@@ -7,6 +7,7 @@ import type {
   ConsentSDKInterface,
   ConsentState,
   DiagnosticReport,
+  FloatingBadgeConfig,
 } from "./types.js";
 import { validateConfig } from "./config-validator.js";
 import { StateManager } from "./state.js";
@@ -20,8 +21,10 @@ import { GoogleConsentAdapter } from "../services/google.js";
 import { CustomServiceAdapter } from "../services/custom.js";
 import { ConsentBanner } from "../ui/banner.js";
 import { PreferencesModal } from "../ui/preferences.js";
+import { FloatingBadge } from "../ui/floating-badge.js";
 import { ResourceScanner } from "../diagnostics/resource-scanner.js";
 import { PolicyGenerator } from "../ui/policy-generator.js";
+import { I18nEngine } from "../i18n/engine.js";
 
 export class ConsentEngine implements ConsentSDKInterface {
   private stateManager = new StateManager();
@@ -29,6 +32,8 @@ export class ConsentEngine implements ConsentSDKInterface {
   private blockerRegistry = new BlockerRegistry();
   private banner = new ConsentBanner();
   private preferencesModal = new PreferencesModal();
+  private floatingBadge = new FloatingBadge();
+  private i18n = new I18nEngine();
 
   private initPromise: Promise<void> | null = null;
   private resolveReady: (() => void) | null = null;
@@ -56,6 +61,13 @@ export class ConsentEngine implements ConsentSDKInterface {
 
       validateConfig(config);
 
+      // Determine initial locale
+      let initialLocale = config.locale?.default || "es";
+      if (config.locale?.autoDetect) {
+        initialLocale = this.i18n.detectBrowserLocale(config.locale?.supported);
+      }
+      this.i18n.setLocale(initialLocale);
+
       // Load saved receipt from cookie or memory
       const cookieName = config.storage?.name || "site_consent";
       const rawReceipt =
@@ -68,6 +80,7 @@ export class ConsentEngine implements ConsentSDKInterface {
 
       const activeReceipt = evalResult.isValid ? savedReceipt : null;
       this.stateManager.init(config, evalResult.choices, activeReceipt);
+      this.stateManager.setLocale(initialLocale);
 
       // Initialize Google Consent Mode defaults
       GoogleConsentAdapter.initDefault();
@@ -94,6 +107,18 @@ export class ConsentEngine implements ConsentSDKInterface {
 
       // Attach global listeners for permanent revocation trigger [data-consent-open] and CustomEvents
       this.setupGlobalRevocationTrigger();
+
+      // Initialize Floating Badge if configured
+      const resolvedConfig = this.getResolvedConfig() || config;
+      const badgeConfig = this.resolveFloatingBadgeConfig(resolvedConfig);
+      if (badgeConfig.enabled) {
+        this.floatingBadge.render(resolvedConfig, {
+          onClick: () => this.openPreferences(),
+        });
+        if (evalResult.isValid || badgeConfig.visibility === "always") {
+          this.showFloatingBadge();
+        }
+      }
 
       this.resolveReady?.();
       this.eventBus.emit("ready", { state: this.getConsent() });
@@ -167,14 +192,27 @@ export class ConsentEngine implements ConsentSDKInterface {
   }
 
   openPreferences(): void {
-    const config = this.stateManager.getConfig();
+    const config = this.getResolvedConfig();
     if (!config) return;
 
+    // Temporarily hide floating badge while modal is active
+    this.hideFloatingBadge();
+
     this.preferencesModal.render(config, this.stateManager.getChoices(), {
-      onSave: (choices) => this.setPreferences(choices),
-      onAcceptAll: () => this.acceptAll(),
-      onRejectAll: () => this.rejectAll(),
+      onSave: (choices) => {
+        this.setPreferences(choices);
+        this.restoreFloatingBadgeIfNeeded();
+      },
+      onAcceptAll: () => {
+        this.acceptAll();
+        this.restoreFloatingBadgeIfNeeded();
+      },
+      onRejectAll: () => {
+        this.rejectAll();
+        this.restoreFloatingBadgeIfNeeded();
+      },
       onClose: () => {
+        this.restoreFloatingBadgeIfNeeded();
         this.eventBus.emit("preferences:closed", undefined);
       },
     });
@@ -184,6 +222,88 @@ export class ConsentEngine implements ConsentSDKInterface {
 
   closePreferences(): void {
     this.preferencesModal.close();
+    this.restoreFloatingBadgeIfNeeded();
+    this.eventBus.emit("preferences:closed", undefined);
+  }
+
+  getLocale(): string {
+    return this.i18n.getLocale();
+  }
+
+  setLocale(locale: string): void {
+    const previousLocale = this.i18n.getLocale();
+    if (locale.toLowerCase() === previousLocale.toLowerCase()) return;
+
+    this.i18n.setLocale(locale);
+    this.stateManager.setLocale(locale);
+
+    const config = this.getResolvedConfig();
+    if (!config) return;
+
+    // Re-render banner if visible
+    if (this.banner.getIsVisible()) {
+      this.banner.render(config, {
+        onAcceptAll: () => this.acceptAll(),
+        onRejectAll: () => this.rejectAll(),
+        onConfigure: () => this.openPreferences(),
+      });
+    }
+
+    // Re-render modal if open
+    if (this.preferencesModal.getIsOpen()) {
+      this.preferencesModal.render(config, this.stateManager.getChoices(), {
+        onSave: (choices) => {
+          this.setPreferences(choices);
+          this.restoreFloatingBadgeIfNeeded();
+        },
+        onAcceptAll: () => {
+          this.acceptAll();
+          this.restoreFloatingBadgeIfNeeded();
+        },
+        onRejectAll: () => {
+          this.rejectAll();
+          this.restoreFloatingBadgeIfNeeded();
+        },
+        onClose: () => {
+          this.restoreFloatingBadgeIfNeeded();
+          this.eventBus.emit("preferences:closed", undefined);
+        },
+      });
+    }
+
+    // Re-render floating badge if enabled
+    const badgeConfig = this.resolveFloatingBadgeConfig(config);
+    if (badgeConfig.enabled) {
+      const wasVisible = this.floatingBadge.getIsVisible();
+      this.floatingBadge.render(config, {
+        onClick: () => this.openPreferences(),
+      });
+      if (wasVisible) {
+        this.floatingBadge.show();
+      }
+    }
+
+    this.eventBus.emit("locale:changed", { locale, previousLocale });
+    this.dispatchDomEvent("solvenza:locale:changed", { locale, previousLocale });
+  }
+
+  private restoreFloatingBadgeIfNeeded(): void {
+    const config = this.getResolvedConfig();
+    if (!config) return;
+
+    const badgeConfig = this.resolveFloatingBadgeConfig(config);
+    if (!badgeConfig.enabled) return;
+
+    const hasReceipt = !!this.getReceipt();
+    if (hasReceipt || badgeConfig.visibility === "always") {
+      this.showFloatingBadge();
+    }
+  }
+
+  private getResolvedConfig(): ConsentConfig | null {
+    const rawConfig = this.stateManager.getConfig();
+    if (!rawConfig) return null;
+    return this.i18n.resolveConfig(rawConfig, this.getLocale());
   }
 
   withdraw(): void {
@@ -210,7 +330,32 @@ export class ConsentEngine implements ConsentSDKInterface {
     this.eventBus.emit("consent:withdrawn", { previousChoices });
     this.dispatchDomEvent("solvenza:updated", { choices: this.stateManager.getChoices() });
 
+    const badgeConfig = this.resolveFloatingBadgeConfig(this.getResolvedConfig() || config);
+    if (badgeConfig.enabled && badgeConfig.visibility !== "always") {
+      this.hideFloatingBadge();
+    }
+
     this.showBanner();
+  }
+
+  showFloatingBadge(): void {
+    const config = this.getResolvedConfig();
+    if (!config) return;
+    const badgeConfig = this.resolveFloatingBadgeConfig(config);
+    if (!badgeConfig.enabled) return;
+
+    if (!this.floatingBadge.hasElement()) {
+      this.floatingBadge.render(config, {
+        onClick: () => this.openPreferences(),
+      });
+    }
+    this.floatingBadge.show();
+    this.eventBus.emit("floating-badge:shown", undefined);
+  }
+
+  hideFloatingBadge(): void {
+    this.floatingBadge.hide();
+    this.eventBus.emit("floating-badge:hidden", undefined);
   }
 
   when(categoryOrService: string, callback: () => void): () => void {
@@ -316,13 +461,25 @@ export class ConsentEngine implements ConsentSDKInterface {
     }
 
     this.banner.remove();
+
+    const resolvedConfig = this.getResolvedConfig() || config;
+    const badgeConfig = this.resolveFloatingBadgeConfig(resolvedConfig);
+    if (badgeConfig.enabled) {
+      this.showFloatingBadge();
+    }
+
     this.eventBus.emit("consent:changed", { choices, receipt });
     this.dispatchDomEvent("solvenza:updated", { choices, receipt });
   }
 
   private showBanner(): void {
-    const config = this.stateManager.getConfig();
+    const config = this.getResolvedConfig() || this.stateManager.getConfig();
     if (!config) return;
+
+    const badgeConfig = this.resolveFloatingBadgeConfig(config);
+    if (badgeConfig.enabled && badgeConfig.visibility !== "always") {
+      this.hideFloatingBadge();
+    }
 
     this.banner.render(config, {
       onAcceptAll: () => this.acceptAll(),
@@ -352,6 +509,46 @@ export class ConsentEngine implements ConsentSDKInterface {
     document.addEventListener("solvenza:preferences", () => {
       this.openPreferences();
     });
+
+    document.addEventListener("solvenza:badge:show", () => {
+      this.showFloatingBadge();
+    });
+
+    document.addEventListener("solvenza:badge:hide", () => {
+      this.hideFloatingBadge();
+    });
+
+    document.addEventListener("solvenza:locale", (e: any) => {
+      if (e?.detail?.locale) {
+        this.setLocale(e.detail.locale);
+      }
+    });
+  }
+
+  private resolveFloatingBadgeConfig(
+    config?: ConsentConfig,
+  ): FloatingBadgeConfig & { enabled: boolean } {
+    const raw = config?.ui?.floatingBadge;
+    if (raw === true) {
+      return {
+        enabled: true,
+        position: "bottom-left",
+        icon: "cookie",
+        visibility: "after-consent",
+      };
+    }
+    if (typeof raw === "object" && raw !== null) {
+      return {
+        enabled: raw.enabled !== false,
+        position: raw.position || "bottom-left",
+        label: raw.label,
+        ariaLabel: raw.ariaLabel,
+        showLabel: raw.showLabel,
+        icon: raw.icon || "cookie",
+        visibility: raw.visibility || "after-consent",
+      };
+    }
+    return { enabled: false };
   }
 
   private dispatchDomEvent(name: string, detail: unknown): void {

@@ -21,13 +21,70 @@ export interface CategoryConfig {
   description: string;
 }
 
+export interface FloatingBadgeConfig {
+  enabled?: boolean;
+  position?: "bottom-left" | "bottom-right" | "top-left" | "top-right";
+  label?: string;
+  ariaLabel?: string;
+  tooltip?: string;
+  showLabel?: boolean;
+  icon?: "cookie" | "shield" | "settings";
+  visibility?: "always" | "after-consent";
+}
+
+export interface BannerUIConfig {
+  title?: string;
+  description?: string;
+  accept?: string;
+  reject?: string;
+  configure?: string;
+  cookiesPolicy?: string;
+  privacyPolicy?: string;
+  ariaLabel?: string;
+}
+
+export interface PreferencesUIConfig {
+  title?: string;
+  subtitle?: string;
+  save?: string;
+  acceptAll?: string;
+  rejectAll?: string;
+  closeLabel?: string;
+  requiredBadge?: string;
+  optionalBadge?: string;
+  servicesLabel?: string;
+  viewServices?: string;
+  hideServices?: string;
+  thirdParty?: string;
+}
+
+export interface TranslationConfig {
+  policy?: {
+    privacyUrl?: string;
+    cookiesUrl?: string;
+  };
+  ui?: {
+    banner?: BannerUIConfig;
+    preferences?: PreferencesUIConfig;
+    floatingBadge?: {
+      label?: string;
+      ariaLabel?: string;
+      tooltip?: string;
+    };
+  };
+  categories?: Record<string, { label?: string; description?: string }>;
+  services?: Record<string, { label?: string; provider?: string }>;
+}
+
 export interface ConsentConfig {
   schemaVersion: number;
   policyVersion: string;
   locale?: {
     default?: string;
     autoDetect?: boolean;
+    supported?: string[];
   };
+  translations?: Record<string, TranslationConfig>;
   security?: {
     secretKey?: string;
   };
@@ -57,19 +114,10 @@ export interface ConsentConfig {
   };
   ui?: {
     theme?: "auto" | "light" | "dark";
-    banner?: {
-      title?: string;
-      description?: string;
-      accept?: string;
-      reject?: string;
-      configure?: string;
-    };
-    preferences?: {
-      title?: string;
-      save?: string;
-      acceptAll?: string;
-      rejectAll?: string;
-    };
+    position?: "bottom" | "top" | "modal";
+    banner?: BannerUIConfig;
+    preferences?: PreferencesUIConfig;
+    floatingBadge?: boolean | FloatingBadgeConfig;
   };
 }
 
@@ -97,6 +145,9 @@ export type ConsentEvent =
   | "banner:shown"
   | "preferences:opened"
   | "preferences:closed"
+  | "floating-badge:shown"
+  | "floating-badge:hidden"
+  | "locale:changed"
   | "consent:changed"
   | "consent:accepted"
   | "consent:rejected"
@@ -112,6 +163,9 @@ export interface ConsentEventDetailMap {
   "banner:shown": void;
   "preferences:opened": void;
   "preferences:closed": void;
+  "floating-badge:shown": void;
+  "floating-badge:hidden": void;
+  "locale:changed": { locale: string; previousLocale: string };
   "consent:changed": { choices: ConsentChoices; receipt: ConsentReceipt };
   "consent:accepted": { choices: ConsentChoices; receipt: ConsentReceipt };
   "consent:rejected": { choices: ConsentChoices; receipt: ConsentReceipt };
@@ -141,6 +195,8 @@ export interface ConsentSDKInterface {
   init(config: ConsentConfig | string): Promise<void>;
   ready(): Promise<void>;
   getConsent(): ConsentState;
+  getLocale(): string;
+  setLocale(locale: string): void;
   has(category: string): boolean;
   hasService(service: string): boolean;
   acceptAll(): void;
@@ -149,6 +205,8 @@ export interface ConsentSDKInterface {
   openPreferences(): void;
   closePreferences(): void;
   withdraw(): void;
+  showFloatingBadge(): void;
+  hideFloatingBadge(): void;
   when(categoryOrService: string, callback: () => void): () => void;
   on<E extends ConsentEvent>(
     event: E,

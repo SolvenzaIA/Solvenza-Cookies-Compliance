@@ -30,17 +30,17 @@
         },
         "floatingBadge": {
           "label": "Cookies",
-          "tooltip": "Configure cookie preferences"
+          "tooltip": "Manage privacy & cookies"
         }
       },
       "categories": {
         "analytics": {
-          "label": "Usage Analytics",
-          "description": "Allows aggregated usage measurement."
+          "label": "Performance Metrics",
+          "description": "Helps us improve our website by collecting usage statistics."
         },
         "marketing": {
-          "label": "Marketing & Video",
-          "description": "Allows embedded video playback and personalization."
+          "label": "Marketing & Videos",
+          "description": "Allows personalized videos and third-party media embeds."
         }
       }
     }

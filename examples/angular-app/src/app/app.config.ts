@@ -13,6 +13,42 @@ export const appConfig: ApplicationConfig = {
           privacyUrl: "/politica-privacidad",
           cookiesUrl: "/politica-cookies",
         },
+        locale: {
+          default: "es",
+          autoDetect: true,
+        },
+        translations: {
+          en: {
+            policy: {
+              privacyUrl: "/en/privacy-policy",
+              cookiesUrl: "/en/cookie-policy",
+            },
+            ui: {
+              banner: {
+                title: "Your privacy, your choice",
+                accept: "Accept all",
+              },
+              floatingBadge: {
+                label: "Cookies",
+                tooltip: "Cookie settings",
+              },
+            },
+            categories: {
+              analytics: {
+                label: "Usage Analytics",
+                description: "Allows us to understand how users interact with our site.",
+              },
+            },
+          },
+        },
+        ui: {
+          floatingBadge: {
+            enabled: true,
+            position: "bottom-left",
+            icon: "cookie",
+            label: "Cookies",
+          },
+        },
         categories: {
           necessary: {
             required: true,

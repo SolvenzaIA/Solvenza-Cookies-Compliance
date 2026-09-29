@@ -1,5 +1,5 @@
-import { C as CategoryConfig, S as ServiceConfig, a as ConsentConfig, b as ConsentChoices, c as ConsentReceipt, D as DiagnosticReport } from './consent-engine-DOMyEKfk.cjs';
-export { d as Consent, e as ConsentEngine, f as ConsentEvent, g as ConsentEventDetailMap, h as ConsentEventHandler, i as ConsentSDKInterface, j as ConsentState } from './consent-engine-DOMyEKfk.cjs';
+import { T as TranslationConfig, F as FloatingBadgeConfig, C as CategoryConfig, S as ServiceConfig, a as ConsentConfig, b as ConsentChoices, c as ConsentReceipt, D as DiagnosticReport } from './consent-engine-DUzL8iz6.cjs';
+export { B as BannerUIConfig, d as Consent, e as ConsentEngine, f as ConsentEvent, g as ConsentEventDetailMap, h as ConsentEventHandler, i as ConsentSDKInterface, j as ConsentState, P as PreferencesUIConfig } from './consent-engine-DUzL8iz6.cjs';
 
 declare class ConsentConfigBuilder {
     private config;
@@ -7,7 +7,10 @@ declare class ConsentConfigBuilder {
     setSchemaVersion(version: number): this;
     setPolicyVersion(version: string): this;
     setPolicyUrls(privacyUrl: string, cookiesUrl: string): this;
-    setLocale(defaultLocale: string, autoDetect?: boolean): this;
+    setLocale(defaultLocale: string, autoDetect?: boolean, supported?: string[]): this;
+    setTranslations(translations: Record<string, TranslationConfig>): this;
+    addTranslation(locale: string, translation: TranslationConfig): this;
+    setFloatingBadge(badgeConfig: boolean | FloatingBadgeConfig): this;
     addCategory(id: string, category: CategoryConfig): this;
     addService(id: string, service: ServiceConfig): this;
     build(): ConsentConfig;
@@ -134,15 +137,35 @@ declare function computeReceiptSignature(payload: string, secretKey?: string): s
 declare function verifyReceiptIntegrity(payload: string, expectedSignature: string, secretKey?: string): boolean;
 declare function sanitizeHtml(str: string): string;
 
+declare const BUILTIN_TRANSLATIONS: Record<string, TranslationConfig>;
 declare class I18nEngine {
     private locale;
+    constructor(defaultLocale?: string);
     setLocale(locale: string): void;
     getLocale(): string;
-    detectBrowserLocale(): string;
+    detectBrowserLocale(supportedLocales?: string[]): string;
+    resolveConfig(config: ConsentConfig, targetLocale?: string): ConsentConfig;
+    private applyTranslation;
+    private filterDefined;
 }
 
 declare class PolicyGenerator {
     static renderTable(config: ConsentConfig): string;
 }
 
-export { CategoryConfig, ConfigValidationError, ConsentChoices, ConsentConfig, ConsentConfigBuilder, ConsentReceipt, CookieStorageProvider, CookieStore, DiagnosticReport, GoogleConsentAdapter, I18nEngine, IframeGate, IframeResourceBlocker, ImageResourceBlocker, MemoryStorageProvider, MemoryStore, PolicyGenerator, ResourceGate, ResourceScanner, ScriptGate, ScriptResourceBlocker, ServiceConfig, StorageFactory, computeReceiptSignature, createReceipt, isReceiptExpired, parseReceipt, sanitizeHtml, validateConfig, verifyReceiptIntegrity };
+interface FloatingBadgeHandlers {
+    onClick: () => void;
+}
+declare class FloatingBadge {
+    private element;
+    private isVisible;
+    private getIconSvg;
+    render(config: ConsentConfig, handlers: FloatingBadgeHandlers): void;
+    show(): void;
+    hide(): void;
+    getIsVisible(): boolean;
+    hasElement(): boolean;
+    remove(): void;
+}
+
+export { BUILTIN_TRANSLATIONS, CategoryConfig, ConfigValidationError, ConsentChoices, ConsentConfig, ConsentConfigBuilder, ConsentReceipt, CookieStorageProvider, CookieStore, DiagnosticReport, FloatingBadge, FloatingBadgeConfig, GoogleConsentAdapter, I18nEngine, IframeGate, IframeResourceBlocker, ImageResourceBlocker, MemoryStorageProvider, MemoryStore, PolicyGenerator, ResourceGate, ResourceScanner, ScriptGate, ScriptResourceBlocker, ServiceConfig, StorageFactory, TranslationConfig, computeReceiptSignature, createReceipt, isReceiptExpired, parseReceipt, sanitizeHtml, validateConfig, verifyReceiptIntegrity };

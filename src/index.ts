@@ -11,8 +11,9 @@ import { IframeResourceBlocker, IframeGate } from "./blocker/iframe-gate.js";
 import { ImageResourceBlocker, ResourceGate } from "./blocker/resource-gate.js";
 import { ResourceScanner } from "./diagnostics/resource-scanner.js";
 import { computeReceiptSignature, verifyReceiptIntegrity, sanitizeHtml } from "./core/security.js";
-import { I18nEngine } from "./i18n/engine.js";
+import { I18nEngine, BUILTIN_TRANSLATIONS } from "./i18n/engine.js";
 import { PolicyGenerator } from "./ui/policy-generator.js";
+import { FloatingBadge } from "./ui/floating-badge.js";
 
 export {
   Consent,
@@ -40,7 +41,9 @@ export {
   verifyReceiptIntegrity,
   sanitizeHtml,
   I18nEngine,
+  BUILTIN_TRANSLATIONS,
   PolicyGenerator,
+  FloatingBadge,
 };
 
 export type * from "./core/types.js";
@@ -53,6 +56,7 @@ if (typeof window !== "undefined") {
     ConsentConfigBuilder,
     validateConfig,
     PolicyGenerator,
+    FloatingBadge,
     ResourceScanner,
   };
 }

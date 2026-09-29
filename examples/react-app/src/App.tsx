@@ -7,10 +7,44 @@ import { CookiePolicyPage } from "./pages/CookiePolicyPage";
 export function App() {
   const [initialized, setInitialized] = useState(false);
   const [activeTab, setActiveTab] = useState<"demo" | "policy">("demo");
+  const [currentLocale, setCurrentLocale] = useState("es");
 
   useEffect(() => {
     const config = new ConsentConfigBuilder("2026-08-23")
       .setPolicyUrls("/politica-privacidad", "/politica-cookies")
+      .setLocale("es", true, ["es", "en"])
+      .setFloatingBadge({
+        enabled: true,
+        position: "bottom-left",
+        icon: "cookie",
+        label: "Cookies",
+      })
+      .addTranslation("en", {
+        policy: {
+          privacyUrl: "/en/privacy-policy",
+          cookiesUrl: "/en/cookie-policy",
+        },
+        ui: {
+          banner: {
+            title: "Your privacy, your choice",
+            accept: "Accept all",
+          },
+          floatingBadge: {
+            label: "Cookies",
+            tooltip: "Cookie preferences & revocation",
+          },
+        },
+        categories: {
+          analytics: {
+            label: "Usage Analytics",
+            description: "Allows aggregated usage measurement to improve the app.",
+          },
+          marketing: {
+            label: "Marketing & Video",
+            description: "Allows embedded video playback and personalization.",
+          },
+        },
+      })
       .addCategory("analytics", {
         required: false,
         label: "Analítica de uso",
@@ -33,7 +67,14 @@ export function App() {
       })
       .build();
 
-    void Consent.init(config).then(() => setInitialized(true));
+    Consent.on("locale:changed", ({ locale }) => {
+      setCurrentLocale(locale);
+    });
+
+    void Consent.init(config).then(() => {
+      setCurrentLocale(Consent.getLocale());
+      setInitialized(true);
+    });
   }, []);
 
   if (!initialized) return null;
@@ -71,38 +112,76 @@ export function App() {
           <span style={{ fontWeight: 700, fontSize: "1.05rem", letterSpacing: "-0.01em" }}>Solvenza Cookies Compliance</span>
         </div>
 
-        <nav style={{ display: "flex", gap: "0.4rem" }}>
-          <button
-            onClick={() => setActiveTab("demo")}
-            style={{
-              border: "none",
-              background: activeTab === "demo" ? "#f1f5f9" : "transparent",
-              color: activeTab === "demo" ? "#0f172a" : "#64748b",
-              padding: "0.5rem 0.9rem",
-              borderRadius: "8px",
-              fontWeight: 600,
-              fontSize: "0.88rem",
-              cursor: "pointer",
-            }}
-          >
-            Demostración
-          </button>
-          <button
-            onClick={() => setActiveTab("policy")}
-            style={{
-              border: "none",
-              background: activeTab === "policy" ? "#f1f5f9" : "transparent",
-              color: activeTab === "policy" ? "#0f172a" : "#64748b",
-              padding: "0.5rem 0.9rem",
-              borderRadius: "8px",
-              fontWeight: 600,
-              fontSize: "0.88rem",
-              cursor: "pointer",
-            }}
-          >
-            Política de Cookies
-          </button>
-        </nav>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          {/* Language Switcher */}
+          <div style={{ display: "flex", background: "#f1f5f9", borderRadius: "8px", padding: "2px" }}>
+            <button
+              onClick={() => Consent.setLocale("es")}
+              style={{
+                border: "none",
+                background: currentLocale === "es" ? "#ffffff" : "transparent",
+                color: currentLocale === "es" ? "#0f172a" : "#64748b",
+                boxShadow: currentLocale === "es" ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
+                padding: "0.3rem 0.6rem",
+                borderRadius: "6px",
+                fontWeight: 600,
+                fontSize: "0.8rem",
+                cursor: "pointer",
+              }}
+            >
+              ES
+            </button>
+            <button
+              onClick={() => Consent.setLocale("en")}
+              style={{
+                border: "none",
+                background: currentLocale === "en" ? "#ffffff" : "transparent",
+                color: currentLocale === "en" ? "#0f172a" : "#64748b",
+                boxShadow: currentLocale === "en" ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
+                padding: "0.3rem 0.6rem",
+                borderRadius: "6px",
+                fontWeight: 600,
+                fontSize: "0.8rem",
+                cursor: "pointer",
+              }}
+            >
+              EN
+            </button>
+          </div>
+
+          <nav style={{ display: "flex", gap: "0.4rem" }}>
+            <button
+              onClick={() => setActiveTab("demo")}
+              style={{
+                border: "none",
+                background: activeTab === "demo" ? "#f1f5f9" : "transparent",
+                color: activeTab === "demo" ? "#0f172a" : "#64748b",
+                padding: "0.5rem 0.9rem",
+                borderRadius: "8px",
+                fontWeight: 600,
+                fontSize: "0.88rem",
+                cursor: "pointer",
+              }}
+            >
+              {currentLocale === "en" ? "Demo" : "Demostración"}
+            </button>
+            <button
+              onClick={() => setActiveTab("policy")}
+              style={{
+                border: "none",
+                background: activeTab === "policy" ? "#f1f5f9" : "transparent",
+                color: activeTab === "policy" ? "#0f172a" : "#64748b",
+                padding: "0.5rem 0.9rem",
+                borderRadius: "8px",
+                fontWeight: 600,
+                fontSize: "0.88rem",
+                cursor: "pointer",
+              }}
+            >
+              {currentLocale === "en" ? "Cookie Policy" : "Política de Cookies"}
+            </button>
+          </nav>
+        </div>
       </header>
 
       {/* Main Content Area */}

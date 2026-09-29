@@ -1,4 +1,4 @@
-import { a as ConsentConfig, j as ConsentState, b as ConsentChoices, d as Consent } from '../consent-engine-DOMyEKfk.cjs';
+import { a as ConsentConfig, j as ConsentState, b as ConsentChoices, d as Consent } from '../consent-engine-DUzL8iz6.cjs';
 
 /**
  * Angular Consent Service helper.

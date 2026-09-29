@@ -1,4 +1,10 @@
-import type { CategoryConfig, ConsentConfig, ServiceConfig } from "../types.js";
+import type {
+  CategoryConfig,
+  ConsentConfig,
+  FloatingBadgeConfig,
+  ServiceConfig,
+  TranslationConfig,
+} from "../types.js";
 import { validateConfig } from "../config-validator.js";
 
 export class ConsentConfigBuilder {
@@ -30,11 +36,33 @@ export class ConsentConfigBuilder {
     return this;
   }
 
-  setLocale(defaultLocale: string, autoDetect = true): this {
+  setLocale(defaultLocale: string, autoDetect = true, supported?: string[]): this {
     this.config.locale = {
       default: defaultLocale,
       autoDetect,
+      supported,
     };
+    return this;
+  }
+
+  setTranslations(translations: Record<string, TranslationConfig>): this {
+    this.config.translations = translations;
+    return this;
+  }
+
+  addTranslation(locale: string, translation: TranslationConfig): this {
+    if (!this.config.translations) {
+      this.config.translations = {};
+    }
+    this.config.translations[locale.toLowerCase()] = translation;
+    return this;
+  }
+
+  setFloatingBadge(badgeConfig: boolean | FloatingBadgeConfig): this {
+    if (!this.config.ui) {
+      this.config.ui = {};
+    }
+    this.config.ui.floatingBadge = badgeConfig;
     return this;
   }
 
