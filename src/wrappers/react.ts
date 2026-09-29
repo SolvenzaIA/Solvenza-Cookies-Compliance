@@ -56,3 +56,33 @@ export function useConsentService(serviceId: string): boolean {
 
   return allowed;
 }
+
+/**
+ * React hook to reactively subscribe to the cookie consent library's active locale.
+ */
+export function useConsentLocale(): string {
+  const [locale, setLocale] = useState<string>(() => Consent.getLocale());
+
+  useEffect(() => {
+    const update = () => setLocale(Consent.getLocale());
+    update();
+    const unsub = Consent.on("locale:changed", (detail) => {
+      setLocale(detail.locale);
+    });
+    return () => unsub();
+  }, []);
+
+  return locale;
+}
+
+/**
+ * Zero-boilerplate React hook to synchronize parent application i18n state
+ * (such as react-i18next i18n.language or next-intl locale) with the consent library.
+ */
+export function useSyncConsentLocale(locale?: string): void {
+  useEffect(() => {
+    if (locale) {
+      Consent.syncLocale(locale);
+    }
+  }, [locale]);
+}

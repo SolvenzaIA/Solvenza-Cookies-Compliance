@@ -277,6 +277,114 @@ export class I18nEngine {
     return "es";
   }
 
+  isLocaleSupported(locale: string, config?: ConsentConfig): boolean {
+    const clean = locale.toLowerCase();
+    if (config?.locale?.supported && config.locale.supported.length > 0) {
+      return config.locale.supported.map((s) => s.toLowerCase()).includes(clean);
+    }
+    if (config?.translations && config.translations[clean]) {
+      return true;
+    }
+    if (BUILTIN_TRANSLATIONS[clean]) {
+      return true;
+    }
+    return clean === (config?.locale?.default || "es").toLowerCase();
+  }
+
+  detectParentLocale(config?: ConsentConfig): string {
+    const supported = config?.locale?.supported;
+    const defaultLocale = (config?.locale?.default || "es").toLowerCase();
+
+    // 1. Sync with parent application's <html lang="..."> tag (unless explicitly disabled)
+    if (config?.locale?.syncHtmlLang !== false && typeof document !== "undefined" && document.documentElement) {
+      const htmlLang = document.documentElement.lang;
+      if (htmlLang && htmlLang.trim().length > 0) {
+        const clean = htmlLang.split("-")[0].toLowerCase().trim();
+        if (this.isLocaleSupported(clean, config)) {
+          return clean;
+        }
+      }
+    }
+
+    // 2. Sync with parent application's URL path (/en/...) or query (?lang=en, ?locale=en)
+    if (config?.locale?.syncUrl !== false && typeof window !== "undefined" && window.location) {
+      const pathSegments = window.location.pathname.split("/").filter(Boolean);
+      if (pathSegments.length > 0) {
+        const potentialLang = pathSegments[0].toLowerCase();
+        if (this.isLocaleSupported(potentialLang, config)) {
+          return potentialLang;
+        }
+      }
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryLang = (urlParams.get("lang") || urlParams.get("locale"))?.toLowerCase();
+        if (queryLang && this.isLocaleSupported(queryLang, config)) {
+          return queryLang;
+        }
+      } catch {}
+    }
+
+    // 3. Auto-detect from browser navigator
+    if (config?.locale?.autoDetect) {
+      return this.detectBrowserLocale(supported);
+    }
+
+    return defaultLocale;
+  }
+
+  startParentSync(
+    config: ConsentConfig,
+    onLocaleChange: (newLocale: string) => void,
+  ): () => void {
+    const cleanups: (() => void)[] = [];
+
+    // 1. Observe <html lang="..."> attribute changes made by parent framework (Next.js, React, Angular, etc.)
+    if (
+      config.locale?.syncHtmlLang !== false &&
+      typeof document !== "undefined" &&
+      typeof MutationObserver !== "undefined" &&
+      document.documentElement
+    ) {
+      const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          if (mutation.type === "attributes" && mutation.attributeName === "lang") {
+            const rawLang = document.documentElement.lang;
+            if (rawLang && rawLang.trim().length > 0) {
+              const clean = rawLang.split("-")[0].toLowerCase().trim();
+              if (this.isLocaleSupported(clean, config) && clean !== this.locale) {
+                onLocaleChange(clean);
+              }
+            }
+          }
+        }
+      });
+
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["lang"],
+      });
+
+      cleanups.push(() => observer.disconnect());
+    }
+
+    // 2. Listen to system language changes if autoDetect is enabled
+    if (config.locale?.autoDetect && typeof window !== "undefined") {
+      const handleLangChange = () => {
+        const detected = this.detectBrowserLocale(config.locale?.supported);
+        if (detected !== this.locale) {
+          onLocaleChange(detected);
+        }
+      };
+
+      window.addEventListener("languagechange", handleLangChange);
+      cleanups.push(() => window.removeEventListener("languagechange", handleLangChange));
+    }
+
+    return () => {
+      cleanups.forEach((cleanup) => cleanup());
+    };
+  }
+
   resolveConfig(config: ConsentConfig, targetLocale?: string): ConsentConfig {
     const baseLocale = (config.locale?.default || "es").toLowerCase();
     const locale = (targetLocale || this.locale || baseLocale).toLowerCase();

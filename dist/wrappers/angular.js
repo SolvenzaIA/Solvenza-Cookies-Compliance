@@ -1,6 +1,6 @@
 import {
   Consent
-} from "../chunk-D4ZDUIXH.js";
+} from "../chunk-ZFUPOORM.js";
 import "../chunk-DDAAVRWG.js";
 
 // src/wrappers/angular.ts
@@ -10,6 +10,19 @@ var ConsentService = class {
   }
   getConsent() {
     return Consent.getConsent();
+  }
+  getLocale() {
+    return Consent.getLocale();
+  }
+  setLocale(locale) {
+    Consent.setLocale(locale);
+  }
+  /**
+   * Synchronize parent Angular application i18n state (@ngx-translate, Transloco, or custom)
+   * with the cookie compliance engine without boilerplate.
+   */
+  syncLocale(locale) {
+    Consent.syncLocale(locale);
   }
   has(category) {
     return Consent.has(category);

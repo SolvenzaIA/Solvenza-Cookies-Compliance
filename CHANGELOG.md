@@ -9,14 +9,18 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 ## [1.4.0] - 2026-09-30
 
 ### Añadido
-- **Sistema de Internacionalización y Multilingüe (`i18n`)**:
-  - Configuración declarativa mediante `translations` en `ConsentConfig` y `schema.json` para personalizar traducciones por locale (`es`, `en`, `ca`, `eu`, `gl` u otros códigos ISO).
-  - Diccionarios integrados oficiales (`BUILTIN_TRANSLATIONS`) para Español (`es`), Inglés (`en`), Catalán (`ca`), Euskera (`eu`) y Gallego (`gl`).
-  - Resolución inteligente con herencia y fallbacks: traduce banners, modal de preferencias, insignias requeridas/opcionales, enlaces a políticas y botón flotante, manteniendo los valores base para campos no especificados.
-  - Métodos programáticos `Consent.setLocale(locale: string)` y `Consent.getLocale(): string`.
+- **Mecanismo de Sincronización Multilingüe con la Aplicación Padre (`i18n` Zero Boilerplate)**:
+  - **Sin selectores intrusivos**: El banner y el modal de preferencias no añaden desplegables ni selectores de idioma propios, garantizando que la aplicación padre sea la única fuente de verdad sobre el idioma del usuario.
+  - **Observador reactivo del documento**: Integración nativa de `MutationObserver` en `document.documentElement` para detectar cambios dinámicos en `<html lang="...">` y sincronizar banner, modal y badge al instante sin recarga ni código adicional.
+  - **Detección por URL y Query Params**: Detección de rutas prefijadas (`/en/`, `/ca/`) y parámetros de búsqueda (`?lang=en`, `?locale=en`).
+  - **Método programático `syncLocale(locale)`**: Incorporado en `ConsentEngine` e interfaz `ConsentSDKInterface` para sincronizar con cualquier almacén de estado.
+  - **React Hooks**: Nuevos hooks `useSyncConsentLocale(locale)` (sincronización de 1 línea con el estado de React) y `useConsentLocale()` (suscripción reactiva al locale activo).
+  - **Angular Helper**: Nuevos métodos `consentService.syncLocale(locale)` y `consentService.getLocale()` en `ConsentService`.
+  - **Next.js Wrapper**: Soporte para `initialLocale` en `initNextConsent(configUrl, initialLocale)`.
+  - **Diccionarios integrados oficiales** (`BUILTIN_TRANSLATIONS`) para Español (`es`), Inglés (`en`), Catalán (`ca`), Euskera (`eu`) y Gallego (`gl`).
+  - **Resolución con herencia y fallbacks**: Soporte de traducciones personalizadas mediante `translations` en `consent.json` y `schema.json`.
   - Evento de bus `locale:changed` (`{ locale, previousLocale }`) y CustomEvent del DOM `solvenza:locale:changed`.
-  - Capacidad de conmutar idiomas sin código mediante el evento DOM `solvenza:locale` con `detail: { locale: 'en' }`.
-  - Métodos encadenables `ConsentConfigBuilder.setTranslations(...)` y `ConsentConfigBuilder.addTranslation(locale, ...)`.
+  - Métodos encadenables en `ConsentConfigBuilder`: `setTranslations(...)` y `addTranslation(locale, ...)`.
 - **Restauración y Ciclo de Vida del Elemento Flotante (`FloatingBadge`) al Cerrar Modal**:
   - Ocultación temporal y limpia del botón flotante mientras el modal de preferencias esté abierto para evitar superposiciones.
   - Reaparición automática del botón flotante tan pronto como el modal de preferencias se cierra (ya sea por clic en botón cerrar 'X', clic en backdrop, tecla Escape, guardar selección, permitir todas, rechazar opcionales o vía `Consent.closePreferences()`).

@@ -2126,6 +2126,93 @@ var I18nEngine = class {
     }
     return "es";
   }
+  isLocaleSupported(locale, config) {
+    var _a, _b;
+    const clean = locale.toLowerCase();
+    if (((_a = config == null ? void 0 : config.locale) == null ? void 0 : _a.supported) && config.locale.supported.length > 0) {
+      return config.locale.supported.map((s) => s.toLowerCase()).includes(clean);
+    }
+    if ((config == null ? void 0 : config.translations) && config.translations[clean]) {
+      return true;
+    }
+    if (BUILTIN_TRANSLATIONS[clean]) {
+      return true;
+    }
+    return clean === (((_b = config == null ? void 0 : config.locale) == null ? void 0 : _b.default) || "es").toLowerCase();
+  }
+  detectParentLocale(config) {
+    var _a, _b, _c, _d, _e, _f;
+    const supported = (_a = config == null ? void 0 : config.locale) == null ? void 0 : _a.supported;
+    const defaultLocale = (((_b = config == null ? void 0 : config.locale) == null ? void 0 : _b.default) || "es").toLowerCase();
+    if (((_c = config == null ? void 0 : config.locale) == null ? void 0 : _c.syncHtmlLang) !== false && typeof document !== "undefined" && document.documentElement) {
+      const htmlLang = document.documentElement.lang;
+      if (htmlLang && htmlLang.trim().length > 0) {
+        const clean = htmlLang.split("-")[0].toLowerCase().trim();
+        if (this.isLocaleSupported(clean, config)) {
+          return clean;
+        }
+      }
+    }
+    if (((_d = config == null ? void 0 : config.locale) == null ? void 0 : _d.syncUrl) !== false && typeof window !== "undefined" && window.location) {
+      const pathSegments = window.location.pathname.split("/").filter(Boolean);
+      if (pathSegments.length > 0) {
+        const potentialLang = pathSegments[0].toLowerCase();
+        if (this.isLocaleSupported(potentialLang, config)) {
+          return potentialLang;
+        }
+      }
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryLang = (_e = urlParams.get("lang") || urlParams.get("locale")) == null ? void 0 : _e.toLowerCase();
+        if (queryLang && this.isLocaleSupported(queryLang, config)) {
+          return queryLang;
+        }
+      } catch (e) {
+      }
+    }
+    if ((_f = config == null ? void 0 : config.locale) == null ? void 0 : _f.autoDetect) {
+      return this.detectBrowserLocale(supported);
+    }
+    return defaultLocale;
+  }
+  startParentSync(config, onLocaleChange) {
+    var _a, _b;
+    const cleanups = [];
+    if (((_a = config.locale) == null ? void 0 : _a.syncHtmlLang) !== false && typeof document !== "undefined" && typeof MutationObserver !== "undefined" && document.documentElement) {
+      const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          if (mutation.type === "attributes" && mutation.attributeName === "lang") {
+            const rawLang = document.documentElement.lang;
+            if (rawLang && rawLang.trim().length > 0) {
+              const clean = rawLang.split("-")[0].toLowerCase().trim();
+              if (this.isLocaleSupported(clean, config) && clean !== this.locale) {
+                onLocaleChange(clean);
+              }
+            }
+          }
+        }
+      });
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["lang"]
+      });
+      cleanups.push(() => observer.disconnect());
+    }
+    if (((_b = config.locale) == null ? void 0 : _b.autoDetect) && typeof window !== "undefined") {
+      const handleLangChange = () => {
+        var _a2;
+        const detected = this.detectBrowserLocale((_a2 = config.locale) == null ? void 0 : _a2.supported);
+        if (detected !== this.locale) {
+          onLocaleChange(detected);
+        }
+      };
+      window.addEventListener("languagechange", handleLangChange);
+      cleanups.push(() => window.removeEventListener("languagechange", handleLangChange));
+    }
+    return () => {
+      cleanups.forEach((cleanup) => cleanup());
+    };
+  }
   resolveConfig(config, targetLocale) {
     var _a, _b;
     const baseLocale = (((_a = config.locale) == null ? void 0 : _a.default) || "es").toLowerCase();
@@ -2232,6 +2319,7 @@ var ConsentEngine = class {
     this.preferencesModal = new PreferencesModal();
     this.floatingBadge = new FloatingBadge();
     this.i18n = new I18nEngine();
+    this.stopLocaleSync = null;
     this.initPromise = null;
     this.resolveReady = null;
     this.readyPromise = new Promise((resolve) => {
@@ -2241,7 +2329,7 @@ var ConsentEngine = class {
   async init(configInput) {
     if (this.initPromise) return this.initPromise;
     this.initPromise = (async () => {
-      var _a, _b, _c, _d, _e, _f;
+      var _a, _b, _c, _d;
       let config;
       if (typeof configInput === "string") {
         const response = await fetch(configInput);
@@ -2255,13 +2343,14 @@ var ConsentEngine = class {
         config = configInput;
       }
       validateConfig(config);
-      let initialLocale = ((_a = config.locale) == null ? void 0 : _a.default) || "es";
-      if ((_b = config.locale) == null ? void 0 : _b.autoDetect) {
-        initialLocale = this.i18n.detectBrowserLocale((_c = config.locale) == null ? void 0 : _c.supported);
-      }
+      const initialLocale = this.i18n.detectParentLocale(config);
       this.i18n.setLocale(initialLocale);
-      const cookieName = ((_d = config.storage) == null ? void 0 : _d.name) || "site_consent";
-      const rawReceipt = ((_e = config.storage) == null ? void 0 : _e.type) === "memory" ? MemoryStore.get(cookieName) : CookieStore.get(cookieName);
+      (_a = this.stopLocaleSync) == null ? void 0 : _a.call(this);
+      this.stopLocaleSync = this.i18n.startParentSync(config, (newLocale) => {
+        this.setLocale(newLocale);
+      });
+      const cookieName = ((_b = config.storage) == null ? void 0 : _b.name) || "site_consent";
+      const rawReceipt = ((_c = config.storage) == null ? void 0 : _c.type) === "memory" ? MemoryStore.get(cookieName) : CookieStore.get(cookieName);
       const savedReceipt = rawReceipt ? parseReceipt(rawReceipt) : null;
       const evalResult = evaluatePolicy(config, savedReceipt);
       const activeReceipt = evalResult.isValid ? savedReceipt : null;
@@ -2297,7 +2386,7 @@ var ConsentEngine = class {
           this.showFloatingBadge();
         }
       }
-      (_f = this.resolveReady) == null ? void 0 : _f.call(this);
+      (_d = this.resolveReady) == null ? void 0 : _d.call(this);
       this.eventBus.emit("ready", { state: this.getConsent() });
       if (!evalResult.isValid) {
         this.showBanner();
@@ -2428,6 +2517,12 @@ var ConsentEngine = class {
     }
     this.eventBus.emit("locale:changed", { locale, previousLocale });
     this.dispatchDomEvent("solvenza:locale:changed", { locale, previousLocale });
+  }
+  /**
+   * Synchronize active locale with parent application i18n state.
+   */
+  syncLocale(locale) {
+    this.setLocale(locale);
   }
   restoreFloatingBadgeIfNeeded() {
     const config = this.getResolvedConfig();
@@ -2656,9 +2751,13 @@ if (!globalScope.__ConsentSDK_Instance__) {
 var Consent = globalScope.__ConsentSDK_Instance__;
 
 // src/wrappers/next.ts
-function initNextConsent(configUrl = "/consent.json") {
+function initNextConsent(configUrl = "/consent.json", initialLocale) {
   if (typeof window !== "undefined") {
-    void Consent.init(configUrl);
+    void Consent.init(configUrl).then(() => {
+      if (initialLocale) {
+        Consent.syncLocale(initialLocale);
+      }
+    });
   }
 }
 // Annotate the CommonJS export names for ESM import in node:

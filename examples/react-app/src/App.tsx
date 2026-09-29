@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Consent, ConsentConfigBuilder } from "@solvenza/cookies-compliance";
+import { useSyncConsentLocale } from "@solvenza/cookies-compliance/react";
 import { AnalyticsTracker } from "./components/AnalyticsTracker";
 import { YouTubeWidget } from "./components/YouTubeWidget";
 import { CookiePolicyPage } from "./pages/CookiePolicyPage";
@@ -7,7 +8,10 @@ import { CookiePolicyPage } from "./pages/CookiePolicyPage";
 export function App() {
   const [initialized, setInitialized] = useState(false);
   const [activeTab, setActiveTab] = useState<"demo" | "policy">("demo");
-  const [currentLocale, setCurrentLocale] = useState("es");
+  const [parentAppLocale, setParentAppLocale] = useState("es");
+
+  // Zero-boilerplate hook: when the parent React app changes language, the cookie engine syncs automatically
+  useSyncConsentLocale(parentAppLocale);
 
   useEffect(() => {
     const config = new ConsentConfigBuilder("2026-08-23")
@@ -67,12 +71,7 @@ export function App() {
       })
       .build();
 
-    Consent.on("locale:changed", ({ locale }) => {
-      setCurrentLocale(locale);
-    });
-
     void Consent.init(config).then(() => {
-      setCurrentLocale(Consent.getLocale());
       setInitialized(true);
     });
   }, []);
@@ -113,15 +112,15 @@ export function App() {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          {/* Language Switcher */}
+          {/* Host App Language Switcher (automatically synced to cookie engine via useSyncConsentLocale) */}
           <div style={{ display: "flex", background: "#f1f5f9", borderRadius: "8px", padding: "2px" }}>
             <button
-              onClick={() => Consent.setLocale("es")}
+              onClick={() => setParentAppLocale("es")}
               style={{
                 border: "none",
-                background: currentLocale === "es" ? "#ffffff" : "transparent",
-                color: currentLocale === "es" ? "#0f172a" : "#64748b",
-                boxShadow: currentLocale === "es" ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
+                background: parentAppLocale === "es" ? "#ffffff" : "transparent",
+                color: parentAppLocale === "es" ? "#0f172a" : "#64748b",
+                boxShadow: parentAppLocale === "es" ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
                 padding: "0.3rem 0.6rem",
                 borderRadius: "6px",
                 fontWeight: 600,
@@ -132,12 +131,12 @@ export function App() {
               ES
             </button>
             <button
-              onClick={() => Consent.setLocale("en")}
+              onClick={() => setParentAppLocale("en")}
               style={{
                 border: "none",
-                background: currentLocale === "en" ? "#ffffff" : "transparent",
-                color: currentLocale === "en" ? "#0f172a" : "#64748b",
-                boxShadow: currentLocale === "en" ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
+                background: parentAppLocale === "en" ? "#ffffff" : "transparent",
+                color: parentAppLocale === "en" ? "#0f172a" : "#64748b",
+                boxShadow: parentAppLocale === "en" ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
                 padding: "0.3rem 0.6rem",
                 borderRadius: "6px",
                 fontWeight: 600,
@@ -163,7 +162,7 @@ export function App() {
                 cursor: "pointer",
               }}
             >
-              {currentLocale === "en" ? "Demo" : "Demostración"}
+              {parentAppLocale === "en" ? "Demo" : "Demostración"}
             </button>
             <button
               onClick={() => setActiveTab("policy")}
@@ -178,7 +177,7 @@ export function App() {
                 cursor: "pointer",
               }}
             >
-              {currentLocale === "en" ? "Cookie Policy" : "Política de Cookies"}
+              {parentAppLocale === "en" ? "Cookie Policy" : "Política de Cookies"}
             </button>
           </nav>
         </div>

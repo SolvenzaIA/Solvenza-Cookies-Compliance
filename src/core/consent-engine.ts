@@ -34,6 +34,7 @@ export class ConsentEngine implements ConsentSDKInterface {
   private preferencesModal = new PreferencesModal();
   private floatingBadge = new FloatingBadge();
   private i18n = new I18nEngine();
+  private stopLocaleSync: (() => void) | null = null;
 
   private initPromise: Promise<void> | null = null;
   private resolveReady: (() => void) | null = null;
@@ -61,12 +62,15 @@ export class ConsentEngine implements ConsentSDKInterface {
 
       validateConfig(config);
 
-      // Determine initial locale
-      let initialLocale = config.locale?.default || "es";
-      if (config.locale?.autoDetect) {
-        initialLocale = this.i18n.detectBrowserLocale(config.locale?.supported);
-      }
+      // Determine initial locale from parent application (<html lang>, URL, navigator, or default)
+      const initialLocale = this.i18n.detectParentLocale(config);
       this.i18n.setLocale(initialLocale);
+
+      // Start zero-boilerplate automatic synchronization with parent application i18n
+      this.stopLocaleSync?.();
+      this.stopLocaleSync = this.i18n.startParentSync(config, (newLocale) => {
+        this.setLocale(newLocale);
+      });
 
       // Load saved receipt from cookie or memory
       const cookieName = config.storage?.name || "site_consent";
@@ -285,6 +289,13 @@ export class ConsentEngine implements ConsentSDKInterface {
 
     this.eventBus.emit("locale:changed", { locale, previousLocale });
     this.dispatchDomEvent("solvenza:locale:changed", { locale, previousLocale });
+  }
+
+  /**
+   * Synchronize active locale with parent application i18n state.
+   */
+  syncLocale(locale: string): void {
+    this.setLocale(locale);
   }
 
   private restoreFloatingBadgeIfNeeded(): void {

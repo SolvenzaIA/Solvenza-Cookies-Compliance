@@ -14,6 +14,7 @@ class MockElement {
     this._className = val;
     this.classList._classes = new Set(val.split(" ").filter(Boolean));
   }
+  lang: string = "";
   innerHTML: string = "";
   attributes: Record<string, string> = {};
   children: MockElement[] = [];
@@ -234,15 +235,34 @@ describe("I18nEngine Unit Tests", () => {
   });
 });
 
+class MockMutationObserver {
+  static instances: MockMutationObserver[] = [];
+  cb: (mutations: any[]) => void;
+  constructor(cb: (mutations: any[]) => void) {
+    this.cb = cb;
+    MockMutationObserver.instances.push(this);
+  }
+  observe() {}
+  disconnect() {
+    MockMutationObserver.instances = MockMutationObserver.instances.filter((i) => i !== this);
+  }
+  trigger(mutations: any[]) {
+    this.cb(mutations);
+  }
+}
+
 describe("ConsentEngine i18n Integration", () => {
   let engine: ConsentEngine;
   const originalDoc = (globalThis as any).document;
+  const originalMutationObserver = (globalThis as any).MutationObserver;
 
   const testConfig: ConsentConfig = {
     schemaVersion: 1,
     policyVersion: "2026-08-22",
     locale: {
       default: "es",
+      syncHtmlLang: true,
+      supported: ["es", "en", "ca", "eu", "gl"],
     },
     storage: { type: "memory" },
     categories: {
@@ -272,10 +292,21 @@ describe("ConsentEngine i18n Integration", () => {
           },
         },
       },
+      ca: {
+        ui: {
+          banner: {
+            title: "Control de Galetes",
+            accept: "Acceptar",
+          },
+        },
+      },
     },
   };
 
   beforeEach(() => {
+    MockMutationObserver.instances = [];
+    (globalThis as any).MutationObserver = MockMutationObserver;
+
     const body = new MockElement("BODY");
     const head = new MockElement("HEAD");
     (globalThis as any).document = {
@@ -295,6 +326,7 @@ describe("ConsentEngine i18n Integration", () => {
 
   afterEach(() => {
     (globalThis as any).document = originalDoc;
+    (globalThis as any).MutationObserver = originalMutationObserver;
   });
 
   it("should initialize with default locale and allow switching locale dynamically", async () => {
@@ -315,6 +347,38 @@ describe("ConsentEngine i18n Integration", () => {
       locale: "en",
       previousLocale: "es",
     });
+  });
+
+  it("should sync locale via syncLocale method", async () => {
+    await engine.init(testConfig);
+    expect(engine.getLocale()).toBe("es");
+
+    engine.syncLocale("en");
+    expect(engine.getLocale()).toBe("en");
+    expect(engine.getConsent().locale).toBe("en");
+  });
+
+  it("should automatically detect parent <html lang> on init without boilerplate", async () => {
+    (globalThis as any).document.documentElement.lang = "en";
+    await engine.init(testConfig);
+    expect(engine.getLocale()).toBe("en");
+    expect(engine.getConsent().locale).toBe("en");
+  });
+
+  it("should automatically synchronize when parent app changes <html lang> via MutationObserver", async () => {
+    await engine.init(testConfig);
+    expect(engine.getLocale()).toBe("es");
+
+    // Parent application (e.g. Next.js, React, or Angular) changes <html lang="ca">
+    (globalThis as any).document.documentElement.lang = "ca";
+
+    // MutationObserver detects attribute change
+    MockMutationObserver.instances.forEach((obs) => {
+      obs.trigger([{ type: "attributes", attributeName: "lang" }]);
+    });
+
+    expect(engine.getLocale()).toBe("ca");
+    expect(engine.getConsent().locale).toBe("ca");
   });
 
   it("should re-render banner with new translations when locale changes", async () => {
@@ -358,3 +422,4 @@ describe("ConsentEngine i18n Integration", () => {
     expect(config.translations?.ca.ui?.banner?.title).toBe("Builder Catalan Title");
   });
 });
+

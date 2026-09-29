@@ -14,6 +14,22 @@ export class ConsentService {
     return Consent.getConsent();
   }
 
+  getLocale(): string {
+    return Consent.getLocale();
+  }
+
+  setLocale(locale: string): void {
+    Consent.setLocale(locale);
+  }
+
+  /**
+   * Synchronize parent Angular application i18n state (@ngx-translate, Transloco, or custom)
+   * with the cookie compliance engine without boilerplate.
+   */
+  syncLocale(locale: string): void {
+    Consent.syncLocale(locale);
+  }
+
   has(category: string): boolean {
     return Consent.has(category);
   }

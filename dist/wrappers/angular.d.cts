@@ -1,4 +1,4 @@
-import { a as ConsentConfig, j as ConsentState, b as ConsentChoices, d as Consent } from '../consent-engine-DUzL8iz6.cjs';
+import { a as ConsentConfig, j as ConsentState, b as ConsentChoices, d as Consent } from '../consent-engine-DdqvmKFJ.cjs';
 
 /**
  * Angular Consent Service helper.
@@ -7,6 +7,13 @@ import { a as ConsentConfig, j as ConsentState, b as ConsentChoices, d as Consen
 declare class ConsentService {
     init(config: ConsentConfig | string): Promise<void>;
     getConsent(): ConsentState;
+    getLocale(): string;
+    setLocale(locale: string): void;
+    /**
+     * Synchronize parent Angular application i18n state (@ngx-translate, Transloco, or custom)
+     * with the cookie compliance engine without boilerplate.
+     */
+    syncLocale(locale: string): void;
     has(category: string): boolean;
     hasService(serviceId: string): boolean;
     acceptAll(): void;

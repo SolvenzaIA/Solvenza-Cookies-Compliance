@@ -1,6 +1,6 @@
 import {
   Consent
-} from "../chunk-D4ZDUIXH.js";
+} from "../chunk-ZFUPOORM.js";
 import "../chunk-DDAAVRWG.js";
 
 // src/wrappers/react.ts
@@ -49,8 +49,29 @@ function useConsentService(serviceId) {
   }, [serviceId]);
   return allowed;
 }
+function useConsentLocale() {
+  const [locale, setLocale] = useState(() => Consent.getLocale());
+  useEffect(() => {
+    const update = () => setLocale(Consent.getLocale());
+    update();
+    const unsub = Consent.on("locale:changed", (detail) => {
+      setLocale(detail.locale);
+    });
+    return () => unsub();
+  }, []);
+  return locale;
+}
+function useSyncConsentLocale(locale) {
+  useEffect(() => {
+    if (locale) {
+      Consent.syncLocale(locale);
+    }
+  }, [locale]);
+}
 export {
   useConsent,
-  useConsentService
+  useConsentLocale,
+  useConsentService,
+  useSyncConsentLocale
 };
 //# sourceMappingURL=react.js.map

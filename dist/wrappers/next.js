@@ -1,12 +1,16 @@
 import {
   Consent
-} from "../chunk-D4ZDUIXH.js";
+} from "../chunk-ZFUPOORM.js";
 import "../chunk-DDAAVRWG.js";
 
 // src/wrappers/next.ts
-function initNextConsent(configUrl = "/consent.json") {
+function initNextConsent(configUrl = "/consent.json", initialLocale) {
   if (typeof window !== "undefined") {
-    void Consent.init(configUrl);
+    void Consent.init(configUrl).then(() => {
+      if (initialLocale) {
+        Consent.syncLocale(initialLocale);
+      }
+    });
   }
 }
 export {

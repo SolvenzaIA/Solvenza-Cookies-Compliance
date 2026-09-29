@@ -1,5 +1,5 @@
-import { T as TranslationConfig, F as FloatingBadgeConfig, C as CategoryConfig, S as ServiceConfig, a as ConsentConfig, b as ConsentChoices, c as ConsentReceipt, D as DiagnosticReport } from './consent-engine-DUzL8iz6.js';
-export { B as BannerUIConfig, d as Consent, e as ConsentEngine, f as ConsentEvent, g as ConsentEventDetailMap, h as ConsentEventHandler, i as ConsentSDKInterface, j as ConsentState, P as PreferencesUIConfig } from './consent-engine-DUzL8iz6.js';
+import { T as TranslationConfig, F as FloatingBadgeConfig, C as CategoryConfig, S as ServiceConfig, a as ConsentConfig, b as ConsentChoices, c as ConsentReceipt, D as DiagnosticReport } from './consent-engine-DdqvmKFJ.js';
+export { B as BannerUIConfig, d as Consent, e as ConsentEngine, f as ConsentEvent, g as ConsentEventDetailMap, h as ConsentEventHandler, i as ConsentSDKInterface, j as ConsentState, L as LocaleConfig, P as PreferencesUIConfig } from './consent-engine-DdqvmKFJ.js';
 
 declare class ConsentConfigBuilder {
     private config;
@@ -144,6 +144,9 @@ declare class I18nEngine {
     setLocale(locale: string): void;
     getLocale(): string;
     detectBrowserLocale(supportedLocales?: string[]): string;
+    isLocaleSupported(locale: string, config?: ConsentConfig): boolean;
+    detectParentLocale(config?: ConsentConfig): string;
+    startParentSync(config: ConsentConfig, onLocaleChange: (newLocale: string) => void): () => void;
     resolveConfig(config: ConsentConfig, targetLocale?: string): ConsentConfig;
     private applyTranslation;
     private filterDefined;

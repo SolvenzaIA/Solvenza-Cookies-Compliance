@@ -150,12 +150,25 @@ document.dispatchEvent(new Event("solvenza:badge:hide"));
 
 ---
 
-## Internacionalización y Multi-idioma (i18n)
+## Internacionalización y Sincronización Multilingüe (i18n)
 
-El SDK cuenta con un motor de internacionalización nativo y reactivo (`I18nEngine`) con diccionarios integrados y soporte para traducciones personalizadas en la configuración.
+El sistema de internacionalización (`I18nEngine`) está diseñado bajo el principio de **cero boilerplate** y **sincronización transparente con la aplicación padre**:
+
+> [!NOTE]
+> **Sin selectores invasivos en el banner**: La librería **no** incluye selectores ni desplegables de idioma dentro del banner ni del modal de preferencias. El idioma de navegación es responsabilidad exclusiva de la aplicación anfitriona (padre). El banner y el modal se adaptan y sincronizan automáticamente al idioma de la web en tiempo real.
+
+### Mecanismos de Sincronización Automática (Zero Boilerplate)
+
+1. **Observador Reactivo del HTML (`<html lang="...">`)**:
+   - La librería observa dinámicamente mediante `MutationObserver` el atributo `lang` en `document.documentElement`.
+   - Cuando tu aplicación padre cambia de idioma (ej. `document.documentElement.lang = "en"`), el banner, modal y botón flotante se traducen y renderizan de inmediato **sin requerir reinicialización ni código de pegamento**.
+2. **Detección Automática por Ruta y Query Params**:
+   - Detecta prefijos en la URL (como `/en/...` o `/ca/...`) o parámetros de consulta (`?lang=en`, `?locale=en`).
+3. **Sincronización Directa de Estado (`Consent.syncLocale`)**:
+   - Función declarativa para enlazar el estado de traducción de tu aplicación (`react-i18next`, `next-intl`, `@ngx-translate`, etc.).
 
 ### Idiomas Integrados por Defecto
-El SDK incluye diccionarios oficiales para la normativa española y europea:
+El SDK incluye diccionarios oficiales para la normativa española y europea sin necesidad de configurar textos:
 - **Español (`es`)** [Por defecto]
 - **Inglés (`en`)**
 - **Catalán (`ca`)**
@@ -168,8 +181,10 @@ El SDK incluye diccionarios oficiales para la normativa española y europea:
 {
   "locale": {
     "default": "es",
+    "syncHtmlLang": true,
+    "syncUrl": true,
     "autoDetect": true,
-    "supported": ["es", "en", "ca"]
+    "supported": ["es", "en", "ca", "eu", "gl"]
   },
   "translations": {
     "en": {
@@ -204,20 +219,20 @@ El SDK incluye diccionarios oficiales para la normativa española y europea:
 }
 ```
 
-### Cambio Dinámico de Idioma (API Programática):
+### Sincronización Programática:
 ```ts
-// Obtener idioma activo
-console.log(Consent.getLocale()); // "es"
+// 1. Sincronizar el idioma desde la app padre
+Consent.syncLocale("en");
 
-// Cambiar idioma en tiempo real (actualiza el banner, modal y badge activos al instante)
-Consent.setLocale("en");
+// 2. Obtener idioma activo
+console.log(Consent.getLocale()); // "en"
 
-// Escuchar cambios de idioma
+// 3. Escuchar cambios de idioma
 Consent.on("locale:changed", ({ locale, previousLocale }) => {
   console.log(`Idioma cambiado de ${previousLocale} a ${locale}`);
 });
 
-// Conmutación mediante CustomEvent del DOM (Zero-code / Microfrontends)
+// 4. Conmutación mediante CustomEvent del DOM (Zero-code / Microfrontends)
 document.dispatchEvent(new CustomEvent("solvenza:locale", { detail: { locale: "en" } }));
 ```
 
@@ -268,20 +283,25 @@ Incrusta el script compilado y tu configuración. El botón flotante de revocaci
 
 ### React 18+ / Vite
 
-Puedes inicializar con archivo JSON o crear tu configuración fluida con `ConsentConfigBuilder`, activando el botón flotante:
+Puedes sincronizar el idioma de la aplicación (ej. procedente de `react-i18next` o de tu estado) sin boilerplate utilizando el hook `useSyncConsentLocale`:
 
 ```tsx
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Consent, ConsentConfigBuilder } from "@solvenza/cookies-compliance";
-import { useConsent } from "@solvenza/cookies-compliance/react";
+import { useConsent, useSyncConsentLocale } from "@solvenza/cookies-compliance/react";
 
 export function App() {
+  const [appLang, setAppLang] = useState("es");
   const isAnalyticsAllowed = useConsent("analytics");
+
+  // Sincronización automática de 1 línea con el estado de tu app
+  useSyncConsentLocale(appLang);
 
   useEffect(() => {
     // Inicialización declarativa con FloatingBadge activado
     const config = new ConsentConfigBuilder("2026-08-23")
       .setPolicyUrls("/politica-privacidad", "/politica-cookies")
+      .setLocale("es", true, ["es", "en", "ca"])
       .setFloatingBadge({
         enabled: true,
         position: "bottom-left",
@@ -300,6 +320,10 @@ export function App() {
 
   return (
     <div>
+      <header>
+        <button onClick={() => setAppLang("es")}>ES</button>
+        <button onClick={() => setAppLang("en")}>EN</button>
+      </header>
       <p>Analítica: {isAnalyticsAllowed ? "Activa" : "Bloqueada"}</p>
       <button onClick={() => Consent.openPreferences()}>Ajustes de Cookies</button>
     </div>
@@ -309,17 +333,23 @@ export function App() {
 
 ### Next.js (App Router)
 
-Configura el SDK en el `RootLayout` con `strategy="beforeInteractive"`. El archivo `public/consent.json` define el comportamiento del widget flotante para todo el sitio:
+Configura el SDK en el `RootLayout` con `strategy="beforeInteractive"`. Al cambiar el atributo `lang` en `<html>` (por ejemplo con `next-intl` o rutas localizadas `/app/[locale]/layout.tsx`), la librería sincroniza el banner, modal y badge automáticamente:
 
 ```tsx
-// app/layout.tsx
+// app/[locale]/layout.tsx
 import Script from "next/script";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+  params: { locale }
+}: {
+  children: React.ReactNode;
+  params: { locale: string };
+}) {
   return (
-    <html lang="es">
+    <html lang={locale}>
       <head>
-        {/* El SDK inyecta el widget flotante tras interactuar con el banner */}
+        {/* Sincronización automática con el atributo lang sin necesidad de boilerplate */}
         <Script
           src="/vendor/consent.min.js"
           data-config="/consent.json"
@@ -334,7 +364,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ### Angular 20 Standalone
 
-Carga la configuración con `provideAppInitializer` inyectando `ConsentService`. Si configuras `floatingBadge`, el botón permanecerá anclado en pantalla:
+Carga la configuración con `provideAppInitializer` inyectando `ConsentService`. Puedes sincronizar el idioma en cualquier momento con `consentService.syncLocale(locale)` (ej. conectado a `@ngx-translate` o `Transloco`):
 
 ```typescript
 // app.config.ts
@@ -349,6 +379,7 @@ export const appConfig: ApplicationConfig = {
       await consentService.init({
         schemaVersion: 1,
         policyVersion: "2026-08-23",
+        locale: { default: "es", autoDetect: true },
         policy: { privacyUrl: "/politica-privacidad", cookiesUrl: "/politica-cookies" },
         ui: {
           floatingBadge: {
@@ -377,7 +408,7 @@ function enqueue_solvenza_cookies() {
         "solvenza-cookies",
         get_template_directory_uri() . "/vendor/consent.min.js",
         array(),
-        "1.3.0",
+        "1.4.0",
         false // En <head> para cumplir LSSI antes de scripts de analítica
     );
     // Asocia la configuración JSON con el badge flotante habilitado

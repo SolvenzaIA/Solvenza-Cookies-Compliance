@@ -76,14 +76,18 @@ export interface TranslationConfig {
   services?: Record<string, { label?: string; provider?: string }>;
 }
 
+export interface LocaleConfig {
+  default?: string;
+  autoDetect?: boolean;
+  syncHtmlLang?: boolean;
+  syncUrl?: boolean;
+  supported?: string[];
+}
+
 export interface ConsentConfig {
   schemaVersion: number;
   policyVersion: string;
-  locale?: {
-    default?: string;
-    autoDetect?: boolean;
-    supported?: string[];
-  };
+  locale?: LocaleConfig;
   translations?: Record<string, TranslationConfig>;
   security?: {
     secretKey?: string;
@@ -197,6 +201,7 @@ export interface ConsentSDKInterface {
   getConsent(): ConsentState;
   getLocale(): string;
   setLocale(locale: string): void;
+  syncLocale(locale: string): void;
   has(category: string): boolean;
   hasService(service: string): boolean;
   acceptAll(): void;
