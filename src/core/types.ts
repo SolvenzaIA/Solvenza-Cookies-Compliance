@@ -12,6 +12,9 @@ export interface ServiceConfig {
     duration?: string;
     purpose?: string;
   }>;
+  storageKeys?: string[];
+  localStorage?: string[];
+  sessionStorage?: string[];
 }
 
 export interface CategoryConfig {
@@ -19,6 +22,16 @@ export interface CategoryConfig {
   default?: boolean;
   label: string;
   description: string;
+  storageKeys?: string[];
+  localStorage?: string[];
+  sessionStorage?: string[];
+}
+
+export interface StoragePurgeReport {
+  category: string;
+  purgedCookies: string[];
+  purgedLocalStorage: string[];
+  purgedSessionStorage: string[];
 }
 
 export interface FloatingBadgeConfig {
@@ -159,6 +172,7 @@ export type ConsentEvent =
   | "service:blocked"
   | "service:loaded"
   | "service:revoked"
+  | "storage:purged"
   | "diagnostic:warning"
   | "error";
 
@@ -181,6 +195,7 @@ export interface ConsentEventDetailMap {
   };
   "service:loaded": { serviceId: string; category: string };
   "service:revoked": { serviceId: string; category: string };
+  "storage:purged": { category: string; report: StoragePurgeReport };
   "diagnostic:warning": { code: string; message: string; details?: unknown };
   error: { code: string; message: string; error?: unknown };
 }
@@ -210,6 +225,8 @@ export interface ConsentSDKInterface {
   openPreferences(): void;
   closePreferences(): void;
   withdraw(): void;
+  purgeCategory(category: string): StoragePurgeReport;
+  purgeStorage(categoryOrService?: string): StoragePurgeReport[];
   showFloatingBadge(): void;
   hideFloatingBadge(): void;
   when(categoryOrService: string, callback: () => void): () => void;

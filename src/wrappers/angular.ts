@@ -5,6 +5,7 @@ import type {
   ConsentEvent,
   ConsentEventHandler,
   ConsentState,
+  StoragePurgeReport,
 } from "../core/types.js";
 
 /**
@@ -62,6 +63,14 @@ export class ConsentService {
 
   withdraw(): void {
     Consent.withdraw();
+  }
+
+  purgeCategory(category: string): StoragePurgeReport {
+    return Consent.purgeCategory(category);
+  }
+
+  purgeStorage(categoryOrService?: string): StoragePurgeReport[] {
+    return Consent.purgeStorage(categoryOrService);
   }
 
   on<E extends ConsentEvent>(event: E, handler: ConsentEventHandler<E>): () => void {

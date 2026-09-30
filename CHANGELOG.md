@@ -6,6 +6,26 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
+## [1.5.0] - 2026-09-30
+
+### Añadido
+- **Motor de Purga Automática de Web Storage (`localStorage` & `sessionStorage`)**:
+  - **Soporte de `localStorage` y `sessionStorage`**: Purga de identificadores, tokens y estados almacenados por scripts de terceros en el almacenamiento web del navegador cuando el usuario revoca una categoría o ejecuta `withdraw()`.
+  - **Coincidencia por comodines y glob patterns**: Soporte para patrones con comodín `*` (ej: `_ga*`, `_ga_*`, `ph_*_posthog`, `*session*`, `mp_*`) y nombres exactos.
+  - **Limpieza de Cookies con comodines**: Detección y borrado de cookies dinámicas generadas en tiempo de ejecución (ej: `_ga_XXXXXXXXXX` de GA4) mediante escaneo de `document.cookie` con patrones glob.
+  - **Configuración declarativa**:
+    - En `categories`: soporte para `storageKeys`, `localStorage` y `sessionStorage`.
+    - En `services`: soporte para `storageKeys`, `localStorage` y `sessionStorage`.
+  - **Clase utilitaria exportada `StorageCleaner`**: Métodos estáticos `purgeLocalStorage(patterns)`, `purgeSessionStorage(patterns)`, `purgeCookies(declarations)`, y `purgeCategory(config, category)`.
+  - **Métodos programáticos y eventos**:
+    - `Consent.purgeCategory(category)`: ejecuta la purga de una categoría específica y devuelve un `StoragePurgeReport`.
+    - `Consent.purgeStorage(categoryOrService?)`: purga todas las categorías revocadas o una categoría/servicio dado.
+    - Evento de bus `storage:purged`: emite `{ category, report: StoragePurgeReport }`.
+    - Evento DOM nativo `solvenza:storage:purged`: despachado en `document` para telemetría y diagnósticos.
+  - **Wrappers actualizados**: Métodos `purgeCategory` y `purgeStorage` añadidos a `ConsentService` en `@solvenza/cookies-compliance/angular`.
+
+---
+
 ## [1.4.0] - 2026-09-30
 
 ### Añadido

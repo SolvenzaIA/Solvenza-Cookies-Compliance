@@ -135,14 +135,28 @@
           marketing: { required: false, label: "Marketing", description: "Personalización y vídeo." }
         },
         services: {
-          ga4: { category: "analytics", label: "Google Analytics 4", provider: "Google" },
-          youtube: { category: "marketing", label: "YouTube", provider: "Google" }
+          ga4: {
+            category: "analytics",
+            label: "Google Analytics 4",
+            provider: "Google",
+            cookies: [{ name: "_ga" }, { name: "_ga_*" }],
+            storageKeys: ["_ga*", "_gid*"]
+          },
+          youtube: {
+            category: "marketing",
+            label: "YouTube",
+            provider: "Google",
+            storageKeys: ["yt-*"]
+          }
         }
       }).then(updateInspector);
 
       Consent.on("consent:changed", updateInspector);
       Consent.on("consent:withdrawn", updateInspector);
       Consent.on("locale:changed", updateInspector);
+      Consent.on("storage:purged", ({ category, report }) => {
+        console.log(`[Playground] Storage purgado para ${category}:`, report);
+      });
     });
 
     function updateInspector() {

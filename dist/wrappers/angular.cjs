@@ -516,6 +516,178 @@ var MemoryStore = {
   clear: () => new MemoryStorageProvider().clear()
 };
 
+// src/storage/storage-cleaner.ts
+var StorageCleaner = class {
+  /**
+   * Evaluates if a given storage key or cookie name matches a pattern.
+   * Supports:
+   * - Wildcard glob: "*", "_ga*", "ph_*_posthog", "*session*"
+   * - Exact string match (case-insensitive)
+   */
+  static matchesPattern(key, pattern) {
+    if (!key || !pattern) return false;
+    if (pattern === "*" || key === pattern) return true;
+    if (pattern.includes("*")) {
+      const escaped = pattern.split("*").map((segment) => segment.replace(/[-[\]{}()+?.,\\^$|#\s]/g, "\\$&")).join(".*");
+      try {
+        const regex = new RegExp(`^${escaped}$`, "i");
+        return regex.test(key);
+      } catch (e) {
+        return false;
+      }
+    }
+    return key.toLowerCase() === pattern.toLowerCase();
+  }
+  /**
+   * Purges keys from window.localStorage that match any of the provided patterns.
+   * Safe in SSR, sandboxed iframes, and private browsing modes.
+   */
+  static purgeLocalStorage(patterns) {
+    if (typeof window === "undefined" || !patterns || patterns.length === 0) return [];
+    try {
+      if (typeof window.localStorage === "undefined") return [];
+      const keysToRemove = [];
+      const len = window.localStorage.length;
+      for (let i = 0; i < len; i++) {
+        const key = window.localStorage.key(i);
+        if (key && patterns.some((p) => this.matchesPattern(key, p))) {
+          keysToRemove.push(key);
+        }
+      }
+      for (const key of keysToRemove) {
+        window.localStorage.removeItem(key);
+      }
+      return keysToRemove;
+    } catch (e) {
+      return [];
+    }
+  }
+  /**
+   * Purges keys from window.sessionStorage that match any of the provided patterns.
+   * Safe in SSR, sandboxed iframes, and private browsing modes.
+   */
+  static purgeSessionStorage(patterns) {
+    if (typeof window === "undefined" || !patterns || patterns.length === 0) return [];
+    try {
+      if (typeof window.sessionStorage === "undefined") return [];
+      const keysToRemove = [];
+      const len = window.sessionStorage.length;
+      for (let i = 0; i < len; i++) {
+        const key = window.sessionStorage.key(i);
+        if (key && patterns.some((p) => this.matchesPattern(key, p))) {
+          keysToRemove.push(key);
+        }
+      }
+      for (const key of keysToRemove) {
+        window.sessionStorage.removeItem(key);
+      }
+      return keysToRemove;
+    } catch (e) {
+      return [];
+    }
+  }
+  /**
+   * Purges cookies declared for services, supporting wildcard glob names (e.g. "_ga_*").
+   */
+  static purgeCookies(cookieDeclarations, defaultPath = "/", defaultDomain) {
+    if (typeof document === "undefined" || !cookieDeclarations || cookieDeclarations.length === 0) {
+      return [];
+    }
+    const removedCookies = [];
+    const allExistingCookies = this.getAllCookieNames();
+    for (const cookieItem of cookieDeclarations) {
+      const targetDomain = cookieItem.domain || defaultDomain;
+      if (cookieItem.name.includes("*")) {
+        for (const existingName of allExistingCookies) {
+          if (this.matchesPattern(existingName, cookieItem.name)) {
+            CookieStore.remove(existingName, defaultPath, targetDomain);
+            if (!removedCookies.includes(existingName)) {
+              removedCookies.push(existingName);
+            }
+          }
+        }
+      } else {
+        CookieStore.remove(cookieItem.name, defaultPath, targetDomain);
+        if (!removedCookies.includes(cookieItem.name)) {
+          removedCookies.push(cookieItem.name);
+        }
+      }
+    }
+    return removedCookies;
+  }
+  static getAllCookieNames() {
+    if (typeof document === "undefined") return [];
+    try {
+      return document.cookie.split(";").map((c) => c.trim().split("=")[0]).filter((n) => !!n);
+    } catch (e) {
+      return [];
+    }
+  }
+  /**
+   * Purges all cookies, localStorage, and sessionStorage keys associated with a category.
+   */
+  static purgeCategory(config, category) {
+    var _a, _b, _c;
+    const report = {
+      category,
+      purgedCookies: [],
+      purgedLocalStorage: [],
+      purgedSessionStorage: []
+    };
+    if (!config) return report;
+    const path = ((_a = config.storage) == null ? void 0 : _a.path) || "/";
+    const defaultDomain = (_b = config.storage) == null ? void 0 : _b.domain;
+    const cookiesToPurge = [];
+    const localStoragePatterns = /* @__PURE__ */ new Set();
+    const sessionStoragePatterns = /* @__PURE__ */ new Set();
+    const catConfig = (_c = config.categories) == null ? void 0 : _c[category];
+    if (catConfig) {
+      if (catConfig.storageKeys) {
+        catConfig.storageKeys.forEach((k) => {
+          localStoragePatterns.add(k);
+          sessionStoragePatterns.add(k);
+        });
+      }
+      if (catConfig.localStorage) {
+        catConfig.localStorage.forEach((k) => localStoragePatterns.add(k));
+      }
+      if (catConfig.sessionStorage) {
+        catConfig.sessionStorage.forEach((k) => sessionStoragePatterns.add(k));
+      }
+    }
+    if (config.services) {
+      for (const service of Object.values(config.services)) {
+        if (service.category === category) {
+          if (service.cookies) {
+            for (const cookieItem of service.cookies) {
+              cookiesToPurge.push({
+                name: cookieItem.name,
+                domain: cookieItem.domain || defaultDomain
+              });
+            }
+          }
+          if (service.storageKeys) {
+            service.storageKeys.forEach((k) => {
+              localStoragePatterns.add(k);
+              sessionStoragePatterns.add(k);
+            });
+          }
+          if (service.localStorage) {
+            service.localStorage.forEach((k) => localStoragePatterns.add(k));
+          }
+          if (service.sessionStorage) {
+            service.sessionStorage.forEach((k) => sessionStoragePatterns.add(k));
+          }
+        }
+      }
+    }
+    report.purgedCookies = this.purgeCookies(cookiesToPurge, path, defaultDomain);
+    report.purgedLocalStorage = this.purgeLocalStorage(Array.from(localStoragePatterns));
+    report.purgedSessionStorage = this.purgeSessionStorage(Array.from(sessionStoragePatterns));
+    return report;
+  }
+};
+
 // src/blocker/script-gate.ts
 var ScriptGate = class {
   static scanAndActivate(isCategoryAllowed, isServiceAllowed, onServiceLoaded) {
@@ -2552,7 +2724,7 @@ var ConsentEngine = class {
     }
     for (const catId of Object.keys(config.categories)) {
       if (catId !== "necessary") {
-        CookieStore.clearServiceCookies(config, catId);
+        this.purgeCategory(catId);
       }
     }
     this.stateManager.clearChoices();
@@ -2564,6 +2736,43 @@ var ConsentEngine = class {
       this.hideFloatingBadge();
     }
     this.showBanner();
+  }
+  purgeCategory(category) {
+    const config = this.stateManager.getConfig();
+    if (!config) {
+      return {
+        category,
+        purgedCookies: [],
+        purgedLocalStorage: [],
+        purgedSessionStorage: []
+      };
+    }
+    const report = StorageCleaner.purgeCategory(config, category);
+    this.eventBus.emit("storage:purged", { category, report });
+    this.dispatchDomEvent("solvenza:storage:purged", { category, report });
+    return report;
+  }
+  purgeStorage(categoryOrService) {
+    var _a, _b;
+    const config = this.stateManager.getConfig();
+    if (!config) return [];
+    if (categoryOrService) {
+      if ((_a = config.categories) == null ? void 0 : _a[categoryOrService]) {
+        return [this.purgeCategory(categoryOrService)];
+      }
+      const service = (_b = config.services) == null ? void 0 : _b[categoryOrService];
+      if (service) {
+        return [this.purgeCategory(service.category)];
+      }
+    }
+    const reports = [];
+    const currentChoices = this.stateManager.getChoices();
+    for (const [catId, allowed] of Object.entries(currentChoices)) {
+      if (!allowed && catId !== "necessary") {
+        reports.push(this.purgeCategory(catId));
+      }
+    }
+    return reports;
   }
   showFloatingBadge() {
     const config = this.getResolvedConfig();
@@ -2630,7 +2839,7 @@ var ConsentEngine = class {
     this.stateManager.updateChoices(receipt);
     for (const [catId, isAllowed] of Object.entries(choices)) {
       if (!isAllowed) {
-        CookieStore.clearServiceCookies(config, catId);
+        this.purgeCategory(catId);
       }
     }
     const cookieName = ((_b = config.storage) == null ? void 0 : _b.name) || "site_consent";
@@ -2797,6 +3006,12 @@ var ConsentService = class {
   }
   withdraw() {
     Consent.withdraw();
+  }
+  purgeCategory(category) {
+    return Consent.purgeCategory(category);
+  }
+  purgeStorage(categoryOrService) {
+    return Consent.purgeStorage(categoryOrService);
   }
   on(event, handler) {
     return Consent.on(event, handler);

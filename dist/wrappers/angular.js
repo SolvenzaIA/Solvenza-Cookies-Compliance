@@ -1,6 +1,6 @@
 import {
   Consent
-} from "../chunk-TUQTDQ5E.js";
+} from "../chunk-CKNCOXDS.js";
 import "../chunk-DDAAVRWG.js";
 
 // src/wrappers/angular.ts
@@ -44,6 +44,12 @@ var ConsentService = class {
   }
   withdraw() {
     Consent.withdraw();
+  }
+  purgeCategory(category) {
+    return Consent.purgeCategory(category);
+  }
+  purgeStorage(categoryOrService) {
+    return Consent.purgeStorage(categoryOrService);
   }
   on(event, handler) {
     return Consent.on(event, handler);

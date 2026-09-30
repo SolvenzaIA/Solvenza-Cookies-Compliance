@@ -72,11 +72,18 @@ export const appConfig: ApplicationConfig = {
             category: "analytics",
             label: "Google Analytics 4",
             provider: "Google",
+            cookies: [
+              { name: "_ga" },
+              { name: "_ga_*" },
+              { name: "_gid" },
+            ],
+            storageKeys: ["_ga*", "_gid*"],
           },
           youtube: {
             category: "marketing",
             label: "YouTube Embed",
             provider: "Google",
+            storageKeys: ["yt-*", "YSC*"],
           },
         },
       });

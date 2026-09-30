@@ -18,6 +18,7 @@ import {
   ResourceScanner,
   ScriptGate,
   ScriptResourceBlocker,
+  StorageCleaner,
   computeReceiptSignature,
   createReceipt,
   isReceiptExpired,
@@ -25,7 +26,7 @@ import {
   sanitizeHtml,
   validateConfig,
   verifyReceiptIntegrity
-} from "./chunk-TUQTDQ5E.js";
+} from "./chunk-CKNCOXDS.js";
 import {
   __spreadProps,
   __spreadValues
@@ -178,6 +179,7 @@ export {
   ResourceScanner,
   ScriptGate,
   ScriptResourceBlocker,
+  StorageCleaner,
   StorageFactory,
   computeReceiptSignature,
   createReceipt,

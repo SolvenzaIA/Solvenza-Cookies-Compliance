@@ -254,6 +254,76 @@ const config = new ConsentConfigBuilder("1.0.0")
 
 ---
 
+## Purga Automática de Web Storage (localStorage, sessionStorage y Cookies)
+
+A partir de la versión **1.5.0**, cuando el usuario desmarca una categoría en el panel de preferencias o revoca su elección (`Consent.withdraw()`), el SDK no solo elimina las cookies en `document.cookie`, sino que también **purga de forma reactiva las claves guardadas en `localStorage` y `sessionStorage`** por bibliotecas de analítica o marketing (Google Analytics 4, PostHog, Mixpanel, Hotjar, etc.).
+
+### Soporte de Comodines (Glob Wildcards)
+Puedes declarar patrones exactos o con comodín `*`:
+- `_ga*`: coincide con `_ga`, `_gid`, `_ga_G123456`, etc.
+- `ph_*_posthog`: coincide con identificadores dinámicos de PostHog.
+- `*session*`: coincide con cualquier clave que contenga `session`.
+
+### Configuración en `consent.json`:
+```json
+{
+  "categories": {
+    "analytics": {
+      "label": "Analítica",
+      "description": "Medición agregada del tráfico.",
+      "storageKeys": ["_ga*", "_gid*"]
+    }
+  },
+  "services": {
+    "ga4": {
+      "category": "analytics",
+      "label": "Google Analytics 4",
+      "cookies": [
+        { "name": "_ga" },
+        { "name": "_ga_*" },
+        { "name": "_gid" }
+      ],
+      "storageKeys": ["_ga*", "_gid*"]
+    },
+    "posthog": {
+      "category": "analytics",
+      "label": "PostHog",
+      "localStorage": ["ph_*_posthog"],
+      "sessionStorage": ["ph_*_posthog"]
+    }
+  }
+}
+```
+
+### Opciones de purga disponibles:
+| Campo | Nivel | Descripción |
+|---|---|---|
+| `storageKeys` | Categoría o Servicio | Claves o patrones a purgar tanto de `localStorage` como de `sessionStorage` |
+| `localStorage` | Categoría o Servicio | Claves o patrones a purgar exclusivamente de `localStorage` |
+| `sessionStorage` | Categoría o Servicio | Claves o patrones a purgar exclusivamente de `sessionStorage` |
+| `cookies[].name` | Servicio | Nombres de cookies (soporta comodines como `_ga_*`) |
+
+### API Programática:
+```ts
+import { Consent, StorageCleaner } from "@solvenza/cookies-compliance";
+
+// 1. Purgar manualmente el almacenamiento de una categoría
+const report = Consent.purgeCategory("analytics");
+console.log(report.purgedCookies);        // ["_ga", "_ga_G123456"]
+console.log(report.purgedLocalStorage);   // ["_ga", "ph_client_posthog"]
+console.log(report.purgedSessionStorage); // ["temp_analytics_session"]
+
+// 2. Escuchar eventos de purga
+Consent.on("storage:purged", ({ category, report }) => {
+  console.log(`Almacenamiento purgado para la categoría ${category}:`, report);
+});
+
+// 3. Utilidad independiente
+StorageCleaner.purgeLocalStorage(["_ga*", "temp_*"]);
+```
+
+---
+
 ### Vanilla HTML5
 
 Incrusta el script compilado y tu configuración. El botón flotante de revocación se activará automáticamente según lo definido en `consent.json`:

@@ -8,6 +8,7 @@ import type {
   ConsentState,
   DiagnosticReport,
   FloatingBadgeConfig,
+  StoragePurgeReport,
 } from "./types.js";
 import { validateConfig } from "./config-validator.js";
 import { StateManager } from "./state.js";
@@ -16,6 +17,7 @@ import { createReceipt, parseReceipt } from "./receipt.js";
 import { evaluatePolicy } from "./policy-engine.js";
 import { CookieStore } from "../storage/cookie-store.js";
 import { MemoryStore } from "../storage/memory-store.js";
+import { StorageCleaner } from "../storage/storage-cleaner.js";
 import { BlockerRegistry } from "../blocker/registry.js";
 import { GoogleConsentAdapter } from "../services/google.js";
 import { CustomServiceAdapter } from "../services/custom.js";
@@ -326,10 +328,10 @@ export class ConsentEngine implements ConsentSDKInterface {
       CookieStore.remove(cookieName, config.storage?.path || "/", config.storage?.domain);
     }
 
-    // Auto-clear all service cookies for optional categories
+    // Auto-clear all storage (cookies, localStorage, sessionStorage) for optional categories
     for (const catId of Object.keys(config.categories)) {
       if (catId !== "necessary") {
-        CookieStore.clearServiceCookies(config, catId);
+        this.purgeCategory(catId);
       }
     }
 
@@ -344,6 +346,47 @@ export class ConsentEngine implements ConsentSDKInterface {
     }
 
     this.showBanner();
+  }
+
+  purgeCategory(category: string): StoragePurgeReport {
+    const config = this.stateManager.getConfig();
+    if (!config) {
+      return {
+        category,
+        purgedCookies: [],
+        purgedLocalStorage: [],
+        purgedSessionStorage: [],
+      };
+    }
+
+    const report = StorageCleaner.purgeCategory(config, category);
+    this.eventBus.emit("storage:purged", { category, report });
+    this.dispatchDomEvent("solvenza:storage:purged", { category, report });
+    return report;
+  }
+
+  purgeStorage(categoryOrService?: string): StoragePurgeReport[] {
+    const config = this.stateManager.getConfig();
+    if (!config) return [];
+
+    if (categoryOrService) {
+      if (config.categories?.[categoryOrService]) {
+        return [this.purgeCategory(categoryOrService)];
+      }
+      const service = config.services?.[categoryOrService];
+      if (service) {
+        return [this.purgeCategory(service.category)];
+      }
+    }
+
+    const reports: StoragePurgeReport[] = [];
+    const currentChoices = this.stateManager.getChoices();
+    for (const [catId, allowed] of Object.entries(currentChoices)) {
+      if (!allowed && catId !== "necessary") {
+        reports.push(this.purgeCategory(catId));
+      }
+    }
+    return reports;
   }
 
   showFloatingBadge(): void {
@@ -428,10 +471,10 @@ export class ConsentEngine implements ConsentSDKInterface {
 
     this.stateManager.updateChoices(receipt);
 
-    // Auto-clear cookies for revoked categories
+    // Auto-clear cookies and web storage for revoked categories
     for (const [catId, isAllowed] of Object.entries(choices)) {
       if (!isAllowed) {
-        CookieStore.clearServiceCookies(config, catId);
+        this.purgeCategory(catId);
       }
     }
 

@@ -1,5 +1,5 @@
-import { C as ConsentSDKInterface, a as ConsentConfig, b as ConsentState, c as ConsentChoices, d as ConsentEvent, e as ConsentEventHandler, f as ConsentReceipt, D as DiagnosticReport, T as TranslationConfig, F as FloatingBadgeConfig, g as CategoryConfig, S as ServiceConfig } from './types-Q-VHdVEd.cjs';
-export { B as BannerUIConfig, h as ConsentEventDetailMap, L as LocaleConfig, P as PreferencesUIConfig } from './types-Q-VHdVEd.cjs';
+import { C as ConsentSDKInterface, a as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler, f as ConsentReceipt, D as DiagnosticReport, T as TranslationConfig, F as FloatingBadgeConfig, g as CategoryConfig, h as ServiceConfig } from './types-EE8440IA.cjs';
+export { B as BannerUIConfig, i as ConsentEventDetailMap, L as LocaleConfig, P as PreferencesUIConfig } from './types-EE8440IA.cjs';
 
 declare class ConsentEngine implements ConsentSDKInterface {
     private stateManager;
@@ -32,6 +32,8 @@ declare class ConsentEngine implements ConsentSDKInterface {
     private restoreFloatingBadgeIfNeeded;
     private getResolvedConfig;
     withdraw(): void;
+    purgeCategory(category: string): StoragePurgeReport;
+    purgeStorage(categoryOrService?: string): StoragePurgeReport[];
     showFloatingBadge(): void;
     hideFloatingBadge(): void;
     when(categoryOrService: string, callback: () => void): () => void;
@@ -218,4 +220,40 @@ declare class FloatingBadge {
     remove(): void;
 }
 
-export { BUILTIN_TRANSLATIONS, CategoryConfig, ConfigValidationError, Consent, ConsentChoices, ConsentConfig, ConsentConfigBuilder, ConsentEngine, ConsentEvent, ConsentEventHandler, ConsentReceipt, ConsentSDKInterface, ConsentState, CookieStorageProvider, CookieStore, DiagnosticReport, FloatingBadge, FloatingBadgeConfig, GoogleConsentAdapter, I18nEngine, IframeGate, IframeResourceBlocker, ImageResourceBlocker, MemoryStorageProvider, MemoryStore, PolicyGenerator, ResourceGate, ResourceScanner, ScriptGate, ScriptResourceBlocker, ServiceConfig, StorageFactory, TranslationConfig, computeReceiptSignature, createReceipt, isReceiptExpired, parseReceipt, sanitizeHtml, validateConfig, verifyReceiptIntegrity };
+/**
+ * Service responsible for purging cookies, localStorage, and sessionStorage
+ * keys associated with revoked consent categories or services.
+ */
+declare class StorageCleaner {
+    /**
+     * Evaluates if a given storage key or cookie name matches a pattern.
+     * Supports:
+     * - Wildcard glob: "*", "_ga*", "ph_*_posthog", "*session*"
+     * - Exact string match (case-insensitive)
+     */
+    static matchesPattern(key: string, pattern: string): boolean;
+    /**
+     * Purges keys from window.localStorage that match any of the provided patterns.
+     * Safe in SSR, sandboxed iframes, and private browsing modes.
+     */
+    static purgeLocalStorage(patterns: string[]): string[];
+    /**
+     * Purges keys from window.sessionStorage that match any of the provided patterns.
+     * Safe in SSR, sandboxed iframes, and private browsing modes.
+     */
+    static purgeSessionStorage(patterns: string[]): string[];
+    /**
+     * Purges cookies declared for services, supporting wildcard glob names (e.g. "_ga_*").
+     */
+    static purgeCookies(cookieDeclarations: Array<{
+        name: string;
+        domain?: string;
+    }>, defaultPath?: string, defaultDomain?: string): string[];
+    private static getAllCookieNames;
+    /**
+     * Purges all cookies, localStorage, and sessionStorage keys associated with a category.
+     */
+    static purgeCategory(config: ConsentConfig, category: string): StoragePurgeReport;
+}
+
+export { BUILTIN_TRANSLATIONS, CategoryConfig, ConfigValidationError, Consent, ConsentChoices, ConsentConfig, ConsentConfigBuilder, ConsentEngine, ConsentEvent, ConsentEventHandler, ConsentReceipt, ConsentSDKInterface, ConsentState, CookieStorageProvider, CookieStore, DiagnosticReport, FloatingBadge, FloatingBadgeConfig, GoogleConsentAdapter, I18nEngine, IframeGate, IframeResourceBlocker, ImageResourceBlocker, MemoryStorageProvider, MemoryStore, PolicyGenerator, ResourceGate, ResourceScanner, ScriptGate, ScriptResourceBlocker, ServiceConfig, StorageCleaner, StorageFactory, StoragePurgeReport, TranslationConfig, computeReceiptSignature, createReceipt, isReceiptExpired, parseReceipt, sanitizeHtml, validateConfig, verifyReceiptIntegrity };

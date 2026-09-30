@@ -1,4 +1,4 @@
-import { a as ConsentConfig, b as ConsentState, c as ConsentChoices, d as ConsentEvent, e as ConsentEventHandler } from '../types-Q-VHdVEd.cjs';
+import { a as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler } from '../types-EE8440IA.cjs';
 
 /**
  * Angular Consent Service helper.
@@ -21,6 +21,8 @@ declare class ConsentService {
     setPreferences(choices: ConsentChoices): void;
     openPreferences(): void;
     withdraw(): void;
+    purgeCategory(category: string): StoragePurgeReport;
+    purgeStorage(categoryOrService?: string): StoragePurgeReport[];
     on<E extends ConsentEvent>(event: E, handler: ConsentEventHandler<E>): () => void;
 }
 

@@ -103,7 +103,19 @@
           "required": { "type": "boolean" },
           "default": { "type": "boolean" },
           "label": { "type": "string" },
-          "description": { "type": "string" }
+          "description": { "type": "string" },
+          "storageKeys": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "localStorage": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "sessionStorage": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
         }
       }
     },
@@ -134,9 +146,23 @@
               "type": "object",
               "properties": {
                 "name": { "type": "string" },
-                "duration": { "type": "string" }
+                "duration": { "type": "string" },
+                "domain": { "type": "string" },
+                "purpose": { "type": "string" }
               }
             }
+          },
+          "storageKeys": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "localStorage": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "sessionStorage": {
+            "type": "array",
+            "items": { "type": "string" }
           },
           "resources": {
             "type": "object",

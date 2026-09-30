@@ -14,6 +14,7 @@ import { computeReceiptSignature, verifyReceiptIntegrity, sanitizeHtml } from ".
 import { I18nEngine, BUILTIN_TRANSLATIONS } from "./i18n/engine.js";
 import { PolicyGenerator } from "./ui/policy-generator.js";
 import { FloatingBadge } from "./ui/floating-badge.js";
+import { StorageCleaner } from "./storage/storage-cleaner.js";
 
 export {
   Consent,
@@ -29,6 +30,7 @@ export {
   CookieStore,
   MemoryStorageProvider,
   MemoryStore,
+  StorageCleaner,
   GoogleConsentAdapter,
   ScriptResourceBlocker,
   ScriptGate,
