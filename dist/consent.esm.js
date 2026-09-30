@@ -26,11 +26,18 @@ import {
   sanitizeHtml,
   validateConfig,
   verifyReceiptIntegrity
-} from "./chunk-CKNCOXDS.js";
+} from "./chunk-2OBD2A3R.js";
+import {
+  SERVICE_PRESETS,
+  defineServices,
+  getPreset,
+  hasPreset,
+  resolveConfigPresets
+} from "./chunk-2IR66AV3.js";
 import {
   __spreadProps,
   __spreadValues
-} from "./chunk-DDAAVRWG.js";
+} from "./chunk-2NMEKWO5.js";
 
 // src/core/builder/config-builder.ts
 var ConsentConfigBuilder = class {
@@ -177,14 +184,19 @@ export {
   PolicyGenerator,
   ResourceGate,
   ResourceScanner,
+  SERVICE_PRESETS,
   ScriptGate,
   ScriptResourceBlocker,
   StorageCleaner,
   StorageFactory,
   computeReceiptSignature,
   createReceipt,
+  defineServices,
+  getPreset,
+  hasPreset,
   isReceiptExpired,
   parseReceipt,
+  resolveConfigPresets,
   sanitizeHtml,
   validateConfig,
   verifyReceiptIntegrity

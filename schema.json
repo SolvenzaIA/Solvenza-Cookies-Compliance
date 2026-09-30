@@ -123,11 +123,13 @@
       "type": "object",
       "additionalProperties": {
         "type": "object",
-        "required": ["category", "label"],
         "properties": {
+          "preset": { "type": "string" },
           "category": { "type": "string" },
           "label": { "type": "string" },
           "provider": { "type": "string" },
+          "policyUrl": { "type": "string" },
+          "description": { "type": "string" },
           "consent": {
             "type": "object",
             "properties": {

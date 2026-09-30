@@ -1,4 +1,4 @@
-import { a as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler } from '../types-EE8440IA.cjs';
+import { a as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler } from '../types-HxCOfAve.cjs';
 
 /**
  * Angular Consent Service helper.

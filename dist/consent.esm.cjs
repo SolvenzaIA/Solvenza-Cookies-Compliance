@@ -20,6 +20,18 @@ var __spreadValues = (a, b) => {
   return a;
 };
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
+var __objRest = (source, exclude) => {
+  var target = {};
+  for (var prop in source)
+    if (__hasOwnProp.call(source, prop) && exclude.indexOf(prop) < 0)
+      target[prop] = source[prop];
+  if (source != null && __getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(source)) {
+      if (exclude.indexOf(prop) < 0 && __propIsEnum.call(source, prop))
+        target[prop] = source[prop];
+    }
+  return target;
+};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
@@ -55,14 +67,19 @@ __export(src_exports, {
   PolicyGenerator: () => PolicyGenerator,
   ResourceGate: () => ResourceGate,
   ResourceScanner: () => ResourceScanner,
+  SERVICE_PRESETS: () => SERVICE_PRESETS,
   ScriptGate: () => ScriptGate,
   ScriptResourceBlocker: () => ScriptResourceBlocker,
   StorageCleaner: () => StorageCleaner,
   StorageFactory: () => StorageFactory,
   computeReceiptSignature: () => computeReceiptSignature,
   createReceipt: () => createReceipt,
+  defineServices: () => defineServices,
+  getPreset: () => getPreset,
+  hasPreset: () => hasPreset,
   isReceiptExpired: () => isReceiptExpired,
   parseReceipt: () => parseReceipt,
+  resolveConfigPresets: () => resolveConfigPresets,
   sanitizeHtml: () => sanitizeHtml,
   validateConfig: () => validateConfig,
   verifyReceiptIntegrity: () => verifyReceiptIntegrity
@@ -111,14 +128,15 @@ function validateConfig(config) {
   }
   if (config.services && typeof config.services === "object") {
     for (const [serviceId, serviceConfig] of Object.entries(config.services)) {
-      if (!serviceConfig.category) {
+      const category = serviceConfig.category;
+      if (!category) {
         throw new ConfigValidationError(
           `Service '${serviceId}' missing 'category' reference.`
         );
       }
-      if (!config.categories[serviceConfig.category]) {
+      if (!config.categories[category]) {
         throw new ConfigValidationError(
-          `Service '${serviceId}' references non-existent category '${serviceConfig.category}'.`
+          `Service '${serviceId}' references non-existent category '${category}'.`
         );
       }
     }
@@ -169,7 +187,7 @@ var StateManager = class {
   hasService(serviceId) {
     if (!this.config || !this.config.services) return false;
     const service = this.config.services[serviceId];
-    if (!service) return false;
+    if (!service || !service.category) return false;
     return this.hasCategory(service.category);
   }
   updateChoices(receipt) {
@@ -2554,6 +2572,434 @@ var I18nEngine = class {
   }
 };
 
+// src/presets/presets-catalog.ts
+var SERVICE_PRESETS = {
+  // --- ANALYTICS ---
+  ga4: {
+    id: "ga4",
+    category: "analytics",
+    label: "Google Analytics 4",
+    provider: "Google LLC",
+    description: "Medici\xF3n de visitas, p\xE1ginas vistas, eventos y comportamiento de navegaci\xF3n del usuario.",
+    policyUrl: "https://policies.google.com/privacy",
+    cookies: [
+      { name: "_ga", duration: "2 a\xF1os", purpose: "Distinguir a los usuarios \xFAnicos en el sitio web." },
+      { name: "_ga_*", duration: "2 a\xF1os", purpose: "Mantener el estado de la sesi\xF3n de Google Analytics 4." },
+      { name: "_gid", duration: "24 horas", purpose: "Distinguir a los usuarios durante un \xFAnico d\xEDa." },
+      { name: "_gat*", duration: "1 minuto", purpose: "Limitar el porcentaje de solicitudes a Google Analytics." }
+    ],
+    storageKeys: ["_ga_*", "google_analytics_*"],
+    localStorage: ["_ga_*", "google_analytics_*"]
+  },
+  google_analytics: {
+    id: "google_analytics",
+    category: "analytics",
+    label: "Google Analytics (Universal / GA4)",
+    provider: "Google LLC",
+    description: "Medici\xF3n de visitas y estad\xEDsticas an\xF3nimas de tr\xE1fico web.",
+    policyUrl: "https://policies.google.com/privacy",
+    cookies: [
+      { name: "_ga", duration: "2 a\xF1os", purpose: "Distinguir usuarios." },
+      { name: "_ga_*", duration: "2 a\xF1os", purpose: "Estado de la sesi\xF3n GA4." },
+      { name: "_gid", duration: "24 horas", purpose: "Identificador diario." }
+    ],
+    storageKeys: ["_ga_*"]
+  },
+  posthog: {
+    id: "posthog",
+    category: "analytics",
+    label: "PostHog Analytics",
+    provider: "PostHog, Inc.",
+    description: "Anal\xEDtica de producto, registro de sesiones, mapas de ruta y embudos de interacci\xF3n.",
+    policyUrl: "https://posthog.com/privacy",
+    cookies: [
+      { name: "ph_*_posthog", duration: "1 a\xF1o", purpose: "Persistencia de usuario e identificaci\xF3n de sesiones en PostHog." }
+    ],
+    storageKeys: ["ph_*_posthog"],
+    localStorage: ["ph_*_posthog"],
+    sessionStorage: ["ph_*_posthog"]
+  },
+  hotjar: {
+    id: "hotjar",
+    category: "analytics",
+    label: "Hotjar Heatmaps & Feedback",
+    provider: "Hotjar Ltd.",
+    description: "Mapas de calor de clics, desplazamientos, grabaciones de comportamiento y encuestas.",
+    policyUrl: "https://www.hotjar.com/legal/policies/privacy/",
+    cookies: [
+      { name: "_hjSession*", duration: "30 minutos", purpose: "Mantener los datos de la sesi\xF3n actual del usuario en Hotjar." },
+      { name: "_hjSessionUser*", duration: "1 a\xF1o", purpose: "Mantener el ID de usuario an\xF3nimo en el navegador." },
+      { name: "_hjIncludedIn*", duration: "Sesi\xF3n", purpose: "Determinar si el usuario est\xE1 incluido en el muestreo de datos." },
+      { name: "_hjAbsoluteCanvasUrl", duration: "Sesi\xF3n", purpose: "Almacenar la URL can\xF3nica de visualizaci\xF3n." },
+      { name: "_hjTLDTest", duration: "Sesi\xF3n", purpose: "Verificar el nivel de dominio para cookies." }
+    ],
+    storageKeys: ["_hj*", "hj*"],
+    localStorage: ["_hj*"],
+    sessionStorage: ["_hj*"]
+  },
+  clarity: {
+    id: "clarity",
+    category: "analytics",
+    label: "Microsoft Clarity",
+    provider: "Microsoft Corporation",
+    description: "Grabaci\xF3n de navegaci\xF3n y mapas t\xE9rmicos de interacci\xF3n sin datos personales.",
+    policyUrl: "https://privacy.microsoft.com/privacystatement",
+    cookies: [
+      { name: "_clck", duration: "1 a\xF1o", purpose: "Persistir el ID de usuario Clarity y sus preferencias de p\xE1gina." },
+      { name: "_clsk", duration: "24 horas", purpose: "Conectar m\xFAltiples visitas de p\xE1gina en una \xFAnica sesi\xF3n." },
+      { name: "CLID", duration: "1 a\xF1o", purpose: "Identificador de navegador para Clarity." },
+      { name: "MUID", duration: "1 a\xF1o", purpose: "Identificador de usuario \xFAnico de Microsoft." }
+    ],
+    storageKeys: ["_cl*"],
+    localStorage: ["_cl*"]
+  },
+  matomo: {
+    id: "matomo",
+    category: "analytics",
+    label: "Matomo Analytics",
+    provider: "InnoCraft Ltd.",
+    description: "Plataforma de anal\xEDtica web local-first y centrada en la privacidad.",
+    policyUrl: "https://matomo.org/privacy-policy/",
+    cookies: [
+      { name: "_pk_id*", duration: "13 meses", purpose: "Almacenar datos de usuario \xFAnicos como el ID de visitante." },
+      { name: "_pk_ses*", duration: "30 minutos", purpose: "Almacenar datos temporales de la sesi\xF3n de navegaci\xF3n." },
+      { name: "_pk_ref*", duration: "6 meses", purpose: "Almacenar la informaci\xF3n de atribuci\xF3n de procedencia." }
+    ],
+    storageKeys: ["_pk_*"],
+    localStorage: ["_pk_*"]
+  },
+  plausible: {
+    id: "plausible",
+    category: "analytics",
+    label: "Plausible Analytics",
+    provider: "Plausible Insights O\xDC",
+    description: "Anal\xEDtica web ligera y respetuosa con la privacidad, 100% libre de cookies.",
+    policyUrl: "https://plausible.io/data-policy",
+    cookies: [],
+    storageKeys: []
+  },
+  // --- MARKETING & ADVERTISING ---
+  meta_pixel: {
+    id: "meta_pixel",
+    category: "marketing",
+    label: "Meta Pixel (Facebook)",
+    provider: "Meta Platforms Ireland Ltd.",
+    description: "Medici\xF3n de conversiones, personalizaci\xF3n y optimizaci\xF3n de campa\xF1as publicitarias en Facebook e Instagram.",
+    policyUrl: "https://www.facebook.com/privacy/policy",
+    cookies: [
+      { name: "_fbp", duration: "90 d\xEDas", purpose: "Almacenar y rastrear visitas en los sitios web para segmentaci\xF3n publicitaria." },
+      { name: "_fbc", duration: "90 d\xEDas", purpose: "Guardar el \xFAltimo clic en un anuncio de Facebook (par\xE1metro fbclid)." },
+      { name: "fr", duration: "90 d\xEDas", purpose: "Cookie de publicidad comportamental de Facebook." },
+      { name: "tr", duration: "Sesi\xF3n", purpose: "P\xEDxel de seguimiento de eventos en tiempo real." },
+      { name: "datr", duration: "2 a\xF1os", purpose: "Identificaci\xF3n del navegador web para seguridad y anal\xEDtica publicitaria." }
+    ],
+    storageKeys: ["_fbp*"],
+    localStorage: ["_fbp*"]
+  },
+  facebook_pixel: {
+    id: "facebook_pixel",
+    category: "marketing",
+    label: "Meta Pixel (Facebook)",
+    provider: "Meta Platforms Ireland Ltd.",
+    description: "Medici\xF3n de conversiones y retargeting en Meta/Facebook.",
+    policyUrl: "https://www.facebook.com/privacy/policy",
+    cookies: [
+      { name: "_fbp", duration: "90 d\xEDas", purpose: "Rastreo de conversiones y atribuci\xF3n de campa\xF1as." },
+      { name: "_fbc", duration: "90 d\xEDas", purpose: "Identificador de clic de anuncio." }
+    ],
+    storageKeys: ["_fbp*"]
+  },
+  google_ads: {
+    id: "google_ads",
+    category: "marketing",
+    label: "Google Ads & Remarketing",
+    provider: "Google LLC",
+    description: "Medici\xF3n de conversiones publicitarias y campa\xF1as de retargeting de Google Ads.",
+    policyUrl: "https://policies.google.com/technologies/ads",
+    cookies: [
+      { name: "_gcl_au", duration: "90 d\xEDas", purpose: "Medici\xF3n de conversiones publicitarias de Google AdSense y Ads." },
+      { name: "_gcl_aw", duration: "90 d\xEDas", purpose: "Conversiones procedentes de clics en anuncios de Google Ads." },
+      { name: "IDE", duration: "1 a\xF1o", purpose: "Publicidad dirigida y medici\xF3n de rendimiento de DoubleClick." },
+      { name: "DSID", duration: "2 semanas", purpose: "Identificar usuario conectado en sitios web ajenos a Google." },
+      { name: "RUL", duration: "1 a\xF1o", purpose: "Audiencias de remarketing de Google Ads." }
+    ],
+    storageKeys: ["_gcl_*"]
+  },
+  tiktok_pixel: {
+    id: "tiktok_pixel",
+    category: "marketing",
+    label: "TikTok Pixel",
+    provider: "TikTok Technology Limited",
+    description: "Medici\xF3n de rendimiento y segmentaci\xF3n de campa\xF1as publicitarias en TikTok.",
+    policyUrl: "https://www.tiktok.com/legal/privacy-policy-eea",
+    cookies: [
+      { name: "_tt_enable_cookie", duration: "13 meses", purpose: "Habilitar la medici\xF3n de conversiones del p\xEDxel de TikTok." },
+      { name: "_ttp", duration: "13 meses", purpose: "Medir y mejorar el rendimiento de las campa\xF1as publicitarias en TikTok." }
+    ],
+    storageKeys: ["tt_*", "_ttp*"]
+  },
+  linkedin_insight: {
+    id: "linkedin_insight",
+    category: "marketing",
+    label: "LinkedIn Insight Tag",
+    provider: "LinkedIn Ireland Unlimited Company",
+    description: "Informes de conversiones y atribuci\xF3n de campa\xF1as profesionales B2B en LinkedIn.",
+    policyUrl: "https://www.linkedin.com/legal/privacy-policy",
+    cookies: [
+      { name: "li_sugr", duration: "90 d\xEDas", purpose: "Identificador probabil\xEDstico de navegador en LinkedIn." },
+      { name: "bcookie", duration: "1 a\xF1o", purpose: "Identificador de sesi\xF3n de navegador para servicios de LinkedIn." },
+      { name: "lidc", duration: "24 horas", purpose: "Enrutamiento de centros de datos para LinkedIn." },
+      { name: "UserMatchHistory", duration: "30 d\xEDas", purpose: "Sincronizaci\xF3n de identificadores de publicidad de LinkedIn." }
+    ]
+  },
+  twitter_pixel: {
+    id: "twitter_pixel",
+    category: "marketing",
+    label: "X / Twitter Ads Pixel",
+    provider: "X Corp.",
+    description: "Medici\xF3n de conversiones e interacci\xF3n con campa\xF1as publicitarias en X (Twitter).",
+    policyUrl: "https://twitter.com/privacy",
+    cookies: [
+      { name: "personalization_id", duration: "2 a\xF1os", purpose: "Personalizaci\xF3n de publicidad y medici\xF3n de eventos en X." },
+      { name: "muc_ads", duration: "2 a\xF1os", purpose: "Seguimiento de conversiones publicitarias en X." }
+    ]
+  },
+  hubspot: {
+    id: "hubspot",
+    category: "marketing",
+    label: "HubSpot CRM & Tracking",
+    provider: "HubSpot, Inc.",
+    description: "Anal\xEDtica de leads, formularios inteligentes y seguimiento de clientes potenciales.",
+    policyUrl: "https://legal.hubspot.com/privacy-policy",
+    cookies: [
+      { name: "__hstc", duration: "6 meses", purpose: "Rastreo de visitantes \xFAnicos, sesiones y marcas de tiempo." },
+      { name: "hubspotutk", duration: "6 meses", purpose: "Rastreo de identidad de visitante pasado a formularios." },
+      { name: "__hssc", duration: "30 minutos", purpose: "Rastreo de sesiones activas en HubSpot." },
+      { name: "__hssrc", duration: "Sesi\xF3n", purpose: "Determinar si el usuario ha reiniciado su navegador." }
+    ],
+    storageKeys: ["__hs*", "hubspot*"]
+  },
+  // --- EMBEDDED MEDIA ---
+  youtube: {
+    id: "youtube",
+    category: "marketing",
+    label: "YouTube Video Player",
+    provider: "Google LLC",
+    description: "Reproducci\xF3n de contenidos de v\xEDdeo integrados y almacenamiento de preferencias del reproductor.",
+    policyUrl: "https://policies.google.com/privacy",
+    cookies: [
+      { name: "VISITOR_INFO1_LIVE", duration: "6 meses", purpose: "Estimar el ancho de banda del usuario en p\xE1ginas con v\xEDdeos de YouTube." },
+      { name: "YSC", duration: "Sesi\xF3n", purpose: "Registrar estad\xEDsticas de visualizaciones de v\xEDdeo de YouTube." },
+      { name: "PREF", duration: "8 meses", purpose: "Almacenar preferencias de configuraci\xF3n del reproductor." },
+      { name: "GPS", duration: "30 minutos", purpose: "Rastrear ubicaci\xF3n en dispositivos m\xF3viles." }
+    ],
+    storageKeys: ["yt-*", "yt-remote-*"],
+    localStorage: ["yt-*", "yt-remote-*"]
+  },
+  vimeo: {
+    id: "vimeo",
+    category: "marketing",
+    label: "Vimeo Video Player",
+    provider: "Vimeo, Inc.",
+    description: "Reproducci\xF3n de v\xEDdeos interactivos alojados en Vimeo y estad\xEDsticas de visualizaci\xF3n.",
+    policyUrl: "https://vimeo.com/privacy",
+    cookies: [
+      { name: "vuid", duration: "2 a\xF1os", purpose: "Almacenar el historial de reproducciones de v\xEDdeo del usuario en Vimeo." },
+      { name: "player", duration: "1 a\xF1o", purpose: "Guardar las preferencias de volumen y resoluci\xF3n del reproductor." }
+    ],
+    storageKeys: ["vimeo*"]
+  },
+  spotify: {
+    id: "spotify",
+    category: "marketing",
+    label: "Spotify Player",
+    provider: "Spotify AB",
+    description: "Reproducci\xF3n embebida de canciones, podcasts y listas de reproducci\xF3n de Spotify.",
+    policyUrl: "https://www.spotify.com/legal/privacy-policy/",
+    cookies: [
+      { name: "sp_t", duration: "1 a\xF1o", purpose: "Identificador de usuario \xFAnico de Spotify para contenido embebido." },
+      { name: "sp_m", duration: "1 a\xF1o", purpose: "Preferencias de reproducci\xF3n y cookies de sesi\xF3n." }
+    ]
+  },
+  // --- CHAT & CUSTOMER SUPPORT ---
+  intercom: {
+    id: "intercom",
+    category: "marketing",
+    label: "Intercom Messenger",
+    provider: "Intercom R&D Unlimited Company",
+    description: "Widget de mensajer\xEDa, soporte al cliente en tiempo real y asistencia guiada.",
+    policyUrl: "https://www.intercom.com/legal/privacy",
+    cookies: [
+      { name: "intercom-id-*", duration: "9 meses", purpose: "Identificador an\xF3nimo de visitante para conversaciones en Intercom." },
+      { name: "intercom-session-*", duration: "7 d\xEDas", purpose: "Persistir la sesi\xF3n de chat activa." },
+      { name: "intercom-device-id-*", duration: "9 meses", purpose: "Identificador del dispositivo del visitante." }
+    ],
+    storageKeys: ["intercom*"]
+  },
+  crisp: {
+    id: "crisp",
+    category: "marketing",
+    label: "Crisp Live Chat",
+    provider: "Crisp IM SARL",
+    description: "Chat en vivo de soporte y mensajer\xEDa multicanal para visitantes.",
+    policyUrl: "https://crisp.chat/privacy",
+    cookies: [
+      { name: "crisp-client/*", duration: "6 meses", purpose: "Identificador de sesi\xF3n de chat en Crisp." }
+    ],
+    storageKeys: ["crisp-client*"]
+  },
+  // --- NECESSARY / TECHNICAL / SECURITY ---
+  gtm: {
+    id: "gtm",
+    category: "necessary",
+    label: "Google Tag Manager",
+    provider: "Google LLC",
+    description: "Contenedor t\xE9cnico para la inyecci\xF3n y gesti\xF3n centralizada de scripts del sitio web.",
+    policyUrl: "https://policies.google.com/privacy",
+    cookies: [
+      { name: "_gtm_*", duration: "Sesi\xF3n", purpose: "Depuraci\xF3n t\xE9cnica de contenedores de Google Tag Manager." }
+    ]
+  },
+  google_recaptcha: {
+    id: "google_recaptcha",
+    category: "necessary",
+    label: "Google reCAPTCHA",
+    provider: "Google LLC",
+    description: "Protecci\xF3n contra bots automatizados, ataques de fuerza bruta y spam en formularios.",
+    policyUrl: "https://policies.google.com/privacy",
+    cookies: [
+      { name: "_GRECAPTCHA", duration: "6 meses", purpose: "Evaluaci\xF3n de riesgo de bots para protecci\xF3n de formularios." },
+      { name: "rc::a", duration: "Persistente", purpose: "Distinguir entre humanos y bots automatizados." },
+      { name: "rc::b", duration: "Sesi\xF3n", purpose: "Distinguir entre humanos y bots automatizados." },
+      { name: "rc::c", duration: "Sesi\xF3n", purpose: "Distinguir entre humanos y bots automatizados." }
+    ]
+  },
+  cloudflare: {
+    id: "cloudflare",
+    category: "necessary",
+    label: "Cloudflare Security & Turnstile",
+    provider: "Cloudflare, Inc.",
+    description: "Mitigaci\xF3n de ataques DDoS, balanceo de carga CDN y validaci\xF3n de seguridad Turnstile.",
+    policyUrl: "https://www.cloudflare.com/privacypolicy/",
+    cookies: [
+      { name: "__cf_bm", duration: "30 minutos", purpose: "Gesti\xF3n de bots y mitigaci\xF3n de tr\xE1fico malicioso en Cloudflare." },
+      { name: "cf_clearance", duration: "1 a\xF1o", purpose: "Autorizaci\xF3n de paso tras superar desaf\xEDo de seguridad Turnstile/Cloudflare." }
+    ]
+  },
+  stripe: {
+    id: "stripe",
+    category: "necessary",
+    label: "Stripe Payments & Fraud Prevention",
+    provider: "Stripe, Inc.",
+    description: "Procesamiento seguro de transacciones bancarias, tarjetas y prevenci\xF3n de fraude financiero.",
+    policyUrl: "https://stripe.com/privacy",
+    cookies: [
+      { name: "__stripe_mid", duration: "1 a\xF1o", purpose: "Prevenci\xF3n de fraude y autenticaci\xF3n de pagos en Stripe." },
+      { name: "__stripe_sid", duration: "30 minutos", purpose: "Identificador de sesi\xF3n de transacci\xF3n en Stripe." },
+      { name: "m", duration: "2 a\xF1os", purpose: "Detecci\xF3n de fraude financiero en la pasarela de pagos Stripe." }
+    ],
+    storageKeys: ["__stripe_*"],
+    localStorage: ["__stripe_*"]
+  },
+  paypal: {
+    id: "paypal",
+    category: "necessary",
+    label: "PayPal Checkout",
+    provider: "PayPal (Europe) S.\xE0 r.l. et Cie, S.C.A.",
+    description: "Procesamiento de pagos y pasarela de cobro segura de PayPal.",
+    policyUrl: "https://www.paypal.com/webapps/mpp/ua/privacy-full",
+    cookies: [
+      { name: "ts", duration: "3 a\xF1os", purpose: "Gesti\xF3n segura de pagos y prevenci\xF3n de fraude en PayPal." },
+      { name: "ts_c", duration: "3 a\xF1os", purpose: "Autenticaci\xF3n segura de usuario en la pasarela PayPal." }
+    ]
+  }
+};
+
+// src/presets/index.ts
+function hasPreset(presetId) {
+  return Object.prototype.hasOwnProperty.call(SERVICE_PRESETS, presetId);
+}
+function getPreset(presetId, overrides) {
+  const preset = SERVICE_PRESETS[presetId];
+  if (!preset) {
+    throw new Error(
+      `[ConsentSDK] Unknown service preset: '${presetId}'. Available presets: ${Object.keys(
+        SERVICE_PRESETS
+      ).join(", ")}`
+    );
+  }
+  const base = {
+    category: preset.category,
+    label: preset.label,
+    provider: preset.provider,
+    policyUrl: preset.policyUrl,
+    description: preset.description,
+    cookies: preset.cookies ? [...preset.cookies] : void 0,
+    storageKeys: preset.storageKeys ? [...preset.storageKeys] : void 0,
+    localStorage: preset.localStorage ? [...preset.localStorage] : void 0,
+    sessionStorage: preset.sessionStorage ? [...preset.sessionStorage] : void 0
+  };
+  if (!overrides) {
+    return base;
+  }
+  return __spreadProps(__spreadValues(__spreadValues({}, base), overrides), {
+    cookies: overrides.cookies || base.cookies,
+    storageKeys: overrides.storageKeys || base.storageKeys,
+    localStorage: overrides.localStorage || base.localStorage,
+    sessionStorage: overrides.sessionStorage || base.sessionStorage
+  });
+}
+function defineServices(definitions) {
+  const result = {};
+  for (const [key, def] of Object.entries(definitions)) {
+    if (typeof def === "string") {
+      result[key] = getPreset(def);
+    } else if (def && typeof def === "object") {
+      if (def.preset) {
+        const _a = def, { preset } = _a, overrides = __objRest(_a, ["preset"]);
+        result[key] = getPreset(preset, overrides);
+      } else if (hasPreset(key)) {
+        result[key] = getPreset(key, def);
+      } else {
+        result[key] = def;
+      }
+    }
+  }
+  return result;
+}
+function resolveConfigPresets(config) {
+  if (!config || !config.services || typeof config.services !== "object") {
+    return config;
+  }
+  const hydratedServices = {};
+  for (const [serviceKey, serviceDef] of Object.entries(config.services)) {
+    if (!serviceDef || typeof serviceDef !== "object") {
+      hydratedServices[serviceKey] = serviceDef;
+      continue;
+    }
+    const presetName = serviceDef.preset || (hasPreset(serviceKey) && !serviceDef.category ? serviceKey : void 0);
+    if (presetName && hasPreset(presetName)) {
+      const preset = SERVICE_PRESETS[presetName];
+      hydratedServices[serviceKey] = __spreadValues({
+        category: serviceDef.category || preset.category,
+        label: serviceDef.label || preset.label,
+        provider: serviceDef.provider || preset.provider,
+        policyUrl: serviceDef.policyUrl || preset.policyUrl,
+        description: serviceDef.description || preset.description,
+        cookies: serviceDef.cookies || (preset.cookies ? [...preset.cookies] : void 0),
+        storageKeys: serviceDef.storageKeys || (preset.storageKeys ? [...preset.storageKeys] : void 0),
+        localStorage: serviceDef.localStorage || (preset.localStorage ? [...preset.localStorage] : void 0),
+        sessionStorage: serviceDef.sessionStorage || (preset.sessionStorage ? [...preset.sessionStorage] : void 0)
+      }, serviceDef);
+    } else {
+      hydratedServices[serviceKey] = serviceDef;
+    }
+  }
+  return __spreadProps(__spreadValues({}, config), {
+    services: hydratedServices
+  });
+}
+
 // src/core/consent-engine.ts
 var ConsentEngine = class {
   constructor() {
@@ -2587,6 +3033,7 @@ var ConsentEngine = class {
       } else {
         config = configInput;
       }
+      config = resolveConfigPresets(config);
       validateConfig(config);
       const initialLocale = this.i18n.detectParentLocale(config);
       this.i18n.setLocale(initialLocale);
@@ -2831,7 +3278,7 @@ var ConsentEngine = class {
         return [this.purgeCategory(categoryOrService)];
       }
       const service = (_b = config.services) == null ? void 0 : _b[categoryOrService];
-      if (service) {
+      if (service == null ? void 0 : service.category) {
         return [this.purgeCategory(service.category)];
       }
     }
@@ -3181,14 +3628,19 @@ if (typeof document !== "undefined") {
   PolicyGenerator,
   ResourceGate,
   ResourceScanner,
+  SERVICE_PRESETS,
   ScriptGate,
   ScriptResourceBlocker,
   StorageCleaner,
   StorageFactory,
   computeReceiptSignature,
   createReceipt,
+  defineServices,
+  getPreset,
+  hasPreset,
   isReceiptExpired,
   parseReceipt,
+  resolveConfigPresets,
   sanitizeHtml,
   validateConfig,
   verifyReceiptIntegrity

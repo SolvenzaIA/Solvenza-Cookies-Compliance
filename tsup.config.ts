@@ -4,6 +4,7 @@ export default defineConfig([
   {
     entry: {
       "consent.esm": "src/index.ts",
+      "presets": "src/presets/index.ts",
       "wrappers/react": "src/wrappers/react.ts",
       "wrappers/angular": "src/wrappers/angular.ts",
       "wrappers/next": "src/wrappers/next.ts",

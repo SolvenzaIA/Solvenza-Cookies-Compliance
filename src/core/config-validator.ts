@@ -52,14 +52,15 @@ export function validateConfig(config: ConsentConfig): void {
   // Validate services if present
   if (config.services && typeof config.services === "object") {
     for (const [serviceId, serviceConfig] of Object.entries(config.services)) {
-      if (!serviceConfig.category) {
+      const category = serviceConfig.category;
+      if (!category) {
         throw new ConfigValidationError(
           `Service '${serviceId}' missing 'category' reference.`
         );
       }
-      if (!config.categories[serviceConfig.category]) {
+      if (!config.categories[category]) {
         throw new ConfigValidationError(
-          `Service '${serviceId}' references non-existent category '${serviceConfig.category}'.`
+          `Service '${serviceId}' references non-existent category '${category}'.`
         );
       }
     }

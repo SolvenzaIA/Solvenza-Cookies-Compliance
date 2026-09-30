@@ -1,4 +1,4 @@
-import "../chunk-DDAAVRWG.js";
+import "../chunk-2NMEKWO5.js";
 
 // src/wrappers/wordpress.ts
 function generateWordPressPluginPhp() {

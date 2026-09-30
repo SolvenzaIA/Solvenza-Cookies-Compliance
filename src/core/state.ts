@@ -58,7 +58,7 @@ export class StateManager {
   hasService(serviceId: string): boolean {
     if (!this.config || !this.config.services) return false;
     const service = this.config.services[serviceId];
-    if (!service) return false;
+    if (!service || !service.category) return false;
 
     return this.hasCategory(service.category);
   }

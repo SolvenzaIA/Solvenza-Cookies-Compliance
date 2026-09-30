@@ -324,6 +324,64 @@ StorageCleaner.purgeLocalStorage(["_ga*", "temp_*"]);
 
 ---
 
+## Presets de Servicios Comunes (GA4, Meta, Hotjar, etc.)
+
+El SDK incluye un catálogo oficial de más de 20 presets predefinidos con todos los metadatos necesarios (proveedor legal, categorías por defecto, patrones de cookies con duración y propósito, claves de Web Storage y políticas oficiales):
+
+### Catálogo de Servicios Soportados:
+| Categoría | Presets Disponibles |
+|---|---|
+| **Analítica** | `ga4`, `google_analytics`, `posthog`, `hotjar`, `clarity`, `matomo`, `plausible` |
+| **Marketing & Ads** | `meta_pixel`, `facebook_pixel`, `google_ads`, `tiktok_pixel`, `linkedin_insight`, `twitter_pixel`, `hubspot` |
+| **Media Embebida** | `youtube`, `vimeo`, `spotify` |
+| **Chat & Soporte** | `intercom`, `crisp` |
+| **Técnicas / Seguridad / Pagos** | `gtm`, `google_recaptcha`, `cloudflare`, `stripe`, `paypal` |
+
+### Uso Declarativo en `consent.json`:
+Basta con especificar `"preset": "<nombre>"` para que el SDK hidrate automáticamente cookies, almacenamiento y proveedor:
+
+```json
+{
+  "schemaVersion": 1,
+  "policyVersion": "2026-09-30",
+  "categories": {
+    "necessary": { "required": true, "label": "Necesarias", "description": "Cookies técnicas de seguridad y pago." },
+    "analytics": { "required": false, "label": "Analítica", "description": "Medición del tráfico y uso." },
+    "marketing": { "required": false, "label": "Marketing", "description": "Publicidad y contenido embebido." }
+  },
+  "services": {
+    "ga4": { "preset": "ga4" },
+    "facebook": { "preset": "meta_pixel" },
+    "hotjar": { "preset": "hotjar" },
+    "youtube": { "preset": "youtube" },
+    "stripe": { "preset": "stripe" }
+  }
+}
+```
+
+### Uso Programático en TypeScript / JavaScript:
+```ts
+import { Consent, getPreset, defineServices, SERVICE_PRESETS } from "@solvenza/cookies-compliance";
+// o importación directa:
+// import { getPreset, defineServices } from "@solvenza/cookies-compliance/presets";
+
+// 1. Obtener preset individual con personalizaciones
+const customGA4 = getPreset("ga4", {
+  label: "Google Analytics (Región UE)",
+  provider: "Google Ireland Ltd."
+});
+
+// 2. Definir múltiples servicios de forma concisa y tipada
+const services = defineServices({
+  ga4: "ga4",
+  meta: "meta_pixel",
+  hotjar: { preset: "hotjar", label: "Mapas de Calor UX" },
+  customApi: { category: "necessary", label: "API Interna de Autenticación" }
+});
+```
+
+---
+
 ### Vanilla HTML5
 
 Incrusta el script compilado y tu configuración. El botón flotante de revocación se activará automáticamente según lo definido en `consent.json`:

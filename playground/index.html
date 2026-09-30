@@ -135,19 +135,10 @@
           marketing: { required: false, label: "Marketing", description: "Personalización y vídeo." }
         },
         services: {
-          ga4: {
-            category: "analytics",
-            label: "Google Analytics 4",
-            provider: "Google",
-            cookies: [{ name: "_ga" }, { name: "_ga_*" }],
-            storageKeys: ["_ga*", "_gid*"]
-          },
-          youtube: {
-            category: "marketing",
-            label: "YouTube",
-            provider: "Google",
-            storageKeys: ["yt-*"]
-          }
+          ga4: { preset: "ga4" },
+          youtube: { preset: "youtube" },
+          hotjar: { preset: "hotjar" },
+          meta: { preset: "meta_pixel" }
         }
       }).then(updateInspector);
 

@@ -15,6 +15,13 @@ import { I18nEngine, BUILTIN_TRANSLATIONS } from "./i18n/engine.js";
 import { PolicyGenerator } from "./ui/policy-generator.js";
 import { FloatingBadge } from "./ui/floating-badge.js";
 import { StorageCleaner } from "./storage/storage-cleaner.js";
+import {
+  SERVICE_PRESETS,
+  getPreset,
+  defineServices,
+  resolveConfigPresets,
+  hasPreset,
+} from "./presets/index.js";
 
 export {
   Consent,
@@ -46,6 +53,11 @@ export {
   BUILTIN_TRANSLATIONS,
   PolicyGenerator,
   FloatingBadge,
+  SERVICE_PRESETS,
+  getPreset,
+  defineServices,
+  resolveConfigPresets,
+  hasPreset,
 };
 
 export type * from "./core/types.js";

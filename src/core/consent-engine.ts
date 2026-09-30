@@ -27,6 +27,7 @@ import { FloatingBadge } from "../ui/floating-badge.js";
 import { ResourceScanner } from "../diagnostics/resource-scanner.js";
 import { PolicyGenerator } from "../ui/policy-generator.js";
 import { I18nEngine } from "../i18n/engine.js";
+import { resolveConfigPresets } from "../presets/index.js";
 
 export class ConsentEngine implements ConsentSDKInterface {
   private stateManager = new StateManager();
@@ -62,6 +63,7 @@ export class ConsentEngine implements ConsentSDKInterface {
         config = configInput;
       }
 
+      config = resolveConfigPresets(config);
       validateConfig(config);
 
       // Determine initial locale from parent application (<html lang>, URL, navigator, or default)
@@ -374,7 +376,7 @@ export class ConsentEngine implements ConsentSDKInterface {
         return [this.purgeCategory(categoryOrService)];
       }
       const service = config.services?.[categoryOrService];
-      if (service) {
+      if (service?.category) {
         return [this.purgeCategory(service.category)];
       }
     }

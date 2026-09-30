@@ -1,5 +1,6 @@
-import { C as ConsentSDKInterface, a as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler, f as ConsentReceipt, D as DiagnosticReport, T as TranslationConfig, F as FloatingBadgeConfig, g as CategoryConfig, h as ServiceConfig } from './types-EE8440IA.cjs';
-export { B as BannerUIConfig, i as ConsentEventDetailMap, L as LocaleConfig, P as PreferencesUIConfig } from './types-EE8440IA.cjs';
+import { C as ConsentSDKInterface, a as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler, f as ConsentReceipt, D as DiagnosticReport, T as TranslationConfig, F as FloatingBadgeConfig, g as CategoryConfig, h as ServiceConfig } from './types-HxCOfAve.cjs';
+export { B as BannerUIConfig, i as ConsentEventDetailMap, L as LocaleConfig, P as PreferencesUIConfig, j as ServicePreset } from './types-HxCOfAve.cjs';
+export { SERVICE_PRESETS, defineServices, getPreset, hasPreset, resolveConfigPresets } from './presets.cjs';
 
 declare class ConsentEngine implements ConsentSDKInterface {
     private stateManager;

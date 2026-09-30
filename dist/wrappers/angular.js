@@ -1,7 +1,8 @@
 import {
   Consent
-} from "../chunk-CKNCOXDS.js";
-import "../chunk-DDAAVRWG.js";
+} from "../chunk-2OBD2A3R.js";
+import "../chunk-2IR66AV3.js";
+import "../chunk-2NMEKWO5.js";
 
 // src/wrappers/angular.ts
 var ConsentService = class {

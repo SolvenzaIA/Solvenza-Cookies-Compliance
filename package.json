@@ -27,6 +27,11 @@
       "import": "./dist/consent.esm.js",
       "require": "./dist/consent.esm.cjs"
     },
+    "./presets": {
+      "types": "./dist/presets.d.ts",
+      "import": "./dist/presets.js",
+      "require": "./dist/presets.cjs"
+    },
     "./react": {
       "types": "./dist/wrappers/react.d.ts",
       "import": "./dist/wrappers/react.js"

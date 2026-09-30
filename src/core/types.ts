@@ -3,9 +3,30 @@ export interface ConsentChoices {
 }
 
 export interface ServiceConfig {
-  category: string;
+  preset?: string;
+  category?: string;
   label?: string;
   provider?: string;
+  policyUrl?: string;
+  description?: string;
+  cookies?: Array<{
+    name: string;
+    domain?: string;
+    duration?: string;
+    purpose?: string;
+  }>;
+  storageKeys?: string[];
+  localStorage?: string[];
+  sessionStorage?: string[];
+}
+
+export interface ServicePreset {
+  id: string;
+  category: string;
+  label: string;
+  provider: string;
+  description?: string;
+  policyUrl?: string;
   cookies?: Array<{
     name: string;
     domain?: string;

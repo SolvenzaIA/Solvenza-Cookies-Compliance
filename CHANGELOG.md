@@ -28,9 +28,29 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
   - **Sincronización sin Boilerplate**: `useSyncConsentLocale(locale)` compatible con `vue-i18n` (`watch` reactivo).
   - **Componente Declarativo `<ConsentGate>`**: Renderizado condicional mediante slots (`#default` y `#fallback`) según permisos de categoría o servicio.
   - **Plugin Vue 3**: `createConsentPlugin(configUrl)` para inyección global de `$consent` y registro automático de `<ConsentGate>`.
-- **Wrapper Oficial para Nuxt 3 (`@solvenza/cookies-compliance/nuxt`)**:
-  - Helper `defineNuxtConsentPlugin(configUrl)` y `initNuxtConsent(configUrl, initialLocale)` para ejecución SSR/Universal segura en cliente.
-  - Re-exportación completa de composables y componentes de Vue 3.
+- **Catálogo de Presets de Servicios Comunes (`@solvenza/cookies-compliance/presets`)**:
+  - **Más de 20 servicios preconfigurados según directrices LSSI/AEPD/RGPD**:
+    - **Analítica**: Google Analytics 4 (`ga4`), PostHog (`posthog`), Hotjar (`hotjar`), Microsoft Clarity (`clarity`), Matomo (`matomo`), Plausible (`plausible`).
+    - **Marketing & Publicidad**: Meta Pixel (`meta_pixel` / `facebook_pixel`), Google Ads & Remarketing (`google_ads`), TikTok Pixel (`tiktok_pixel`), LinkedIn Insight (`linkedin_insight`), X/Twitter Pixel (`twitter_pixel`), HubSpot (`hubspot`).
+    - **Media & Reproductores Embebidos**: YouTube Player (`youtube`), Vimeo Player (`vimeo`), Spotify Player (`spotify`).
+    - **Soporte & Chat en Vivo**: Intercom Messenger (`intercom`), Crisp Chat (`crisp`).
+    - **Técnicas / Seguridad / Pagos**: Google Tag Manager (`gtm`), Google reCAPTCHA (`google_recaptcha`), Cloudflare Turnstile & CDN (`cloudflare`), Stripe Payments (`stripe`), PayPal Checkout (`paypal`).
+  - **Metadatos completos incluidos**: Categoría por defecto, proveedor legal, descripción estándar, nombres y patrones de cookies (con duración y propósito), claves de `localStorage` y `sessionStorage`, y enlaces a políticas oficiales de privacidad.
+  - **Sintaxis declarativa en `consent.json`**:
+    ```json
+    "services": {
+      "ga4": { "preset": "ga4" },
+      "meta": { "preset": "meta_pixel" },
+      "hotjar": { "preset": "hotjar", "category": "analytics" }
+    }
+    ```
+  - **Funciones y utilidades exportadas**:
+    - `getPreset(id, overrides)`: Obtiene la configuración de un servicio con personalizaciones opcionales.
+    - `defineServices(definitions)`: Helper tipado para declarar servicios en TypeScript/JavaScript.
+    - `resolveConfigPresets(config)`: Hidrata automáticamente todas las referencias a presets en la configuración.
+    - `SERVICE_PRESETS`: Catálogo completo exportado para consulta e inspección.
+    - `hasPreset(id)`: Verificación booleana de existencia de preset.
+  - **Punto de entrada dedicado**: `./presets` en `package.json` (`@solvenza/cookies-compliance/presets`).
 
 ---
 
