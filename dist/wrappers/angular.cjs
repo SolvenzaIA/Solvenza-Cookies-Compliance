@@ -3331,15 +3331,17 @@ function resolveConfigPresets(config) {
 
 // src/core/gpc.ts
 function detectGpcSignal() {
-  if (typeof window === "undefined" && typeof navigator === "undefined") {
+  var _a, _b, _c, _d;
+  if (typeof window === "undefined" && typeof navigator === "undefined" && typeof globalThis === "undefined") {
     return false;
   }
   const nav = typeof navigator !== "undefined" ? navigator : null;
   const win = typeof window !== "undefined" ? window : null;
-  if ((nav == null ? void 0 : nav.globalPrivacyControl) === true || (win == null ? void 0 : win.globalPrivacyControl) === true) {
+  const glob = typeof globalThis !== "undefined" ? globalThis : null;
+  if ((nav == null ? void 0 : nav.globalPrivacyControl) === true || (win == null ? void 0 : win.globalPrivacyControl) === true || ((_a = win == null ? void 0 : win.navigator) == null ? void 0 : _a.globalPrivacyControl) === true || ((_b = glob == null ? void 0 : glob.navigator) == null ? void 0 : _b.globalPrivacyControl) === true || (glob == null ? void 0 : glob.globalPrivacyControl) === true) {
     return true;
   }
-  if ((nav == null ? void 0 : nav.doNotTrack) === "1" || (win == null ? void 0 : win.doNotTrack) === "1" || (nav == null ? void 0 : nav.msDoNotTrack) === "1" || (win == null ? void 0 : win.external) && "msTrackingProtectionEnabled" in win.external && win.external.msTrackingProtectionEnabled()) {
+  if ((nav == null ? void 0 : nav.doNotTrack) === "1" || (win == null ? void 0 : win.doNotTrack) === "1" || ((_c = win == null ? void 0 : win.navigator) == null ? void 0 : _c.doNotTrack) === "1" || ((_d = glob == null ? void 0 : glob.navigator) == null ? void 0 : _d.doNotTrack) === "1" || (glob == null ? void 0 : glob.doNotTrack) === "1" || (nav == null ? void 0 : nav.msDoNotTrack) === "1" || (win == null ? void 0 : win.external) && typeof win.external.msTrackingProtectionEnabled === "function" && win.external.msTrackingProtectionEnabled()) {
     return true;
   }
   return false;

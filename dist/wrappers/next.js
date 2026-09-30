@@ -8,10 +8,10 @@ import {
   useConsentService,
   useGpc,
   useSyncConsentLocale
-} from "../chunk-ZJMLSEX5.js";
+} from "../chunk-DHCPHDFA.js";
 import {
   Consent
-} from "../chunk-FCLZMGSN.js";
+} from "../chunk-Q6Z5RYGU.js";
 import "../chunk-6BS5OK6D.js";
 import "../chunk-63YYRFC3.js";
 

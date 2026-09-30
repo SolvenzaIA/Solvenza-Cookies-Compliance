@@ -7,15 +7,22 @@ import type { ConsentChoices, ConsentConfig, GpcConfig } from "./types.js";
  * @returns boolean indicating if a privacy signal is active
  */
 export function detectGpcSignal(): boolean {
-  if (typeof window === "undefined" && typeof navigator === "undefined") {
+  if (typeof window === "undefined" && typeof navigator === "undefined" && typeof globalThis === "undefined") {
     return false;
   }
 
   const nav = typeof navigator !== "undefined" ? (navigator as any) : null;
   const win = typeof window !== "undefined" ? (window as any) : null;
+  const glob = typeof globalThis !== "undefined" ? (globalThis as any) : null;
 
   // 1. Check official Global Privacy Control (GPC) property
-  if (nav?.globalPrivacyControl === true || win?.globalPrivacyControl === true) {
+  if (
+    nav?.globalPrivacyControl === true ||
+    win?.globalPrivacyControl === true ||
+    win?.navigator?.globalPrivacyControl === true ||
+    glob?.navigator?.globalPrivacyControl === true ||
+    glob?.globalPrivacyControl === true
+  ) {
     return true;
   }
 
@@ -23,8 +30,11 @@ export function detectGpcSignal(): boolean {
   if (
     nav?.doNotTrack === "1" ||
     win?.doNotTrack === "1" ||
+    win?.navigator?.doNotTrack === "1" ||
+    glob?.navigator?.doNotTrack === "1" ||
+    glob?.doNotTrack === "1" ||
     nav?.msDoNotTrack === "1" ||
-    (win?.external && "msTrackingProtectionEnabled" in win.external && win.external.msTrackingProtectionEnabled())
+    (win?.external && typeof win.external.msTrackingProtectionEnabled === "function" && win.external.msTrackingProtectionEnabled())
   ) {
     return true;
   }

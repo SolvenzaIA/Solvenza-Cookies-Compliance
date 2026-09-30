@@ -35,21 +35,72 @@ describe("Global Privacy Control (GPC) & Do Not Track (DNT) Support", () => {
   };
 
   const setNavigatorGpc = (gpcValue: boolean | undefined, dntValue?: string | undefined) => {
+    if (!(globalThis as any).navigator) {
+      try {
+        Object.defineProperty(globalThis, "navigator", {
+          value: {},
+          configurable: true,
+          writable: true,
+        });
+      } catch {
+        (globalThis as any).navigator = {};
+      }
+    }
+
+    const nav = (globalThis as any).navigator;
     try {
-      Object.defineProperty(globalThis.navigator, "globalPrivacyControl", {
+      Object.defineProperty(nav, "globalPrivacyControl", {
         value: gpcValue,
         configurable: true,
         writable: true,
       });
-      Object.defineProperty(globalThis.navigator, "doNotTrack", {
+    } catch {
+      nav.globalPrivacyControl = gpcValue;
+    }
+
+    try {
+      Object.defineProperty(nav, "doNotTrack", {
         value: dntValue,
         configurable: true,
         writable: true,
       });
-    } catch {}
+    } catch {
+      nav.doNotTrack = dntValue;
+    }
+
+    const win = (globalThis as any).window;
+    if (win) {
+      win.globalPrivacyControl = gpcValue;
+      win.doNotTrack = dntValue;
+      if (!win.navigator) {
+        win.navigator = nav;
+      } else {
+        try {
+          Object.defineProperty(win.navigator, "globalPrivacyControl", {
+            value: gpcValue,
+            configurable: true,
+            writable: true,
+          });
+        } catch {
+          win.navigator.globalPrivacyControl = gpcValue;
+        }
+        try {
+          Object.defineProperty(win.navigator, "doNotTrack", {
+            value: dntValue,
+            configurable: true,
+            writable: true,
+          });
+        } catch {
+          win.navigator.doNotTrack = dntValue;
+        }
+      }
+    }
   };
 
+  let consoleErrorSpy: any;
+
   beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     (globalThis as any).window = {
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
@@ -81,6 +132,7 @@ describe("Global Privacy Control (GPC) & Do Not Track (DNT) Support", () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     setNavigatorGpc(undefined, undefined);
     (globalThis as any).window = originalWindow;
     (globalThis as any).document = originalDocument;

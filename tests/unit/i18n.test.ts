@@ -214,23 +214,48 @@ describe("I18nEngine Unit Tests", () => {
   });
 
   it("should detect browser locale correctly", () => {
+    const nav = (globalThis as any).navigator || {};
+    if (!(globalThis as any).navigator) {
+      try {
+        Object.defineProperty(globalThis, "navigator", {
+          value: nav,
+          configurable: true,
+          writable: true,
+        });
+      } catch {
+        (globalThis as any).navigator = nav;
+      }
+    }
+
     const originalDescriptor = Object.getOwnPropertyDescriptor(globalThis.navigator, "language");
 
-    Object.defineProperty(globalThis.navigator, "language", {
-      value: "en-US",
-      configurable: true,
-    });
+    try {
+      Object.defineProperty(globalThis.navigator, "language", {
+        value: "en-US",
+        configurable: true,
+        writable: true,
+      });
+    } catch {
+      (globalThis.navigator as any).language = "en-US";
+    }
     expect(engine.detectBrowserLocale(["es", "en"])).toBe("en");
 
-    Object.defineProperty(globalThis.navigator, "language", {
-      value: "de-DE",
-      configurable: true,
-    });
+    try {
+      Object.defineProperty(globalThis.navigator, "language", {
+        value: "de-DE",
+        configurable: true,
+        writable: true,
+      });
+    } catch {
+      (globalThis.navigator as any).language = "de-DE";
+    }
     // Not in supported list -> falls back to first supported
     expect(engine.detectBrowserLocale(["es", "en"])).toBe("es");
 
     if (originalDescriptor) {
-      Object.defineProperty(globalThis.navigator, "language", originalDescriptor);
+      try {
+        Object.defineProperty(globalThis.navigator, "language", originalDescriptor);
+      } catch {}
     }
   });
 });
