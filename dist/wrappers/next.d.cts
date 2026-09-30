@@ -1,5 +1,5 @@
-import { C as ConsentConfig } from '../types-D0UymOJZ.cjs';
-export { ConsentGate, ConsentGateFallbackContext, ConsentGateProps, useConsent, useConsentLocale, useConsentService, useGpc, useSyncConsentLocale } from './react.cjs';
+import { C as ConsentConfig } from '../types--kyI7OOR.cjs';
+export { ConsentGate, ConsentGateFallbackContext, ConsentGateProps, CookiePolicy, CookiePolicyProps, LegalNotice, LegalNoticeProps, PrivacyPolicy, PrivacyPolicyProps, useConsent, useConsentLocale, useConsentService, useGpc, useSyncConsentLocale } from './react.cjs';
 import 'react';
 
 /**

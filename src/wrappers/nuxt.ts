@@ -6,6 +6,9 @@ export {
   useSyncConsentLocale,
   useGpc,
   ConsentGate,
+  CookiePolicy,
+  LegalNotice,
+  PrivacyPolicy,
 } from "./vue.js";
 
 /**

@@ -1,10 +1,13 @@
 import {
   Directive,
+  Component,
   Input,
   TemplateRef,
   ViewContainerRef,
   OnInit,
   OnDestroy,
+  OnChanges,
+  SimpleChanges,
   Injectable,
 } from "@angular/core";
 import { Consent } from "../core/consent-engine.js";
@@ -14,6 +17,7 @@ import type {
   ConsentEvent,
   ConsentEventHandler,
   ConsentState,
+  LegalPolicyOptions,
   StoragePurgeReport,
 } from "../core/types.js";
 
@@ -95,6 +99,18 @@ export class ConsentService {
   on<E extends ConsentEvent>(event: E, handler: ConsentEventHandler<E>): () => void {
     return Consent.on(event, handler);
   }
+
+  renderPolicyHtml(options?: LegalPolicyOptions): string {
+    return Consent.renderPolicyHtml(options);
+  }
+
+  renderLegalNoticeHtml(options?: LegalPolicyOptions): string {
+    return Consent.renderLegalNoticeHtml(options);
+  }
+
+  renderPrivacyPolicyHtml(options?: LegalPolicyOptions): string {
+    return Consent.renderPrivacyPolicyHtml(options);
+  }
 }
 
 /**
@@ -173,6 +189,113 @@ export class ConsentGateDirective implements OnInit, OnDestroy {
           this.hasElseView = true;
         }
       }
+    }
+  }
+}
+
+/**
+ * Angular Standalone Component to render Cookie Policy document or cookie inventory table.
+ */
+@Component({
+  selector: "solvenza-cookie-policy",
+  standalone: true,
+  template: `<div [innerHTML]="renderedHtml"></div>`,
+})
+export class CookiePolicyComponent implements OnInit, OnChanges {
+  @Input() view: "full" | "table-only" | "summary" = "full";
+  @Input() options?: LegalPolicyOptions;
+
+  renderedHtml = "";
+
+  ngOnInit(): void {
+    this.render();
+    Consent.on("ready", () => this.render());
+    Consent.on("locale:changed", () => this.render());
+  }
+
+  ngOnChanges(_changes: SimpleChanges): void {
+    this.render();
+  }
+
+  private render(): void {
+    try {
+      this.renderedHtml = Consent.renderPolicyHtml({
+        ...this.options,
+        view: this.view,
+        locale: this.options?.locale || Consent.getLocale(),
+      });
+    } catch {
+      this.renderedHtml = "";
+    }
+  }
+}
+
+/**
+ * Angular Standalone Component to render Legal Notice (Aviso Legal LSSI-CE art. 10).
+ */
+@Component({
+  selector: "solvenza-legal-notice",
+  standalone: true,
+  template: `<div [innerHTML]="renderedHtml"></div>`,
+})
+export class LegalNoticeComponent implements OnInit, OnChanges {
+  @Input() options?: LegalPolicyOptions;
+
+  renderedHtml = "";
+
+  ngOnInit(): void {
+    this.render();
+    Consent.on("ready", () => this.render());
+    Consent.on("locale:changed", () => this.render());
+  }
+
+  ngOnChanges(_changes: SimpleChanges): void {
+    this.render();
+  }
+
+  private render(): void {
+    try {
+      this.renderedHtml = Consent.renderLegalNoticeHtml({
+        ...this.options,
+        locale: this.options?.locale || Consent.getLocale(),
+      });
+    } catch {
+      this.renderedHtml = "";
+    }
+  }
+}
+
+/**
+ * Angular Standalone Component to render GDPR Privacy Policy document.
+ */
+@Component({
+  selector: "solvenza-privacy-policy",
+  standalone: true,
+  template: `<div [innerHTML]="renderedHtml"></div>`,
+})
+export class PrivacyPolicyComponent implements OnInit, OnChanges {
+  @Input() options?: LegalPolicyOptions;
+
+  renderedHtml = "";
+
+  ngOnInit(): void {
+    this.render();
+    Consent.on("ready", () => this.render());
+    Consent.on("locale:changed", () => this.render());
+  }
+
+  ngOnChanges(_changes: SimpleChanges): void {
+    this.render();
+  }
+
+  private render(): void {
+    try {
+      this.renderedHtml = Consent.renderPrivacyPolicyHtml({
+        ...this.options,
+        locale: this.options?.locale || Consent.getLocale(),
+      });
+    } catch {
+      this.renderedHtml = "";
     }
   }
 }

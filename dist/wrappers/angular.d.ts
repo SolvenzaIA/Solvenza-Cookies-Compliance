@@ -1,5 +1,5 @@
-import { OnInit, OnDestroy, TemplateRef, ViewContainerRef } from '@angular/core';
-import { C as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler } from '../types-D0UymOJZ.js';
+import { OnInit, OnDestroy, TemplateRef, ViewContainerRef, OnChanges, SimpleChanges } from '@angular/core';
+import { C as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler, L as LegalPolicyOptions } from '../types--kyI7OOR.js';
 
 /**
  * Angular Consent Service injectable helper.
@@ -29,6 +29,9 @@ declare class ConsentService {
     purgeCategory(category: string): StoragePurgeReport;
     purgeStorage(categoryOrService?: string): StoragePurgeReport[];
     on<E extends ConsentEvent>(event: E, handler: ConsentEventHandler<E>): () => void;
+    renderPolicyHtml(options?: LegalPolicyOptions): string;
+    renderLegalNoticeHtml(options?: LegalPolicyOptions): string;
+    renderPrivacyPolicyHtml(options?: LegalPolicyOptions): string;
 }
 /**
  * Angular Structural Directive to conditionally render elements based on consent.
@@ -62,5 +65,36 @@ declare class ConsentGateDirective implements OnInit, OnDestroy {
     ngOnDestroy(): void;
     private updateView;
 }
+/**
+ * Angular Standalone Component to render Cookie Policy document or cookie inventory table.
+ */
+declare class CookiePolicyComponent implements OnInit, OnChanges {
+    view: "full" | "table-only" | "summary";
+    options?: LegalPolicyOptions;
+    renderedHtml: string;
+    ngOnInit(): void;
+    ngOnChanges(_changes: SimpleChanges): void;
+    private render;
+}
+/**
+ * Angular Standalone Component to render Legal Notice (Aviso Legal LSSI-CE art. 10).
+ */
+declare class LegalNoticeComponent implements OnInit, OnChanges {
+    options?: LegalPolicyOptions;
+    renderedHtml: string;
+    ngOnInit(): void;
+    ngOnChanges(_changes: SimpleChanges): void;
+    private render;
+}
+/**
+ * Angular Standalone Component to render GDPR Privacy Policy document.
+ */
+declare class PrivacyPolicyComponent implements OnInit, OnChanges {
+    options?: LegalPolicyOptions;
+    renderedHtml: string;
+    ngOnInit(): void;
+    ngOnChanges(_changes: SimpleChanges): void;
+    private render;
+}
 
-export { ConsentGateDirective, ConsentService };
+export { ConsentGateDirective, ConsentService, CookiePolicyComponent, LegalNoticeComponent, PrivacyPolicyComponent };

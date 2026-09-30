@@ -126,9 +126,42 @@ export interface GpcConfig {
   noticeText?: string;
 }
 
+export interface LegalEntityConfig {
+  name: string; // Razón social (ej: "Solvenza IA S.L.")
+  tradeName?: string; // Nombre comercial (ej: "Solvenza")
+  taxId?: string; // NIF / CIF / VAT (ej: "B-12345678")
+  address?: string; // Domicilio social
+  email?: string; // Correo de contacto o privacidad
+  phone?: string; // Teléfono de contacto
+  registryData?: string; // Datos registrales (Registro Mercantil, Tomo, Folio...)
+  dpoEmail?: string; // Correo del Delegado de Protección de Datos (DPO)
+  activity?: string; // Objeto social / Actividad principal
+  websiteUrl?: string; // URL del sitio web
+}
+
+export interface LegalNoticeConfig {
+  entity?: LegalEntityConfig;
+  applicableLaw?: string;
+  jurisdiction?: string;
+  lastUpdated?: string;
+}
+
+export interface LegalPolicyOptions {
+  view?: "full" | "table-only" | "summary";
+  locale?: string;
+  showRevocationButtons?: boolean;
+  showBrowserGuide?: boolean;
+  showInternationalTransfers?: boolean;
+  showGpcNotice?: boolean;
+  theme?: "light" | "dark" | "auto";
+  className?: string;
+}
+
 export interface ConsentConfig {
   schemaVersion: number;
   policyVersion: string;
+  legalEntity?: LegalEntityConfig;
+  legalNotice?: LegalNoticeConfig;
   locale?: LocaleConfig;
   translations?: Record<string, TranslationConfig>;
   security?: {
@@ -271,5 +304,10 @@ export interface ConsentSDKInterface {
   ): () => void;
   getReceipt(): ConsentReceipt | null;
   rescan(): DiagnosticReport;
-  mountPolicy(targetContainer: HTMLElement | string): void;
+  mountPolicy(targetContainer: HTMLElement | string, options?: LegalPolicyOptions): void;
+  renderPolicyHtml(options?: LegalPolicyOptions): string;
+  mountLegalNotice(targetContainer: HTMLElement | string, options?: LegalPolicyOptions): void;
+  renderLegalNoticeHtml(options?: LegalPolicyOptions): string;
+  mountPrivacyPolicy(targetContainer: HTMLElement | string, options?: LegalPolicyOptions): void;
+  renderPrivacyPolicyHtml(options?: LegalPolicyOptions): string;
 }

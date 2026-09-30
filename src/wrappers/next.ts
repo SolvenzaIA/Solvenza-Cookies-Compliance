@@ -10,6 +10,12 @@ export {
   ConsentGate,
   type ConsentGateProps,
   type ConsentGateFallbackContext,
+  CookiePolicy,
+  type CookiePolicyProps,
+  LegalNotice,
+  type LegalNoticeProps,
+  PrivacyPolicy,
+  type PrivacyPolicyProps,
 } from "./react.js";
 
 /**

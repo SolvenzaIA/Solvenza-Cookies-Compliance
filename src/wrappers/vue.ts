@@ -222,6 +222,113 @@ export const ConsentGate = defineComponent({
 });
 
 /**
+ * Declarative Vue 3 Component to render Cookie Policy document or cookie inventory table.
+ */
+export const CookiePolicy = defineComponent({
+  name: "CookiePolicy",
+  props: {
+    view: {
+      type: String as PropType<"full" | "table-only" | "summary">,
+      default: "full",
+    },
+    options: {
+      type: Object as PropType<import("../core/types.js").LegalPolicyOptions>,
+      default: () => ({}),
+    },
+  },
+  setup(props) {
+    const html = ref<string>("");
+    const locale = useConsentLocale();
+
+    const render = () => {
+      try {
+        html.value = Consent.renderPolicyHtml({
+          ...props.options,
+          view: props.view,
+          locale: props.options?.locale || locale.value,
+        });
+      } catch {
+        html.value = "";
+      }
+    };
+
+    render();
+    watch([() => props.view, locale, () => props.options], render, { deep: true });
+    Consent.on("ready", render);
+
+    return (): VNode => h("div", { class: "solvenza-cookie-policy-container", innerHTML: html.value });
+  },
+});
+
+/**
+ * Declarative Vue 3 Component to render Legal Notice (Aviso Legal LSSI-CE art. 10).
+ */
+export const LegalNotice = defineComponent({
+  name: "LegalNotice",
+  props: {
+    options: {
+      type: Object as PropType<import("../core/types.js").LegalPolicyOptions>,
+      default: () => ({}),
+    },
+  },
+  setup(props) {
+    const html = ref<string>("");
+    const locale = useConsentLocale();
+
+    const render = () => {
+      try {
+        html.value = Consent.renderLegalNoticeHtml({
+          ...props.options,
+          locale: props.options?.locale || locale.value,
+        });
+      } catch {
+        html.value = "";
+      }
+    };
+
+    render();
+    watch([locale, () => props.options], render, { deep: true });
+    Consent.on("ready", render);
+
+    return (): VNode => h("div", { class: "solvenza-legal-notice-container", innerHTML: html.value });
+  },
+});
+
+/**
+ * Declarative Vue 3 Component to render GDPR Privacy Policy document.
+ */
+export const PrivacyPolicy = defineComponent({
+  name: "PrivacyPolicy",
+  props: {
+    options: {
+      type: Object as PropType<import("../core/types.js").LegalPolicyOptions>,
+      default: () => ({}),
+    },
+  },
+  setup(props) {
+    const html = ref<string>("");
+    const locale = useConsentLocale();
+
+    const render = () => {
+      try {
+        html.value = Consent.renderPrivacyPolicyHtml({
+          ...props.options,
+          locale: props.options?.locale || locale.value,
+        });
+      } catch {
+        html.value = "";
+      }
+    };
+
+    render();
+    watch([locale, () => props.options], render, { deep: true });
+    Consent.on("ready", render);
+
+    return (): VNode => h("div", { class: "solvenza-privacy-policy-container", innerHTML: html.value });
+  },
+});
+
+/**
  * Vue 3 Plugin factory for Solvenza Cookies Compliance.
  *
  * @example
@@ -247,6 +354,9 @@ export function createConsentPlugin(
       app.provide("consent", Consent);
       app.config.globalProperties.$consent = Consent;
       app.component("ConsentGate", ConsentGate);
+      app.component("CookiePolicy", CookiePolicy);
+      app.component("LegalNotice", LegalNotice);
+      app.component("PrivacyPolicy", PrivacyPolicy);
     },
   };
 }

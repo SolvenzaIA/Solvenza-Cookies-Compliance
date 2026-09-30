@@ -29,7 +29,7 @@ import {
   sanitizeHtml,
   validateConfig,
   verifyReceiptIntegrity
-} from "./chunk-4PCAGYJ6.js";
+} from "./chunk-FCLZMGSN.js";
 import {
   SERVICE_PRESETS,
   defineServices,
@@ -61,6 +61,14 @@ var ConsentConfigBuilder = class {
   }
   setPolicyVersion(version) {
     this.config.policyVersion = version;
+    return this;
+  }
+  setLegalEntity(entity) {
+    this.config.legalEntity = entity;
+    return this;
+  }
+  setLegalNotice(notice) {
+    this.config.legalNotice = notice;
     return this;
   }
   setPolicyUrls(privacyUrl, cookiesUrl) {

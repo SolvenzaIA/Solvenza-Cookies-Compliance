@@ -1,3 +1,4 @@
+import { L as LegalPolicyOptions } from '../types--kyI7OOR.cjs';
 import { ReactNode } from 'react';
 
 /**
@@ -57,5 +58,33 @@ interface ConsentGateProps {
  * ```
  */
 declare function ConsentGate({ category, service, fallback, children, }: ConsentGateProps): any;
+interface CookiePolicyProps {
+    view?: "full" | "table-only" | "summary";
+    options?: LegalPolicyOptions;
+    className?: string;
+    style?: any;
+}
+/**
+ * Declarative React component that renders the full Cookie Policy document or cookie inventory table.
+ */
+declare function CookiePolicy({ view, options, className, style, }: CookiePolicyProps): any;
+interface LegalNoticeProps {
+    options?: LegalPolicyOptions;
+    className?: string;
+    style?: any;
+}
+/**
+ * Declarative React component that renders the Legal Notice (Aviso Legal LSSI-CE art. 10).
+ */
+declare function LegalNotice({ options, className, style }: LegalNoticeProps): any;
+interface PrivacyPolicyProps {
+    options?: LegalPolicyOptions;
+    className?: string;
+    style?: any;
+}
+/**
+ * Declarative React component that renders the GDPR Privacy Policy document.
+ */
+declare function PrivacyPolicy({ options, className, style }: PrivacyPolicyProps): any;
 
-export { ConsentGate, type ConsentGateFallbackContext, type ConsentGateProps, useConsent, useConsentLocale, useConsentService, useGpc, useSyncConsentLocale };
+export { ConsentGate, type ConsentGateFallbackContext, type ConsentGateProps, CookiePolicy, type CookiePolicyProps, LegalNotice, type LegalNoticeProps, PrivacyPolicy, type PrivacyPolicyProps, useConsent, useConsentLocale, useConsentService, useGpc, useSyncConsentLocale };

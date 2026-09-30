@@ -1,16 +1,19 @@
 import {
   Consent
-} from "../chunk-4PCAGYJ6.js";
+} from "../chunk-FCLZMGSN.js";
 import "../chunk-6BS5OK6D.js";
 import {
   __decorateElement,
   __decoratorStart,
-  __runInitializers
+  __runInitializers,
+  __spreadProps,
+  __spreadValues
 } from "../chunk-63YYRFC3.js";
 
 // src/wrappers/angular.ts
 import {
   Directive,
+  Component,
   Input,
   Injectable
 } from "@angular/core";
@@ -74,6 +77,15 @@ var ConsentService = class {
   on(event, handler) {
     return Consent.on(event, handler);
   }
+  renderPolicyHtml(options) {
+    return Consent.renderPolicyHtml(options);
+  }
+  renderLegalNoticeHtml(options) {
+    return Consent.renderLegalNoticeHtml(options);
+  }
+  renderPrivacyPolicyHtml(options) {
+    return Consent.renderPrivacyPolicyHtml(options);
+  }
 };
 _init = __decoratorStart(null);
 ConsentService = __decorateElement(_init, 0, "ConsentService", _ConsentService_decorators, ConsentService);
@@ -135,8 +147,116 @@ __decorateElement(_init2, 5, "service", _service_dec, ConsentGateDirective);
 __decorateElement(_init2, 5, "elseTemplate", _elseTemplate_dec, ConsentGateDirective);
 ConsentGateDirective = __decorateElement(_init2, 0, "ConsentGateDirective", _ConsentGateDirective_decorators, ConsentGateDirective);
 __runInitializers(_init2, 1, ConsentGateDirective);
+var _options_dec, _view_dec, _CookiePolicyComponent_decorators, _init3;
+_CookiePolicyComponent_decorators = [Component({
+  selector: "solvenza-cookie-policy",
+  standalone: true,
+  template: `<div [innerHTML]="renderedHtml"></div>`
+})], _view_dec = [Input()], _options_dec = [Input()];
+var CookiePolicyComponent = class {
+  constructor() {
+    this.view = __runInitializers(_init3, 8, this, "full"), __runInitializers(_init3, 11, this);
+    this.options = __runInitializers(_init3, 12, this), __runInitializers(_init3, 15, this);
+    this.renderedHtml = "";
+  }
+  ngOnInit() {
+    this.render();
+    Consent.on("ready", () => this.render());
+    Consent.on("locale:changed", () => this.render());
+  }
+  ngOnChanges(_changes) {
+    this.render();
+  }
+  render() {
+    var _a;
+    try {
+      this.renderedHtml = Consent.renderPolicyHtml(__spreadProps(__spreadValues({}, this.options), {
+        view: this.view,
+        locale: ((_a = this.options) == null ? void 0 : _a.locale) || Consent.getLocale()
+      }));
+    } catch (e) {
+      this.renderedHtml = "";
+    }
+  }
+};
+_init3 = __decoratorStart(null);
+__decorateElement(_init3, 5, "view", _view_dec, CookiePolicyComponent);
+__decorateElement(_init3, 5, "options", _options_dec, CookiePolicyComponent);
+CookiePolicyComponent = __decorateElement(_init3, 0, "CookiePolicyComponent", _CookiePolicyComponent_decorators, CookiePolicyComponent);
+__runInitializers(_init3, 1, CookiePolicyComponent);
+var _options_dec2, _LegalNoticeComponent_decorators, _init4;
+_LegalNoticeComponent_decorators = [Component({
+  selector: "solvenza-legal-notice",
+  standalone: true,
+  template: `<div [innerHTML]="renderedHtml"></div>`
+})], _options_dec2 = [Input()];
+var LegalNoticeComponent = class {
+  constructor() {
+    this.options = __runInitializers(_init4, 8, this), __runInitializers(_init4, 11, this);
+    this.renderedHtml = "";
+  }
+  ngOnInit() {
+    this.render();
+    Consent.on("ready", () => this.render());
+    Consent.on("locale:changed", () => this.render());
+  }
+  ngOnChanges(_changes) {
+    this.render();
+  }
+  render() {
+    var _a;
+    try {
+      this.renderedHtml = Consent.renderLegalNoticeHtml(__spreadProps(__spreadValues({}, this.options), {
+        locale: ((_a = this.options) == null ? void 0 : _a.locale) || Consent.getLocale()
+      }));
+    } catch (e) {
+      this.renderedHtml = "";
+    }
+  }
+};
+_init4 = __decoratorStart(null);
+__decorateElement(_init4, 5, "options", _options_dec2, LegalNoticeComponent);
+LegalNoticeComponent = __decorateElement(_init4, 0, "LegalNoticeComponent", _LegalNoticeComponent_decorators, LegalNoticeComponent);
+__runInitializers(_init4, 1, LegalNoticeComponent);
+var _options_dec3, _PrivacyPolicyComponent_decorators, _init5;
+_PrivacyPolicyComponent_decorators = [Component({
+  selector: "solvenza-privacy-policy",
+  standalone: true,
+  template: `<div [innerHTML]="renderedHtml"></div>`
+})], _options_dec3 = [Input()];
+var PrivacyPolicyComponent = class {
+  constructor() {
+    this.options = __runInitializers(_init5, 8, this), __runInitializers(_init5, 11, this);
+    this.renderedHtml = "";
+  }
+  ngOnInit() {
+    this.render();
+    Consent.on("ready", () => this.render());
+    Consent.on("locale:changed", () => this.render());
+  }
+  ngOnChanges(_changes) {
+    this.render();
+  }
+  render() {
+    var _a;
+    try {
+      this.renderedHtml = Consent.renderPrivacyPolicyHtml(__spreadProps(__spreadValues({}, this.options), {
+        locale: ((_a = this.options) == null ? void 0 : _a.locale) || Consent.getLocale()
+      }));
+    } catch (e) {
+      this.renderedHtml = "";
+    }
+  }
+};
+_init5 = __decoratorStart(null);
+__decorateElement(_init5, 5, "options", _options_dec3, PrivacyPolicyComponent);
+PrivacyPolicyComponent = __decorateElement(_init5, 0, "PrivacyPolicyComponent", _PrivacyPolicyComponent_decorators, PrivacyPolicyComponent);
+__runInitializers(_init5, 1, PrivacyPolicyComponent);
 export {
   ConsentGateDirective,
-  ConsentService
+  ConsentService,
+  CookiePolicyComponent,
+  LegalNoticeComponent,
+  PrivacyPolicyComponent
 };
 //# sourceMappingURL=angular.js.map

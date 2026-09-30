@@ -86,6 +86,20 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
     - Auditoría de URLs en vivo para verificar bloqueo previo a la interacción del usuario.
     - Exportación dedicada en `@solvenza/cookies-compliance/audit`.
   - **Flujo de trabajo de ejemplo**: `.github/workflows/lssi-audit.yml`.
+- **Generador Dinámico de Documentos Legales y Tablas de Cookies (`PolicyGenerator`)**:
+  - **Componentes Declarativos Multimarco**:
+    - `<CookiePolicy view="full" | "table-only" | "summary" />` en React (`/react`), Next.js (`/next`), Vue 3 (`/vue`), Nuxt 3 (`/nuxt`) y Angular (`<solvenza-cookie-policy>` en `/angular`).
+    - `<LegalNotice />` (Aviso Legal LSSI-CE art. 10) en React, Next.js, Vue 3, Nuxt 3 y Angular.
+    - `<PrivacyPolicy />` (Política de Privacidad RGPD) en React, Next.js, Vue 3, Nuxt 3 y Angular.
+  - **Generación de Contenido Legal Conforme a LSSI y AEPD**:
+    - Inventario tabular de cookies con nombres, tipos (`Cookie`, `localStorage`, `sessionStorage`), proveedores, finalidades, plazos de conservación y enlaces oficiales de privacidad.
+    - Botones interactivos integrados para abrir el panel de preferencias (`[data-consent-open]`) y revocar el consentimiento en cualquier momento.
+    - Guía de configuración y deshabilitación en navegadores principales (Chrome, Firefox, Safari, Edge, Opera).
+    - Cláusulas de transferencias internacionales de datos y señal de privacidad global (GPC).
+  - **Nuevas propiedades de configuración en `consent.json` y `ConsentConfigBuilder`**:
+    - `legalEntity`: Razón social, nombre comercial, NIF/CIF, domicilio, correo, teléfono, datos registrales, DPO.
+    - `legalNotice`: Legislación aplicable, jurisdicción de tribunales, fecha de última actualización.
+  - **Métodos programáticos en el SDK**: `Consent.renderPolicyHtml()`, `Consent.mountPolicy()`, `Consent.renderLegalNoticeHtml()`, `Consent.mountLegalNotice()`, `Consent.renderPrivacyPolicyHtml()`, `Consent.mountPrivacyPolicy()`.
 
 ---
 

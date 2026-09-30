@@ -38,6 +38,9 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var react_exports = {};
 __export(react_exports, {
   ConsentGate: () => ConsentGate,
+  CookiePolicy: () => CookiePolicy,
+  LegalNotice: () => LegalNotice,
+  PrivacyPolicy: () => PrivacyPolicy,
   useConsent: () => useConsent,
   useConsentLocale: () => useConsentLocale,
   useConsentService: () => useConsentService,
@@ -2019,42 +2022,194 @@ var ResourceScanner = class _ResourceScanner {
 
 // src/ui/policy-generator.ts
 var PolicyGenerator = class {
-  static renderTable(config) {
+  /**
+   * Extract all cookie and storage key details across categories and services (including presets).
+   */
+  static extractCookieRows(config) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
+    const rows = [];
+    if (config.services) {
+      for (const [srvId, srv] of Object.entries(config.services)) {
+        const cat = config.categories[srv.category || "necessary"] || { label: srv.category || "General" };
+        const providerName = srv.provider || srv.label || srvId;
+        if (srv.cookies && srv.cookies.length > 0) {
+          for (const c of srv.cookies) {
+            rows.push({
+              name: c.name,
+              type: "Cookie",
+              provider: providerName,
+              purpose: c.purpose || srv.description || cat.description || "Funcionalidad del servicio",
+              duration: c.duration || "Persistente",
+              categoryLabel: cat.label,
+              policyUrl: srv.policyUrl
+            });
+          }
+        }
+        if (srv.storageKeys && srv.storageKeys.length > 0) {
+          for (const k of srv.storageKeys) {
+            rows.push({
+              name: k,
+              type: "localStorage",
+              provider: providerName,
+              purpose: srv.description || cat.description || "Almacenamiento de estado y preferencias",
+              duration: "Persistente",
+              categoryLabel: cat.label,
+              policyUrl: srv.policyUrl
+            });
+          }
+        }
+        if (srv.localStorage && srv.localStorage.length > 0) {
+          for (const k of srv.localStorage) {
+            rows.push({
+              name: k,
+              type: "localStorage",
+              provider: providerName,
+              purpose: srv.description || cat.description || "Almacenamiento web local",
+              duration: "Persistente",
+              categoryLabel: cat.label,
+              policyUrl: srv.policyUrl
+            });
+          }
+        }
+        if (srv.sessionStorage && srv.sessionStorage.length > 0) {
+          for (const k of srv.sessionStorage) {
+            rows.push({
+              name: k,
+              type: "sessionStorage",
+              provider: providerName,
+              purpose: srv.description || cat.description || "Almacenamiento temporal de sesi\xF3n",
+              duration: "Sesi\xF3n",
+              categoryLabel: cat.label,
+              policyUrl: srv.policyUrl
+            });
+          }
+        }
+        if (!((_a = srv.cookies) == null ? void 0 : _a.length) && !((_b = srv.storageKeys) == null ? void 0 : _b.length) && !((_c = srv.localStorage) == null ? void 0 : _c.length) && !((_d = srv.sessionStorage) == null ? void 0 : _d.length)) {
+          rows.push({
+            name: srvId,
+            type: "Cookie",
+            provider: providerName,
+            purpose: srv.description || cat.description || "Servicio integrado",
+            duration: "Variable",
+            categoryLabel: cat.label,
+            policyUrl: srv.policyUrl
+          });
+        }
+      }
+    }
+    if (config.categories) {
+      for (const [, cat] of Object.entries(config.categories)) {
+        if (cat.storageKeys) {
+          for (const k of cat.storageKeys) {
+            if (!rows.some((r) => r.name === k)) {
+              rows.push({
+                name: k,
+                type: "localStorage",
+                provider: "Propia / Sitio Web",
+                purpose: cat.description,
+                duration: "Persistente",
+                categoryLabel: cat.label
+              });
+            }
+          }
+        }
+        if (cat.localStorage) {
+          for (const k of cat.localStorage) {
+            if (!rows.some((r) => r.name === k)) {
+              rows.push({
+                name: k,
+                type: "localStorage",
+                provider: "Propia / Sitio Web",
+                purpose: cat.description,
+                duration: "Persistente",
+                categoryLabel: cat.label
+              });
+            }
+          }
+        }
+        if (cat.sessionStorage) {
+          for (const k of cat.sessionStorage) {
+            if (!rows.some((r) => r.name === k)) {
+              rows.push({
+                name: k,
+                type: "sessionStorage",
+                provider: "Propia / Sitio Web",
+                purpose: cat.description,
+                duration: "Sesi\xF3n",
+                categoryLabel: cat.label
+              });
+            }
+          }
+        }
+      }
+    }
+    const consentCookieName = ((_e = config.storage) == null ? void 0 : _e.name) || "site_consent";
+    if (!rows.some((r) => r.name === consentCookieName)) {
+      rows.unshift({
+        name: consentCookieName,
+        type: ((_f = config.storage) == null ? void 0 : _f.type) === "memory" ? "localStorage" : "Cookie",
+        provider: "Propia (Solvenza Cookies Compliance)",
+        purpose: "Guarda las preferencias y recibo firmado de consentimiento del usuario.",
+        duration: `${(_h = (_g = config.consent) == null ? void 0 : _g.maxAgeDays) != null ? _h : 365} d\xEDas`,
+        categoryLabel: ((_j = (_i = config.categories) == null ? void 0 : _i.necessary) == null ? void 0 : _j.label) || "Necesarias"
+      });
+    }
+    return rows;
+  }
+  /**
+   * Render stylized table of cookies and storage keys.
+   */
+  static renderTable(config, options = {}) {
+    const isDark = options.theme === "dark";
+    const bgHeader = isDark ? "#1e293b" : "#f8fafc";
+    const borderCol = isDark ? "#334155" : "#e2e8f0";
+    const textCol = isDark ? "#f8fafc" : "#0f172a";
+    const mutedCol = isDark ? "#94a3b8" : "#64748b";
+    const rowAltBg = isDark ? "#0f172a" : "#ffffff";
+    const rowBg = isDark ? "#1e293b" : "#f8fafc";
     let html = `
-      <div class="consent-policy-table-wrapper" style="margin: 1.5rem 0; font-family: system-ui, sans-serif;">
-        <table style="width: 100%; border-collapse: collapse; text-align: left; border: 1px solid #e2e8f0;">
+      <div class="solvenza-policy-table-wrapper" style="overflow-x: auto; margin: 1.5rem 0; border: 1px solid ${borderCol}; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); font-family: system-ui, -apple-system, sans-serif;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; color: ${textCol};">
           <thead>
-            <tr style="background: #f8fafc; border-bottom: 2px solid #cbd5e1;">
-              <th style="padding: 0.75rem; border: 1px solid #e2e8f0;">Categor\xEDa / Servicio</th>
-              <th style="padding: 0.75rem; border: 1px solid #e2e8f0;">Proveedor</th>
-              <th style="padding: 0.75rem; border: 1px solid #e2e8f0;">Finalidad</th>
-              <th style="padding: 0.75rem; border: 1px solid #e2e8f0;">Requerida</th>
+            <tr style="background: ${bgHeader}; border-bottom: 2px solid ${borderCol};">
+              <th style="padding: 0.85rem 1rem; font-weight: 700;">Nombre / Clave</th>
+              <th style="padding: 0.85rem 1rem; font-weight: 700;">Tipo</th>
+              <th style="padding: 0.85rem 1rem; font-weight: 700;">Categor\xEDa</th>
+              <th style="padding: 0.85rem 1rem; font-weight: 700;">Proveedor</th>
+              <th style="padding: 0.85rem 1rem; font-weight: 700;">Finalidad</th>
+              <th style="padding: 0.85rem 1rem; font-weight: 700;">Duraci\xF3n</th>
             </tr>
           </thead>
           <tbody>
     `;
-    for (const [catId, cat] of Object.entries(config.categories)) {
-      const isReq = cat.required ? "S\xED (T\xE9cnica)" : "No (Opcional)";
+    const rows = this.extractCookieRows(config);
+    if (rows.length === 0) {
       html += `
-        <tr style="background: #ffffff; font-weight: 600;">
-          <td style="padding: 0.75rem; border: 1px solid #e2e8f0;" colspan="3">${sanitizeHtml(cat.label)}</td>
-          <td style="padding: 0.75rem; border: 1px solid #e2e8f0;">${isReq}</td>
+        <tr>
+          <td colspan="6" style="padding: 1.5rem; text-align: center; color: ${mutedCol};">
+            No se han registrado cookies ni elementos de almacenamiento en la configuraci\xF3n.
+          </td>
         </tr>
       `;
-      if (config.services) {
-        for (const [srvId, srv] of Object.entries(config.services)) {
-          if (srv.category === catId) {
-            html += `
-              <tr style="background: #f8fafc; font-size: 0.9rem;">
-                <td style="padding: 0.5rem 0.75rem 0.5rem 1.5rem; border: 1px solid #e2e8f0;">\u21B3 ${sanitizeHtml(srv.label || srvId)}</td>
-                <td style="padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0;">${sanitizeHtml(srv.provider || "-")}</td>
-                <td style="padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0;">${sanitizeHtml(cat.description || "-")}</td>
-                <td style="padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0;">${isReq}</td>
-              </tr>
-            `;
-          }
-        }
-      }
+    } else {
+      rows.forEach((r, idx) => {
+        const bg = idx % 2 === 0 ? rowAltBg : rowBg;
+        const providerHtml = r.policyUrl ? `<a href="${sanitizeHtml(r.policyUrl)}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline;">${sanitizeHtml(r.provider)} \u2197</a>` : sanitizeHtml(r.provider);
+        html += `
+          <tr style="background: ${bg}; border-bottom: 1px solid ${borderCol};">
+            <td style="padding: 0.75rem 1rem; font-family: monospace; font-weight: 600; color: #2563eb;">${sanitizeHtml(r.name)}</td>
+            <td style="padding: 0.75rem 1rem;">
+              <span style="display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: ${r.type === "Cookie" ? "#e0e7ff" : "#fef3c7"}; color: ${r.type === "Cookie" ? "#3730a3" : "#92400e"};">
+                ${r.type}
+              </span>
+            </td>
+            <td style="padding: 0.75rem 1rem; font-weight: 500;">${sanitizeHtml(r.categoryLabel)}</td>
+            <td style="padding: 0.75rem 1rem;">${providerHtml}</td>
+            <td style="padding: 0.75rem 1rem; color: ${mutedCol};">${sanitizeHtml(r.purpose)}</td>
+            <td style="padding: 0.75rem 1rem; white-space: nowrap;">${sanitizeHtml(r.duration)}</td>
+          </tr>
+        `;
+      });
     }
     html += `
           </tbody>
@@ -2062,6 +2217,262 @@ var PolicyGenerator = class {
       </div>
     `;
     return html;
+  }
+  /**
+   * Render complete legal Cookie Policy document adapted to LSSI art. 22.2 and AEPD 2024.
+   */
+  static renderCookiePolicy(config, options = {}) {
+    var _a, _b, _c;
+    if (options.view === "table-only") {
+      return this.renderTable(config, options);
+    }
+    const companyName = ((_a = config.legalEntity) == null ? void 0 : _a.tradeName) || ((_b = config.legalEntity) == null ? void 0 : _b.name) || "el Titular del Sitio Web";
+    const lastUpdated = ((_c = config.legalNotice) == null ? void 0 : _c.lastUpdated) || config.policyVersion || (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+    const isDark = options.theme === "dark";
+    const textCol = isDark ? "#f8fafc" : "#0f172a";
+    const mutedCol = isDark ? "#94a3b8" : "#475569";
+    const cardBg = isDark ? "#1e293b" : "#ffffff";
+    const borderCol = isDark ? "#334155" : "#e2e8f0";
+    const tableHtml = this.renderTable(config, options);
+    let html = `
+      <article class="solvenza-cookie-policy-document ${options.className || ""}" style="font-family: system-ui, -apple-system, sans-serif; color: ${textCol}; line-height: 1.7; max-width: 900px; margin: 0 auto; padding: 1rem 0;">
+        <header style="margin-bottom: 2rem; border-bottom: 1px solid ${borderCol}; padding-bottom: 1.5rem;">
+          <h1 style="font-size: 1.85rem; font-weight: 800; margin: 0 0 0.5rem 0; color: ${textCol};">Pol\xEDtica de Cookies</h1>
+          <p style="margin: 0; font-size: 0.9rem; color: ${mutedCol};">
+            Conforme al art\xEDculo 22.2 de la Ley 34/2002 (LSSI-CE), el RGPD (UE 2016/679) y la Gu\xEDa sobre el uso de cookies de la AEPD.
+            <br><em>\xDAltima actualizaci\xF3n: ${sanitizeHtml(lastUpdated)}</em>
+          </p>
+        </header>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.3rem; font-weight: 700; color: ${textCol};">1. \xBFQu\xE9 son las cookies y tecnolog\xEDas de almacenamiento local?</h2>
+          <p style="color: ${mutedCol};">
+            Este sitio web, titularidad de <strong>${sanitizeHtml(companyName)}</strong>, utiliza cookies y tecnolog\xEDas de almacenamiento similares (tales como <code>localStorage</code>, <code>sessionStorage</code>, p\xEDxeles de seguimiento y etiquetas) para garantizar el funcionamiento t\xE9cnico del sitio, optimizar la experiencia de navegaci\xF3n, medir el uso de la web y, en su caso, mostrar contenidos personalizados o multimedia.
+          </p>
+          <p style="color: ${mutedCol};">
+            Una <strong>cookie</strong> es un peque\xF1o fichero de texto que se descarga y almacena en el navegador del usuario al acceder a determinadas p\xE1ginas web. Permite a una p\xE1gina web, entre otras cosas, recordar las preferencias de navegaci\xF3n, almacenar y recuperar informaci\xF3n sobre los h\xE1bitos de visita y reconocer al usuario en visitas posteriores.
+          </p>
+        </section>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.3rem; font-weight: 700; color: ${textCol};">2. Tipos de cookies y finalidades utilizadas</h2>
+          <p style="color: ${mutedCol};">
+            En funci\xF3n de su finalidad, titularidad y plazo de permanencia, en este sitio web se utilizan las siguientes categor\xEDas:
+          </p>
+          <ul style="color: ${mutedCol}; padding-left: 1.5rem; margin-bottom: 1.5rem;">
+    `;
+    for (const [, cat] of Object.entries(config.categories)) {
+      const isReq = cat.required === true;
+      html += `
+        <li style="margin-bottom: 0.6rem;">
+          <strong>${sanitizeHtml(cat.label)}</strong> (${isReq ? "T\xE9cnicas / Exentas de consentimiento" : "Opcionales / Sujetas a consentimiento"}):
+          ${sanitizeHtml(cat.description)}
+        </li>
+      `;
+    }
+    html += `
+          </ul>
+
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: ${textCol}; margin-top: 1.5rem;">Inventario detallado de cookies y almacenamiento web</h3>
+          <p style="color: ${mutedCol}; font-size: 0.9rem;">
+            A continuaci\xF3n se detallan de forma transparente todas las cookies y claves de almacenamiento registradas en la aplicaci\xF3n:
+          </p>
+          ${tableHtml}
+        </section>
+
+        <section style="margin-bottom: 2rem; background: ${cardBg}; border: 1px solid ${borderCol}; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+          <h2 style="font-size: 1.3rem; font-weight: 700; color: ${textCol}; margin-top: 0;">3. Gesti\xF3n, configuraci\xF3n y revocaci\xF3n del consentimiento</h2>
+          <p style="color: ${mutedCol};">
+            De acuerdo con las directrices de la Agencia Espa\xF1ola de Protecci\xF3n de Datos (AEPD), retirar o modificar el consentimiento debe ser tan f\xE1cil como otorgarlo. Puedes modificar tus preferencias o revocar el consentimiento en cualquier momento:
+          </p>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem;">
+            <button
+              type="button"
+              data-consent-open
+              onclick="if(window.Consent) window.Consent.openPreferences()"
+              style="background: #0f172a; color: #ffffff; border: none; padding: 0.65rem 1.3rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;"
+            >
+              \u2699\uFE0F Abrir panel de preferencias de cookies
+            </button>
+            <button
+              type="button"
+              onclick="if(window.Consent) window.Consent.withdraw()"
+              style="background: #ffffff; color: #dc2626; border: 1px solid #fca5a5; padding: 0.65rem 1.3rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;"
+            >
+              \u{1F504} Revocar consentimiento y purgar datos
+            </button>
+          </div>
+        </section>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.3rem; font-weight: 700; color: ${textCol};">4. C\xF3mo deshabilitar o eliminar las cookies en los navegadores</h2>
+          <p style="color: ${mutedCol};">
+            El usuario puede permitir, bloquear o eliminar las cookies instaladas en su equipo mediante la configuraci\xF3n de las opciones de su navegador web:
+          </p>
+          <ul style="color: #2563eb; padding-left: 1.5rem;">
+            <li style="margin-bottom: 0.4rem;"><a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">Google Chrome</a></li>
+            <li style="margin-bottom: 0.4rem;"><a href="https://support.mozilla.org/es/kb/habilitar-y-deshabilitar-cookies-sitios-web-rastrear-preferencias" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">Mozilla Firefox</a></li>
+            <li style="margin-bottom: 0.4rem;"><a href="https://support.apple.com/es-es/guide/safari/sfri11471/mac" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">Apple Safari</a></li>
+            <li style="margin-bottom: 0.4rem;"><a href="https://support.microsoft.com/es-es/microsoft-edge/eliminar-las-cookies-en-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">Microsoft Edge</a></li>
+            <li style="margin-bottom: 0.4rem;"><a href="https://help.opera.com/en/latest/web-preferences/#cookies" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">Opera Browser</a></li>
+          </ul>
+        </section>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.3rem; font-weight: 700; color: ${textCol};">5. Reconocimiento de Global Privacy Control (GPC)</h2>
+          <p style="color: ${mutedCol};">
+            Este sitio web est\xE1 adaptado al est\xE1ndar <strong>Global Privacy Control (GPC)</strong> y a la cabecera <code>Do Not Track (DNT)</code>. Si tu navegador emite una se\xF1al universal de no seguimiento, nuestro sistema desactivar\xE1 autom\xE1ticamente todas las cookies no necesarias sin requerir interacci\xF3n manual.
+          </p>
+        </section>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.3rem; font-weight: 700; color: ${textCol};">6. Transferencias internacionales de datos</h2>
+          <p style="color: ${mutedCol};">
+            Determinadas cookies de terceros (tales como Google Analytics o Meta) pueden implicar la transferencia internacional de datos a servidores ubicados en Estados Unidos u otros pa\xEDses fuera del Espacio Econ\xF3mico Europeo (EEE). Dichas transferencias se encuentran amparadas bajo el Marco de Privacidad de Datos UE-EE.UU. (Data Privacy Framework) o Cl\xE1usulas Contractuales Tipo aprobadas por la Comisi\xF3n Europea.
+          </p>
+        </section>
+      </article>
+    `;
+    return html;
+  }
+  /**
+   * Render complete legal notice (Aviso Legal) conforming to LSSI-CE Art. 10.
+   */
+  static renderLegalNotice(config, options = {}) {
+    var _a, _b, _c;
+    const entity = config.legalEntity || {
+      name: "[Raz\xF3n Social del Titular]",
+      taxId: "[NIF / CIF]",
+      address: "[Domicilio Social]",
+      email: "[Email de Contacto]"
+    };
+    const law = ((_a = config.legalNotice) == null ? void 0 : _a.applicableLaw) || "Legislaci\xF3n espa\xF1ola (LSSI-CE, LOPDGDD) y Reglamento General de Protecci\xF3n de Datos (RGPD UE 2016/679)";
+    const jurisdiction = ((_b = config.legalNotice) == null ? void 0 : _b.jurisdiction) || "Juzgados y Tribunales competentes conforme a la normativa de consumidores y usuarios";
+    const lastUpdated = ((_c = config.legalNotice) == null ? void 0 : _c.lastUpdated) || config.policyVersion || (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+    const isDark = options.theme === "dark";
+    const textCol = isDark ? "#f8fafc" : "#0f172a";
+    const mutedCol = isDark ? "#94a3b8" : "#475569";
+    const borderCol = isDark ? "#334155" : "#e2e8f0";
+    return `
+      <article class="solvenza-legal-notice-document ${options.className || ""}" style="font-family: system-ui, -apple-system, sans-serif; color: ${textCol}; line-height: 1.7; max-width: 900px; margin: 0 auto; padding: 1rem 0;">
+        <header style="margin-bottom: 2rem; border-bottom: 1px solid ${borderCol}; padding-bottom: 1.5rem;">
+          <h1 style="font-size: 1.85rem; font-weight: 800; margin: 0 0 0.5rem 0; color: ${textCol};">Aviso Legal</h1>
+          <p style="margin: 0; font-size: 0.9rem; color: ${mutedCol};">
+            En cumplimiento del art\xEDculo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Informaci\xF3n y de Comercio Electr\xF3nico (LSSI-CE).
+            <br><em>\xDAltima actualizaci\xF3n: ${sanitizeHtml(lastUpdated)}</em>
+          </p>
+        </header>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.3rem; font-weight: 700; color: ${textCol};">1. Datos identificativos del titular</h2>
+          <table style="width: 100%; border-collapse: collapse; margin-top: 1rem; border: 1px solid ${borderCol};">
+            <tbody>
+              <tr style="border-bottom: 1px solid ${borderCol};">
+                <td style="padding: 0.75rem 1rem; font-weight: 600; width: 30%;">Raz\xF3n Social:</td>
+                <td style="padding: 0.75rem 1rem; color: ${mutedCol};">${sanitizeHtml(entity.name)}</td>
+              </tr>
+              ${entity.tradeName ? `<tr style="border-bottom: 1px solid ${borderCol};"><td style="padding: 0.75rem 1rem; font-weight: 600;">Nombre Comercial:</td><td style="padding: 0.75rem 1rem; color: ${mutedCol};">${sanitizeHtml(entity.tradeName)}</td></tr>` : ""}
+              <tr style="border-bottom: 1px solid ${borderCol};">
+                <td style="padding: 0.75rem 1rem; font-weight: 600;">NIF / CIF:</td>
+                <td style="padding: 0.75rem 1rem; color: ${mutedCol};">${sanitizeHtml(entity.taxId || "-")}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid ${borderCol};">
+                <td style="padding: 0.75rem 1rem; font-weight: 600;">Domicilio Social:</td>
+                <td style="padding: 0.75rem 1rem; color: ${mutedCol};">${sanitizeHtml(entity.address || "-")}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid ${borderCol};">
+                <td style="padding: 0.75rem 1rem; font-weight: 600;">Correo Electr\xF3nico:</td>
+                <td style="padding: 0.75rem 1rem; color: ${mutedCol};"><a href="mailto:${sanitizeHtml(entity.email || "")}" style="color: #2563eb;">${sanitizeHtml(entity.email || "-")}</a></td>
+              </tr>
+              ${entity.phone ? `<tr style="border-bottom: 1px solid ${borderCol};"><td style="padding: 0.75rem 1rem; font-weight: 600;">Tel\xE9fono:</td><td style="padding: 0.75rem 1rem; color: ${mutedCol};">${sanitizeHtml(entity.phone)}</td></tr>` : ""}
+              ${entity.registryData ? `<tr style="border-bottom: 1px solid ${borderCol};"><td style="padding: 0.75rem 1rem; font-weight: 600;">Datos Registrales:</td><td style="padding: 0.75rem 1rem; color: ${mutedCol};">${sanitizeHtml(entity.registryData)}</td></tr>` : ""}
+              ${entity.dpoEmail ? `<tr><td style="padding: 0.75rem 1rem; font-weight: 600;">Delegado de Protecci\xF3n de Datos (DPO):</td><td style="padding: 0.75rem 1rem; color: ${mutedCol};"><a href="mailto:${sanitizeHtml(entity.dpoEmail)}" style="color: #2563eb;">${sanitizeHtml(entity.dpoEmail)}</a></td></tr>` : ""}
+            </tbody>
+          </table>
+        </section>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.3rem; font-weight: 700; color: ${textCol};">2. Condiciones generales de uso</h2>
+          <p style="color: ${mutedCol};">
+            El acceso y/o uso de este sitio web atribuye la condici\xF3n de usuario, que acepta, desde dicho acceso y/o uso, las presentes condiciones generales. El usuario se compromete a hacer un uso adecuado de los contenidos y servicios que el titular ofrece a trav\xE9s de su sitio web y a no emplearlos para incurrir en actividades il\xEDcitas o contrarias a la buena fe y al orden p\xFAblico.
+          </p>
+        </section>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.3rem; font-weight: 700; color: ${textCol};">3. Propiedad intelectual e industrial</h2>
+          <p style="color: ${mutedCol};">
+            Todos los derechos de propiedad intelectual e industrial sobre el dise\xF1o, marcas, logotipos, textos, c\xF3digo fuente e ilustraciones de este sitio web corresponden al titular o a sus leg\xEDtimos licenciantes. Queda expresamente prohibida la reproducci\xF3n, distribuci\xF3n o comunicaci\xF3n p\xFAblica de la totalidad o parte de los contenidos sin autorizaci\xF3n previa y por escrito.
+          </p>
+        </section>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.3rem; font-weight: 700; color: ${textCol};">4. Exclusi\xF3n de garant\xEDas y responsabilidad</h2>
+          <p style="color: ${mutedCol};">
+            El titular no se hace responsable, en ning\xFAn caso, de los da\xF1os y perjuicios de cualquier naturaleza que pudieran ocasionar errores u omisiones en los contenidos, falta de disponibilidad del portal o la transmisi\xF3n de virus o programas maliciosos, a pesar de haber adoptado todas las medidas tecnol\xF3gicas necesarias para evitarlo.
+          </p>
+        </section>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.3rem; font-weight: 700; color: ${textCol};">5. Legislaci\xF3n aplicable y jurisdicci\xF3n</h2>
+          <p style="color: ${mutedCol};">
+            Las relaciones entre el titular y el usuario se regir\xE1n por la <strong>${sanitizeHtml(law)}</strong>. Para la resoluci\xF3n de cualquier controversia, las partes se someten a los <strong>${sanitizeHtml(jurisdiction)}</strong>, sin perjuicio de los fueros imperativos legales aplicables.
+          </p>
+        </section>
+      </article>
+    `;
+  }
+  /**
+   * Render Privacy Policy document (Política de Privacidad RGPD).
+   */
+  static renderPrivacyPolicy(config, options = {}) {
+    const entity = config.legalEntity || {
+      name: "[Raz\xF3n Social del Responsable]",
+      taxId: "[NIF / CIF]",
+      address: "[Domicilio]",
+      email: "privacidad@solvenza.es"
+    };
+    const isDark = options.theme === "dark";
+    const textCol = isDark ? "#f8fafc" : "#0f172a";
+    const mutedCol = isDark ? "#94a3b8" : "#475569";
+    const borderCol = isDark ? "#334155" : "#e2e8f0";
+    return `
+      <article class="solvenza-privacy-policy-document ${options.className || ""}" style="font-family: system-ui, -apple-system, sans-serif; color: ${textCol}; line-height: 1.7; max-width: 900px; margin: 0 auto; padding: 1rem 0;">
+        <header style="margin-bottom: 2rem; border-bottom: 1px solid ${borderCol}; padding-bottom: 1.5rem;">
+          <h1 style="font-size: 1.85rem; font-weight: 800; margin: 0 0 0.5rem 0; color: ${textCol};">Pol\xEDtica de Privacidad y Protecci\xF3n de Datos</h1>
+          <p style="margin: 0; font-size: 0.9rem; color: ${mutedCol};">
+            Conforme al Reglamento General de Protecci\xF3n de Datos (RGPD UE 2016/679) y la Ley Org\xE1nica 3/2018 (LOPDGDD).
+          </p>
+        </header>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.3rem; font-weight: 700; color: ${textCol};">1. Responsable del tratamiento</h2>
+          <p style="color: ${mutedCol};">
+            <strong>Identidad:</strong> ${sanitizeHtml(entity.name)}<br>
+            <strong>NIF / CIF:</strong> ${sanitizeHtml(entity.taxId || "-")}<br>
+            <strong>Direcci\xF3n:</strong> ${sanitizeHtml(entity.address || "-")}<br>
+            <strong>Correo electr\xF3nico:</strong> <a href="mailto:${sanitizeHtml(entity.email || "")}" style="color: #2563eb;">${sanitizeHtml(entity.email || "-")}</a><br>
+            ${entity.dpoEmail ? `<strong>Contacto DPO:</strong> <a href="mailto:${sanitizeHtml(entity.dpoEmail)}" style="color: #2563eb;">${sanitizeHtml(entity.dpoEmail)}</a>` : ""}
+          </p>
+        </section>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.3rem; font-weight: 700; color: ${textCol};">2. Finalidad del tratamiento y base jur\xEDdica</h2>
+          <p style="color: ${mutedCol};">
+            Tratamos los datos facilitados por los usuarios con las finalidades de gestionar sus solicitudes, prestar los servicios contratados y, en su caso, analizar el rendimiento de la web y remitir comunicaciones comerciales sobre la base de su <strong>consentimiento expl\xEDcito</strong> (art. 6.1.a RGPD) o en la <strong>ejecuci\xF3n contractual</strong> (art. 6.1.b RGPD).
+          </p>
+        </section>
+
+        <section style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.3rem; font-weight: 700; color: ${textCol};">3. Derechos del interesado</h2>
+          <p style="color: ${mutedCol};">
+            Cualquier persona tiene derecho a obtener confirmaci\xF3n sobre si estamos tratando datos personales que le conciernen. Los interesados tienen derecho a acceder a sus datos personales, solicitar la rectificaci\xF3n de los datos inexactos o, en su caso, solicitar su supresi\xF3n cuando los datos ya no sean necesarios para los fines que fueron recogidos.
+          </p>
+          <p style="color: ${mutedCol};">
+            Puedes ejercer tus derechos de Acceso, Rectificaci\xF3n, Supresi\xF3n, Limitaci\xF3n, Portabilidad y Oposici\xF3n enviando un correo a <a href="mailto:${sanitizeHtml(entity.email || "")}" style="color: #2563eb;">${sanitizeHtml(entity.email || "")}</a>. Asimismo, puedes presentar una reclamaci\xF3n ante la Agencia Espa\xF1ola de Protecci\xF3n de Datos (<a href="https://www.aepd.es" target="_blank" rel="noopener noreferrer" style="color: #2563eb;">www.aepd.es</a>).
+          </p>
+        </section>
+      </article>
+    `;
   }
 };
 
@@ -3301,15 +3712,56 @@ var ConsentEngine = class {
     const isGiven = !!this.getReceipt();
     return ResourceScanner.runDiagnostic(config, isGiven);
   }
-  mountPolicy(targetContainer) {
-    const config = this.stateManager.getConfig();
+  mountPolicy(targetContainer, options) {
+    const config = this.getResolvedConfig() || this.stateManager.getConfig();
     if (!config) {
       throw new Error("[ConsentSDK] SDK not initialized.");
     }
     const container = typeof targetContainer === "string" ? document.querySelector(targetContainer) : targetContainer;
     if (container) {
-      container.innerHTML = PolicyGenerator.renderTable(config);
+      container.innerHTML = PolicyGenerator.renderCookiePolicy(config, options);
     }
+  }
+  renderPolicyHtml(options) {
+    const config = this.getResolvedConfig() || this.stateManager.getConfig();
+    if (!config) {
+      throw new Error("[ConsentSDK] SDK not initialized.");
+    }
+    return PolicyGenerator.renderCookiePolicy(config, options);
+  }
+  mountLegalNotice(targetContainer, options) {
+    const config = this.getResolvedConfig() || this.stateManager.getConfig();
+    if (!config) {
+      throw new Error("[ConsentSDK] SDK not initialized.");
+    }
+    const container = typeof targetContainer === "string" ? document.querySelector(targetContainer) : targetContainer;
+    if (container) {
+      container.innerHTML = PolicyGenerator.renderLegalNotice(config, options);
+    }
+  }
+  renderLegalNoticeHtml(options) {
+    const config = this.getResolvedConfig() || this.stateManager.getConfig();
+    if (!config) {
+      throw new Error("[ConsentSDK] SDK not initialized.");
+    }
+    return PolicyGenerator.renderLegalNotice(config, options);
+  }
+  mountPrivacyPolicy(targetContainer, options) {
+    const config = this.getResolvedConfig() || this.stateManager.getConfig();
+    if (!config) {
+      throw new Error("[ConsentSDK] SDK not initialized.");
+    }
+    const container = typeof targetContainer === "string" ? document.querySelector(targetContainer) : targetContainer;
+    if (container) {
+      container.innerHTML = PolicyGenerator.renderPrivacyPolicy(config, options);
+    }
+  }
+  renderPrivacyPolicyHtml(options) {
+    const config = this.getResolvedConfig() || this.stateManager.getConfig();
+    if (!config) {
+      throw new Error("[ConsentSDK] SDK not initialized.");
+    }
+    return PolicyGenerator.renderPrivacyPolicy(config, options);
   }
   saveChoices(choices, source) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
@@ -3565,9 +4017,104 @@ function ConsentGate({
   }
   return fallback;
 }
+function CookiePolicy({
+  view = "full",
+  options,
+  className,
+  style
+}) {
+  try {
+    const [html, setHtml] = (0, import_react.useState)("");
+    const locale = useConsentLocale();
+    (0, import_react.useEffect)(() => {
+      void Consent.ready().then(() => {
+        try {
+          const rendered = Consent.renderPolicyHtml(__spreadProps(__spreadValues({}, options), { view, locale: (options == null ? void 0 : options.locale) || locale }));
+          setHtml(rendered);
+        } catch (e) {
+          setHtml("");
+        }
+      });
+    }, [view, locale, JSON.stringify(options)]);
+    return html ? {
+      $$typeof: /* @__PURE__ */ Symbol.for("react.element"),
+      type: "div",
+      key: null,
+      ref: null,
+      props: {
+        className,
+        style,
+        dangerouslySetInnerHTML: { __html: html }
+      }
+    } : null;
+  } catch (e) {
+    return null;
+  }
+}
+function LegalNotice({ options, className, style }) {
+  try {
+    const [html, setHtml] = (0, import_react.useState)("");
+    const locale = useConsentLocale();
+    (0, import_react.useEffect)(() => {
+      void Consent.ready().then(() => {
+        try {
+          const rendered = Consent.renderLegalNoticeHtml(__spreadProps(__spreadValues({}, options), { locale: (options == null ? void 0 : options.locale) || locale }));
+          setHtml(rendered);
+        } catch (e) {
+          setHtml("");
+        }
+      });
+    }, [locale, JSON.stringify(options)]);
+    return html ? {
+      $$typeof: /* @__PURE__ */ Symbol.for("react.element"),
+      type: "div",
+      key: null,
+      ref: null,
+      props: {
+        className,
+        style,
+        dangerouslySetInnerHTML: { __html: html }
+      }
+    } : null;
+  } catch (e) {
+    return null;
+  }
+}
+function PrivacyPolicy({ options, className, style }) {
+  try {
+    const [html, setHtml] = (0, import_react.useState)("");
+    const locale = useConsentLocale();
+    (0, import_react.useEffect)(() => {
+      void Consent.ready().then(() => {
+        try {
+          const rendered = Consent.renderPrivacyPolicyHtml(__spreadProps(__spreadValues({}, options), { locale: (options == null ? void 0 : options.locale) || locale }));
+          setHtml(rendered);
+        } catch (e) {
+          setHtml("");
+        }
+      });
+    }, [locale, JSON.stringify(options)]);
+    return html ? {
+      $$typeof: /* @__PURE__ */ Symbol.for("react.element"),
+      type: "div",
+      key: null,
+      ref: null,
+      props: {
+        className,
+        style,
+        dangerouslySetInnerHTML: { __html: html }
+      }
+    } : null;
+  } catch (e) {
+    return null;
+  }
+}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   ConsentGate,
+  CookiePolicy,
+  LegalNotice,
+  PrivacyPolicy,
   useConsent,
   useConsentLocale,
   useConsentService,

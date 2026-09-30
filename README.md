@@ -796,8 +796,122 @@ const unsubscribe = Consent.on("consent:changed", ({ choices, receipt }) => {
   console.log("Nuevo consentimiento:", choices);
 });
 
-// Generar tabla de política de cookies dinámicamente
-Consent.mountPolicy("#contenedor-politica");
+// Generar documentos legales y tablas dinámicamente en Vanilla JS
+Consent.mountPolicy("#contenedor-politica", { view: "full" });
+Consent.mountLegalNotice("#contenedor-aviso-legal");
+Consent.mountPrivacyPolicy("#contenedor-privacidad");
+
+// O renderizar como string HTML para SSR
+const htmlPolitica = Consent.renderPolicyHtml({ view: "full" });
+```
+
+---
+
+## Componentes de Textos Legales y Tablas de Cookies
+
+La librería incluye componentes declarativos y utilidades para generar automáticamente la **Política de Cookies**, el **Aviso Legal (LSSI-CE art. 10)** y la **Política de Privacidad (RGPD)** totalmente adaptados a la configuración y servicios declarados.
+
+### 1. Configuración de datos del Titular (`legalEntity` y `legalNotice`)
+
+En `consent.json`:
+```json
+{
+  "schemaVersion": 1,
+  "policyVersion": "2026-08-23",
+  "legalEntity": {
+    "name": "Mi Empresa S.L.",
+    "tradeName": "Mi Marca",
+    "taxId": "B-12345678",
+    "address": "Calle Principal 123, 28001 Madrid, España",
+    "email": "privacidad@mi-sitio.com",
+    "phone": "+34 910 000 000",
+    "registryData": "Registro Mercantil de Madrid, Tomo 123, Folio 45",
+    "dpoEmail": "dpo@mi-sitio.com"
+  },
+  "legalNotice": {
+    "applicableLaw": "Legislación española (LSSI-CE, LOPDGDD) y RGPD",
+    "jurisdiction": "Juzgados y Tribunales de Madrid"
+  }
+}
+```
+
+O con `ConsentConfigBuilder`:
+```typescript
+const config = new ConsentConfigBuilder("2026-08-23")
+  .setLegalEntity({
+    name: "Mi Empresa S.L.",
+    tradeName: "Mi Marca",
+    taxId: "B-12345678",
+    address: "Calle Principal 123, Madrid",
+    email: "privacidad@mi-sitio.com"
+  })
+  .setLegalNotice({
+    jurisdiction: "Juzgados y Tribunales de Madrid"
+  })
+  .build();
+```
+
+---
+
+### 2. Uso en React & Next.js
+
+```tsx
+import { CookiePolicy, LegalNotice, PrivacyPolicy } from "@solvenza/cookies-compliance/react";
+// O desde "@solvenza/cookies-compliance/next"
+
+export function CookiePolicyPage() {
+  return (
+    <div>
+      {/* 1. Documento completo de Política de Cookies (con botones AEPD y guías de navegador) */}
+      <CookiePolicy view="full" />
+
+      {/* 2. O solo la tabla interactiva de cookies registradas */}
+      <CookiePolicy view="table-only" />
+
+      {/* 3. Aviso Legal LSSI-CE */}
+      <LegalNotice />
+
+      {/* 4. Política de Privacidad RGPD */}
+      <PrivacyPolicy />
+    </div>
+  );
+}
+```
+
+---
+
+### 3. Uso en Vue 3 & Nuxt 3
+
+```vue
+<script setup lang="ts">
+import { CookiePolicy, LegalNotice, PrivacyPolicy } from "@solvenza/cookies-compliance/vue";
+// O desde "@solvenza/cookies-compliance/nuxt"
+</script>
+
+<template>
+  <main>
+    <!-- Documento completo con revocación AEPD interactiva -->
+    <CookiePolicy view="full" />
+
+    <!-- Solo inventario de cookies -->
+    <CookiePolicy view="table-only" />
+
+    <!-- Aviso Legal LSSI-CE -->
+    <LegalNotice />
+  </main>
+</template>
+```
+
+---
+
+### 4. Uso en Angular 17+ / 20
+
+```html
+<!-- app.component.html -->
+<solvenza-cookie-policy [view]="'full'"></solvenza-cookie-policy>
+<solvenza-cookie-policy [view]="'table-only'"></solvenza-cookie-policy>
+<solvenza-legal-notice></solvenza-legal-notice>
+<solvenza-privacy-policy></solvenza-privacy-policy>
 ```
 
 ---

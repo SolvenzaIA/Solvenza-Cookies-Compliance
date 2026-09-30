@@ -2,6 +2,8 @@ import type {
   CategoryConfig,
   ConsentConfig,
   FloatingBadgeConfig,
+  LegalEntityConfig,
+  LegalNoticeConfig,
   ServiceConfig,
   TranslationConfig,
 } from "../types.js";
@@ -28,6 +30,16 @@ export class ConsentConfigBuilder {
 
   setPolicyVersion(version: string): this {
     this.config.policyVersion = version;
+    return this;
+  }
+
+  setLegalEntity(entity: LegalEntityConfig): this {
+    this.config.legalEntity = entity;
+    return this;
+  }
+
+  setLegalNotice(notice: LegalNoticeConfig): this {
+    this.config.legalNotice = notice;
     return this;
   }
 

@@ -1,5 +1,5 @@
-import { a as ConsentSDKInterface, C as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler, f as ConsentReceipt, D as DiagnosticReport, T as TranslationConfig, F as FloatingBadgeConfig, g as CategoryConfig, h as ServiceConfig, G as GpcConfig } from './types-D0UymOJZ.cjs';
-export { B as BannerUIConfig, i as ConsentEventDetailMap, L as LocaleConfig, P as PreferencesUIConfig, j as ServicePreset } from './types-D0UymOJZ.cjs';
+import { a as ConsentSDKInterface, C as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler, f as ConsentReceipt, D as DiagnosticReport, L as LegalPolicyOptions, g as LegalEntityConfig, h as LegalNoticeConfig, T as TranslationConfig, F as FloatingBadgeConfig, i as CategoryConfig, j as ServiceConfig, G as GpcConfig } from './types--kyI7OOR.cjs';
+export { B as BannerUIConfig, k as ConsentEventDetailMap, l as LocaleConfig, P as PreferencesUIConfig, m as ServicePreset } from './types--kyI7OOR.cjs';
 export { SERVICE_PRESETS, defineServices, getPreset, hasPreset, resolveConfigPresets } from './presets.cjs';
 
 declare class ConsentEngine implements ConsentSDKInterface {
@@ -45,7 +45,12 @@ declare class ConsentEngine implements ConsentSDKInterface {
     on<E extends ConsentEvent>(event: E, handler: ConsentEventHandler<E>): () => void;
     getReceipt(): ConsentReceipt | null;
     rescan(): DiagnosticReport;
-    mountPolicy(targetContainer: HTMLElement | string): void;
+    mountPolicy(targetContainer: HTMLElement | string, options?: LegalPolicyOptions): void;
+    renderPolicyHtml(options?: LegalPolicyOptions): string;
+    mountLegalNotice(targetContainer: HTMLElement | string, options?: LegalPolicyOptions): void;
+    renderLegalNoticeHtml(options?: LegalPolicyOptions): string;
+    mountPrivacyPolicy(targetContainer: HTMLElement | string, options?: LegalPolicyOptions): void;
+    renderPrivacyPolicyHtml(options?: LegalPolicyOptions): string;
     private saveChoices;
     private showBanner;
     private setupGlobalRevocationTrigger;
@@ -59,6 +64,8 @@ declare class ConsentConfigBuilder {
     constructor(policyVersion?: string);
     setSchemaVersion(version: number): this;
     setPolicyVersion(version: string): this;
+    setLegalEntity(entity: LegalEntityConfig): this;
+    setLegalNotice(notice: LegalNoticeConfig): this;
     setPolicyUrls(privacyUrl: string, cookiesUrl: string): this;
     setLocale(defaultLocale: string, autoDetect?: boolean, supported?: string[]): this;
     setTranslations(translations: Record<string, TranslationConfig>): this;
@@ -205,8 +212,36 @@ declare class I18nEngine {
     private filterDefined;
 }
 
+interface CookieDetailRow {
+    name: string;
+    type: "Cookie" | "localStorage" | "sessionStorage";
+    provider: string;
+    purpose: string;
+    duration: string;
+    categoryLabel: string;
+    policyUrl?: string;
+}
 declare class PolicyGenerator {
-    static renderTable(config: ConsentConfig): string;
+    /**
+     * Extract all cookie and storage key details across categories and services (including presets).
+     */
+    static extractCookieRows(config: ConsentConfig): CookieDetailRow[];
+    /**
+     * Render stylized table of cookies and storage keys.
+     */
+    static renderTable(config: ConsentConfig, options?: LegalPolicyOptions): string;
+    /**
+     * Render complete legal Cookie Policy document adapted to LSSI art. 22.2 and AEPD 2024.
+     */
+    static renderCookiePolicy(config: ConsentConfig, options?: LegalPolicyOptions): string;
+    /**
+     * Render complete legal notice (Aviso Legal) conforming to LSSI-CE Art. 10.
+     */
+    static renderLegalNotice(config: ConsentConfig, options?: LegalPolicyOptions): string;
+    /**
+     * Render Privacy Policy document (Política de Privacidad RGPD).
+     */
+    static renderPrivacyPolicy(config: ConsentConfig, options?: LegalPolicyOptions): string;
 }
 
 interface FloatingBadgeHandlers {
@@ -277,4 +312,4 @@ declare function resolveGpcConfig(config?: ConsentConfig): Required<GpcConfig>;
  */
 declare function applyGpcChoices(config: ConsentConfig, baseChoices?: ConsentChoices): ConsentChoices;
 
-export { BUILTIN_TRANSLATIONS, CategoryConfig, ConfigValidationError, Consent, ConsentChoices, ConsentConfig, ConsentConfigBuilder, ConsentEngine, ConsentEvent, ConsentEventHandler, ConsentReceipt, ConsentSDKInterface, ConsentState, CookieStorageProvider, CookieStore, DiagnosticReport, FloatingBadge, FloatingBadgeConfig, GoogleConsentAdapter, GpcConfig, I18nEngine, IframeGate, IframeResourceBlocker, ImageResourceBlocker, MemoryStorageProvider, MemoryStore, PolicyGenerator, ResourceGate, ResourceScanner, ScriptGate, ScriptResourceBlocker, ServiceConfig, StorageCleaner, StorageFactory, StoragePurgeReport, TranslationConfig, applyGpcChoices, computeReceiptSignature, createReceipt, detectGpcSignal, isReceiptExpired, parseReceipt, resolveGpcConfig, sanitizeHtml, validateConfig, verifyReceiptIntegrity };
+export { BUILTIN_TRANSLATIONS, CategoryConfig, ConfigValidationError, Consent, ConsentChoices, ConsentConfig, ConsentConfigBuilder, ConsentEngine, ConsentEvent, ConsentEventHandler, ConsentReceipt, ConsentSDKInterface, ConsentState, CookieStorageProvider, CookieStore, DiagnosticReport, FloatingBadge, FloatingBadgeConfig, GoogleConsentAdapter, GpcConfig, I18nEngine, IframeGate, IframeResourceBlocker, ImageResourceBlocker, LegalEntityConfig, LegalNoticeConfig, LegalPolicyOptions, MemoryStorageProvider, MemoryStore, PolicyGenerator, ResourceGate, ResourceScanner, ScriptGate, ScriptResourceBlocker, ServiceConfig, StorageCleaner, StorageFactory, StoragePurgeReport, TranslationConfig, applyGpcChoices, computeReceiptSignature, createReceipt, detectGpcSignal, isReceiptExpired, parseReceipt, resolveGpcConfig, sanitizeHtml, validateConfig, verifyReceiptIntegrity };

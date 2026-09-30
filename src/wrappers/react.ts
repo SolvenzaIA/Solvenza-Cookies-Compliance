@@ -184,3 +184,138 @@ export function ConsentGate({
 
   return fallback;
 }
+
+export interface CookiePolicyProps {
+  view?: "full" | "table-only" | "summary";
+  options?: import("../core/types.js").LegalPolicyOptions;
+  className?: string;
+  style?: any;
+}
+
+/**
+ * Declarative React component that renders the full Cookie Policy document or cookie inventory table.
+ */
+export function CookiePolicy({
+  view = "full",
+  options,
+  className,
+  style,
+}: CookiePolicyProps): any {
+  try {
+    const [html, setHtml] = useState<string>("");
+    const locale = useConsentLocale();
+
+    useEffect(() => {
+      void Consent.ready().then(() => {
+        try {
+          const rendered = Consent.renderPolicyHtml({ ...options, view, locale: options?.locale || locale });
+          setHtml(rendered);
+        } catch {
+          setHtml("");
+        }
+      });
+    }, [view, locale, JSON.stringify(options)]);
+
+    return html
+      ? {
+          $$typeof: Symbol.for("react.element"),
+          type: "div",
+          key: null,
+          ref: null,
+          props: {
+            className,
+            style,
+            dangerouslySetInnerHTML: { __html: html },
+          },
+        }
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+export interface LegalNoticeProps {
+  options?: import("../core/types.js").LegalPolicyOptions;
+  className?: string;
+  style?: any;
+}
+
+/**
+ * Declarative React component that renders the Legal Notice (Aviso Legal LSSI-CE art. 10).
+ */
+export function LegalNotice({ options, className, style }: LegalNoticeProps): any {
+  try {
+    const [html, setHtml] = useState<string>("");
+    const locale = useConsentLocale();
+
+    useEffect(() => {
+      void Consent.ready().then(() => {
+        try {
+          const rendered = Consent.renderLegalNoticeHtml({ ...options, locale: options?.locale || locale });
+          setHtml(rendered);
+        } catch {
+          setHtml("");
+        }
+      });
+    }, [locale, JSON.stringify(options)]);
+
+    return html
+      ? {
+          $$typeof: Symbol.for("react.element"),
+          type: "div",
+          key: null,
+          ref: null,
+          props: {
+            className,
+            style,
+            dangerouslySetInnerHTML: { __html: html },
+          },
+        }
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+export interface PrivacyPolicyProps {
+  options?: import("../core/types.js").LegalPolicyOptions;
+  className?: string;
+  style?: any;
+}
+
+/**
+ * Declarative React component that renders the GDPR Privacy Policy document.
+ */
+export function PrivacyPolicy({ options, className, style }: PrivacyPolicyProps): any {
+  try {
+    const [html, setHtml] = useState<string>("");
+    const locale = useConsentLocale();
+
+    useEffect(() => {
+      void Consent.ready().then(() => {
+        try {
+          const rendered = Consent.renderPrivacyPolicyHtml({ ...options, locale: options?.locale || locale });
+          setHtml(rendered);
+        } catch {
+          setHtml("");
+        }
+      });
+    }, [locale, JSON.stringify(options)]);
+
+    return html
+      ? {
+          $$typeof: Symbol.for("react.element"),
+          type: "div",
+          key: null,
+          ref: null,
+          props: {
+            className,
+            style,
+            dangerouslySetInnerHTML: { __html: html },
+          },
+        }
+      : null;
+  } catch {
+    return null;
+  }
+}

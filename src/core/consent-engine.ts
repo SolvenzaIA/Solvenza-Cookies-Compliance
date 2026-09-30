@@ -8,6 +8,7 @@ import type {
   ConsentState,
   DiagnosticReport,
   FloatingBadgeConfig,
+  LegalPolicyOptions,
   StoragePurgeReport,
 } from "./types.js";
 import { validateConfig } from "./config-validator.js";
@@ -507,8 +508,8 @@ export class ConsentEngine implements ConsentSDKInterface {
     return ResourceScanner.runDiagnostic(config, isGiven);
   }
 
-  mountPolicy(targetContainer: HTMLElement | string): void {
-    const config = this.stateManager.getConfig();
+  mountPolicy(targetContainer: HTMLElement | string, options?: LegalPolicyOptions): void {
+    const config = this.getResolvedConfig() || this.stateManager.getConfig();
     if (!config) {
       throw new Error("[ConsentSDK] SDK not initialized.");
     }
@@ -517,8 +518,60 @@ export class ConsentEngine implements ConsentSDKInterface {
         ? document.querySelector<HTMLElement>(targetContainer)
         : targetContainer;
     if (container) {
-      container.innerHTML = PolicyGenerator.renderTable(config);
+      container.innerHTML = PolicyGenerator.renderCookiePolicy(config, options);
     }
+  }
+
+  renderPolicyHtml(options?: LegalPolicyOptions): string {
+    const config = this.getResolvedConfig() || this.stateManager.getConfig();
+    if (!config) {
+      throw new Error("[ConsentSDK] SDK not initialized.");
+    }
+    return PolicyGenerator.renderCookiePolicy(config, options);
+  }
+
+  mountLegalNotice(targetContainer: HTMLElement | string, options?: LegalPolicyOptions): void {
+    const config = this.getResolvedConfig() || this.stateManager.getConfig();
+    if (!config) {
+      throw new Error("[ConsentSDK] SDK not initialized.");
+    }
+    const container =
+      typeof targetContainer === "string"
+        ? document.querySelector<HTMLElement>(targetContainer)
+        : targetContainer;
+    if (container) {
+      container.innerHTML = PolicyGenerator.renderLegalNotice(config, options);
+    }
+  }
+
+  renderLegalNoticeHtml(options?: LegalPolicyOptions): string {
+    const config = this.getResolvedConfig() || this.stateManager.getConfig();
+    if (!config) {
+      throw new Error("[ConsentSDK] SDK not initialized.");
+    }
+    return PolicyGenerator.renderLegalNotice(config, options);
+  }
+
+  mountPrivacyPolicy(targetContainer: HTMLElement | string, options?: LegalPolicyOptions): void {
+    const config = this.getResolvedConfig() || this.stateManager.getConfig();
+    if (!config) {
+      throw new Error("[ConsentSDK] SDK not initialized.");
+    }
+    const container =
+      typeof targetContainer === "string"
+        ? document.querySelector<HTMLElement>(targetContainer)
+        : targetContainer;
+    if (container) {
+      container.innerHTML = PolicyGenerator.renderPrivacyPolicy(config, options);
+    }
+  }
+
+  renderPrivacyPolicyHtml(options?: LegalPolicyOptions): string {
+    const config = this.getResolvedConfig() || this.stateManager.getConfig();
+    if (!config) {
+      throw new Error("[ConsentSDK] SDK not initialized.");
+    }
+    return PolicyGenerator.renderPrivacyPolicy(config, options);
   }
 
   private saveChoices(

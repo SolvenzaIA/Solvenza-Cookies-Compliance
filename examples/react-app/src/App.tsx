@@ -15,6 +15,21 @@ export function App() {
 
   useEffect(() => {
     const config = new ConsentConfigBuilder("2026-08-23")
+      .setLegalEntity({
+        name: "Solvenza Inteligencia Artificial S.L.",
+        tradeName: "Solvenza",
+        taxId: "B-12345678",
+        address: "Paseo de la Castellana 100, 28046 Madrid, España",
+        email: "privacidad@solvenza.es",
+        phone: "+34 910 000 000",
+        registryData: "Registro Mercantil de Madrid, Tomo 1234, Folio 56, Sección 8",
+        dpoEmail: "dpo@solvenza.es",
+      })
+      .setLegalNotice({
+        applicableLaw: "Legislación española (LSSI-CE, LOPDGDD) y Reglamento General de Protección de Datos (RGPD UE 2016/679)",
+        jurisdiction: "Juzgados y Tribunales de Madrid",
+        lastUpdated: "2026-09-30",
+      })
       .setPolicyUrls("/politica-privacidad", "/politica-cookies")
       .setLocale("es", true, ["es", "en", "ca", "eu", "gl"])
       .setFloatingBadge({

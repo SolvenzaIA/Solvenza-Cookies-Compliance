@@ -11,6 +11,31 @@
     "policyVersion": {
       "type": "string"
     },
+    "legalEntity": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "tradeName": { "type": "string" },
+        "taxId": { "type": "string" },
+        "address": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "registryData": { "type": "string" },
+        "dpoEmail": { "type": "string" },
+        "activity": { "type": "string" },
+        "websiteUrl": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "legalNotice": {
+      "type": "object",
+      "properties": {
+        "entity": { "$ref": "#/properties/legalEntity" },
+        "applicableLaw": { "type": "string" },
+        "jurisdiction": { "type": "string" },
+        "lastUpdated": { "type": "string" }
+      }
+    },
     "jurisdiction": {
       "type": "array",
       "items": { "type": "string" }
