@@ -211,7 +211,19 @@ export class LssiAuditor {
     for (const filePath of files) {
       const ext = path.extname(filePath).toLowerCase();
       if (!validExtensions.has(ext)) continue;
-      if (filePath.includes("node_modules") || filePath.includes("dist") || filePath.includes(".git")) continue;
+      if (
+        filePath.includes("node_modules") ||
+        filePath.includes("dist") ||
+        filePath.includes(".git") ||
+        filePath.includes("/audit/") ||
+        filePath.includes("\\audit\\") ||
+        filePath.includes("/presets/") ||
+        filePath.includes("\\presets\\") ||
+        filePath.includes("tests/") ||
+        filePath.includes("tests\\")
+      ) {
+        continue;
+      }
 
       count++;
       try {
@@ -257,8 +269,20 @@ export class LssiAuditor {
         const sanitizedContent = content.replace(/<\s*script\b[^>]*type=["']text\/plain["'][^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi, "");
         const lines = sanitizedContent.split("\n");
         for (let i = 0; i < lines.length; i++) {
-          const line = lines[i];
-          if (line.includes("<script") || line.includes("data-src") || line.includes("type=\"text/plain\"") || line.includes("type='text/plain'")) {
+          const rawLine = lines[i];
+          const line = rawLine.trim();
+
+          // Skip comments, metadata, or already handled script tags
+          if (
+            line.startsWith("//") ||
+            line.startsWith("*") ||
+            line.startsWith("/*") ||
+            line.includes("lssi-ignore") ||
+            line.includes("<script") ||
+            line.includes("data-src") ||
+            line.includes("type=\"text/plain\"") ||
+            line.includes("type='text/plain'")
+          ) {
             continue;
           }
 
