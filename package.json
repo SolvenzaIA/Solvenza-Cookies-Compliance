@@ -32,6 +32,11 @@
       "import": "./dist/presets.js",
       "require": "./dist/presets.cjs"
     },
+    "./audit": {
+      "types": "./dist/audit.d.ts",
+      "import": "./dist/audit.js",
+      "require": "./dist/audit.cjs"
+    },
     "./react": {
       "types": "./dist/wrappers/react.d.ts",
       "import": "./dist/wrappers/react.js"
@@ -88,6 +93,7 @@
   "license": "MIT",
   "devDependencies": {
     "@angular/core": "^17.3.0",
+    "@types/node": "^26.6.3",
     "@types/react": "^19.2.18",
     "happy-dom": "^17.4.4",
     "react": "^19.2.8",

@@ -72,6 +72,17 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
   - **Eventos y telemetría**:
     - Evento de bus `gpc:detected`: emite `{ signal: true, autoApplied: boolean, choices: ConsentChoices }`.
     - CustomEvent nativo en DOM `solvenza:gpc`.
+- **GitHub Action y Motor de Auditoría LSSI & AEPD (`@solvenza/cookies-compliance/audit`)**:
+  - **GitHub Action nativa (`action.yml`)**: Validación automatizada en flujos de CI/CD para GitHub Actions con reporte en Job Step Summary y anotaciones directas en código (`::error::`, `::warning::`).
+  - **Herramienta CLI de auditoría (`bin/audit-cli.js`)**:
+    - `npx @solvenza/cookies-compliance consent-audit`: auditoría completa de archivos de configuración `consent.json`, código fuente (`.html`, `.jsx`, `.tsx`, `.vue`, `.php`, etc.) y URLs en vivo.
+    - Soporte para parámetros `--config`, `--src`, `--url`, `--fail-on-error`, `--json`.
+  - **Motor programático `LssiAuditor`**:
+    - Validación de directrices AEPD 2024 (sin casillas premarcadas, categoría `necessary` obligatoria, enlaces a políticas).
+    - Escáner estático de rastreadores conocidos no aislados (Google Tag Manager, Meta Pixel, TikTok, Hotjar, Clarity, etc.).
+    - Auditoría de URLs en vivo para verificar bloqueo previo a la interacción del usuario.
+    - Exportación dedicada en `@solvenza/cookies-compliance/audit`.
+  - **Flujo de trabajo de ejemplo**: `.github/workflows/lssi-audit.yml`.
 
 ---
 

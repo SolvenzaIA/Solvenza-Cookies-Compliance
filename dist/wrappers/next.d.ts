@@ -1,4 +1,4 @@
-import { a as ConsentConfig } from '../types-Dg9yrKP7.js';
+import { C as ConsentConfig } from '../types-D0UymOJZ.js';
 export { ConsentGate, ConsentGateFallbackContext, ConsentGateProps, useConsent, useConsentLocale, useConsentService, useGpc, useSyncConsentLocale } from './react.js';
 import 'react';
 

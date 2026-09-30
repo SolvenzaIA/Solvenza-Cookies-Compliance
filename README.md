@@ -802,12 +802,81 @@ Consent.mountPolicy("#contenedor-politica");
 
 ---
 
-## Herramienta CLI de auditoría
+---
 
-Puedes auditar el aislamiento previo de recursos en cualquier dominio con:
+## GitHub Action de Auditoría LSSI & AEPD
+
+Automatiza la validación continua de cumplimiento legal (LSSI art. 22.2, directrices AEPD 2024 y RGPD) en tus flujos de CI/CD de GitHub Actions antes de desplegar a producción.
+
+### Uso rápido en `.github/workflows/lssi-audit.yml`:
+
+```yaml
+name: "Auditoría LSSI & AEPD"
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lssi-compliance:
+    name: "Verificación de Cumplimiento LSSI"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Ejecutar Auditoría LSSI & AEPD
+        uses: solvenza/cookies-compliance@v1
+        with:
+          config-path: "./consent.json"
+          src-dir: "./src"
+          fail-on-error: "true"
+```
+
+### Entradas (Inputs) de la GitHub Action:
+
+| Input | Descripción | Valor por defecto |
+|---|---|---|
+| `config-path` | Ruta relativa al archivo `consent.json` | `./consent.json` |
+| `src-dir` | Directorio con archivos fuente a escanear (`.html`, `.jsx`, `.tsx`, `.vue`, etc.) | `./` |
+| `url` | URL en vivo a auditar (ej: `https://staging.mi-sitio.com`) | _(Opcional)_ |
+| `fail-on-error` | Bloquear el pipeline con código de salida no nulo si se detectan violaciones críticas | `true` |
+
+### Resumen automático en el Step Summary de GitHub:
+
+La GitHub Action genera anotaciones directas en las líneas de código (`::error::` / `::warning::`) y añade una tabla resumen visual en el **Job Step Summary** con la puntuación de 0 a 100, estado de cumplimiento y recomendaciones de subsanación.
+
+---
+
+## Herramienta CLI de auditoría LSSI
+
+Puedes ejecutar el motor de auditoría de forma manual o en tus scripts de `package.json`:
 
 ```bash
-npx @solvenza/cookies-compliance consent-audit https://mi-sitio.com
+# Auditar configuración y código fuente local
+npx @solvenza/cookies-compliance consent-audit --config ./consent.json --src ./src --fail-on-error
+
+# Auditar una URL remota en vivo
+npx @solvenza/cookies-compliance consent-audit --url https://mi-sitio.com
+
+# Generar reporte estructurado en formato JSON
+npx @solvenza/cookies-compliance consent-audit --config ./consent.json --src ./src --json
+```
+
+### Uso programático en Node.js / TypeScript:
+
+```typescript
+import { LssiAuditor } from "@solvenza/cookies-compliance/audit";
+
+const report = await LssiAuditor.run({
+  configPath: "./consent.json",
+  srcDir: "./src",
+  url: "https://staging.mi-sitio.com"
+});
+
+console.log(`Puntuación: ${report.score}/100 - Cumple: ${report.compliant}`);
 ```
 
 ---

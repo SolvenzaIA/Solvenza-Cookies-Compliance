@@ -1,5 +1,5 @@
 import { OnInit, OnDestroy, TemplateRef, ViewContainerRef } from '@angular/core';
-import { a as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler } from '../types-Dg9yrKP7.cjs';
+import { C as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler } from '../types-D0UymOJZ.cjs';
 
 /**
  * Angular Consent Service injectable helper.

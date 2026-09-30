@@ -1,0 +1,45 @@
+name: 'LSSI / AEPD Cookie Compliance Audit'
+description: 'Automated CI/CD compliance gate for Spain & EU Cookie Laws (LSSI art. 22.2, RGPD, and AEPD 2024 Guidelines).'
+author: 'Solvenza Team'
+
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  config-path:
+    description: 'Path to consent.json configuration file'
+    required: false
+    default: 'consent.json'
+  src-dir:
+    description: 'Source code directory to scan for unblocked tracking scripts'
+    required: false
+    default: 'src'
+  url:
+    description: 'Live or staging URL to audit for pre-consent cookie leaks'
+    required: false
+  fail-on-error:
+    description: 'Fail the GitHub Actions workflow if critical compliance violations are found'
+    required: false
+    default: 'true'
+
+outputs:
+  compliant:
+    description: 'Whether the project complies with LSSI and AEPD requirements (true/false)'
+  score:
+    description: 'Compliance score from 0 to 100'
+  violations-count:
+    description: 'Total count of critical privacy violations detected'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Solvenza LSSI & AEPD Auditor
+      shell: bash
+      env:
+        INPUT_CONFIG_PATH: ${{ inputs.config-path }}
+        INPUT_SRC_DIR: ${{ inputs.src-dir }}
+        INPUT_URL: ${{ inputs.url }}
+        INPUT_FAIL_ON_ERROR: ${{ inputs.fail-on-error }}
+      run: |
+        node ${{ github.action_path }}/bin/audit-cli.js

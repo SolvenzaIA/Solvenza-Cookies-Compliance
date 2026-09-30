@@ -1,5 +1,5 @@
-import { C as ConsentSDKInterface, a as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler, f as ConsentReceipt, D as DiagnosticReport, T as TranslationConfig, F as FloatingBadgeConfig, g as CategoryConfig, h as ServiceConfig, G as GpcConfig } from './types-Dg9yrKP7.cjs';
-export { B as BannerUIConfig, i as ConsentEventDetailMap, L as LocaleConfig, P as PreferencesUIConfig, j as ServicePreset } from './types-Dg9yrKP7.cjs';
+import { a as ConsentSDKInterface, C as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler, f as ConsentReceipt, D as DiagnosticReport, T as TranslationConfig, F as FloatingBadgeConfig, g as CategoryConfig, h as ServiceConfig, G as GpcConfig } from './types-D0UymOJZ.cjs';
+export { B as BannerUIConfig, i as ConsentEventDetailMap, L as LocaleConfig, P as PreferencesUIConfig, j as ServicePreset } from './types-D0UymOJZ.cjs';
 export { SERVICE_PRESETS, defineServices, getPreset, hasPreset, resolveConfigPresets } from './presets.cjs';
 
 declare class ConsentEngine implements ConsentSDKInterface {
