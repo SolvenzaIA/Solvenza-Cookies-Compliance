@@ -2647,11 +2647,12 @@ var ConsentEngine = class {
     }
     this.floatingBadge.show();
     this.eventBus.emit("floating-badge:shown", void 0);
-    this.dispatchDomEvent("solvenza:badge:show", void 0);
+    this.dispatchDomEvent("solvenza:badge:shown", void 0);
   }
   hideFloatingBadge() {
     this.floatingBadge.hide();
     this.eventBus.emit("floating-badge:hidden", void 0);
+    this.dispatchDomEvent("solvenza:badge:hidden", void 0);
   }
   when(categoryOrService, callback) {
     return CustomServiceAdapter.createWhen(

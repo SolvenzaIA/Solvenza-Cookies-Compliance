@@ -360,12 +360,13 @@ export class ConsentEngine implements ConsentSDKInterface {
     }
     this.floatingBadge.show();
     this.eventBus.emit("floating-badge:shown", undefined);
-    this.dispatchDomEvent("solvenza:badge:show", undefined);
+    this.dispatchDomEvent("solvenza:badge:shown", undefined);
   }
 
   hideFloatingBadge(): void {
     this.floatingBadge.hide();
     this.eventBus.emit("floating-badge:hidden", undefined);
+    this.dispatchDomEvent("solvenza:badge:hidden", undefined);
   }
 
   when(categoryOrService: string, callback: () => void): () => void {
