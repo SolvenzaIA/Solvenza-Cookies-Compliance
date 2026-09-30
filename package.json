@@ -39,6 +39,14 @@
       "types": "./dist/wrappers/next.d.ts",
       "import": "./dist/wrappers/next.js"
     },
+    "./vue": {
+      "types": "./dist/wrappers/vue.d.ts",
+      "import": "./dist/wrappers/vue.js"
+    },
+    "./nuxt": {
+      "types": "./dist/wrappers/nuxt.d.ts",
+      "import": "./dist/wrappers/nuxt.js"
+    },
     "./wordpress": {
       "types": "./dist/wrappers/wordpress.d.ts",
       "import": "./dist/wrappers/wordpress.js"
@@ -80,6 +88,7 @@
     "react": "^19.2.8",
     "tsup": "^8.2.4",
     "typescript": "^5.5.4",
-    "vitest": "^2.0.5"
+    "vitest": "^2.0.5",
+    "vue": "^3.5.43"
   }
 }

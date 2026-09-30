@@ -23,6 +23,14 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
     - Evento de bus `storage:purged`: emite `{ category, report: StoragePurgeReport }`.
     - Evento DOM nativo `solvenza:storage:purged`: despachado en `document` para telemetría y diagnósticos.
   - **Wrappers actualizados**: Métodos `purgeCategory` y `purgeStorage` añadidos a `ConsentService` en `@solvenza/cookies-compliance/angular`.
+- **Wrapper Oficial para Vue 3 (`@solvenza/cookies-compliance/vue`)**:
+  - **Composables Reactivos**: `useConsent(category)`, `useConsentService(serviceId)`, `useConsentLocale()`.
+  - **Sincronización sin Boilerplate**: `useSyncConsentLocale(locale)` compatible con `vue-i18n` (`watch` reactivo).
+  - **Componente Declarativo `<ConsentGate>`**: Renderizado condicional mediante slots (`#default` y `#fallback`) según permisos de categoría o servicio.
+  - **Plugin Vue 3**: `createConsentPlugin(configUrl)` para inyección global de `$consent` y registro automático de `<ConsentGate>`.
+- **Wrapper Oficial para Nuxt 3 (`@solvenza/cookies-compliance/nuxt`)**:
+  - Helper `defineNuxtConsentPlugin(configUrl)` y `initNuxtConsent(configUrl, initialLocale)` para ejecución SSR/Universal segura en cliente.
+  - Re-exportación completa de composables y componentes de Vue 3.
 
 ---
 

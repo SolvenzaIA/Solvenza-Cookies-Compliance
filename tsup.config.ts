@@ -7,6 +7,8 @@ export default defineConfig([
       "wrappers/react": "src/wrappers/react.ts",
       "wrappers/angular": "src/wrappers/angular.ts",
       "wrappers/next": "src/wrappers/next.ts",
+      "wrappers/vue": "src/wrappers/vue.ts",
+      "wrappers/nuxt": "src/wrappers/nuxt.ts",
       "wrappers/wordpress": "src/wrappers/wordpress.ts",
     },
     format: ["esm", "cjs"],
@@ -15,7 +17,7 @@ export default defineConfig([
     clean: true,
     target: "es2017",
     minify: false,
-    external: ["react", "@angular/core", "next/script"],
+    external: ["react", "vue", "@angular/core", "next/script"],
   },
   {
     entry: {

@@ -469,6 +469,88 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
+### Vue 3 (Composition API & Componente ConsentGate)
+
+Usa los composables reactivos y el componente declarativo `<ConsentGate>`:
+
+```vue
+<script setup lang="ts">
+import { useConsent, useSyncConsentLocale, ConsentGate } from "@solvenza/cookies-compliance/vue";
+import { useI18n } from "vue-i18n";
+
+const { locale } = useI18n();
+// Sincronización automática de idioma con vue-i18n
+useSyncConsentLocale(locale);
+
+const isAnalyticsAllowed = useConsent("analytics");
+</script>
+
+<template>
+  <div>
+    <p>Estado de analítica: {{ isAnalyticsAllowed ? "Permitida" : "Bloqueada" }}</p>
+
+    <!-- Renderizado declarativo condicional -->
+    <ConsentGate category="marketing">
+      <template #default>
+        <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" />
+      </template>
+      <template #fallback>
+        <div class="blocked-card">
+          <p>Vídeo bloqueado por privacidad. Acepta cookies de Marketing para reproducirlo.</p>
+        </div>
+      </template>
+    </ConsentGate>
+  </div>
+</template>
+```
+
+Plugin global en `main.ts`:
+```ts
+import { createApp } from "vue";
+import { createConsentPlugin } from "@solvenza/cookies-compliance/vue";
+import App from "./App.vue";
+
+const app = createApp(App);
+app.use(createConsentPlugin("/consent.json"));
+app.mount("#app");
+```
+
+### Nuxt 3 (SSR & Universal)
+
+Crea un plugin cliente en `plugins/consent.client.ts`:
+
+```ts
+// plugins/consent.client.ts
+import { defineNuxtConsentPlugin } from "@solvenza/cookies-compliance/nuxt";
+
+export default defineNuxtPlugin(defineNuxtConsentPlugin("/consent.json"));
+```
+
+Y usa los composables y `<ConsentGate>` directamente en cualquier página o componente:
+
+```vue
+<!-- pages/index.vue -->
+<script setup lang="ts">
+import { useConsent, ConsentGate } from "@solvenza/cookies-compliance/nuxt";
+
+const isAnalyticsAllowed = useConsent("analytics");
+</script>
+
+<template>
+  <main>
+    <h1>Mi aplicación Nuxt 3</h1>
+    <ConsentGate category="marketing">
+      <template #default>
+        <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" />
+      </template>
+      <template #fallback>
+        <p>Vídeo bloqueado. Por favor, autoriza la categoría de marketing.</p>
+      </template>
+    </ConsentGate>
+  </main>
+</template>
+```
+
 ### WordPress
 
 ```php
@@ -478,7 +560,7 @@ function enqueue_solvenza_cookies() {
         "solvenza-cookies",
         get_template_directory_uri() . "/vendor/consent.min.js",
         array(),
-        "1.4.0",
+        "1.5.0",
         false // En <head> para cumplir LSSI antes de scripts de analítica
     );
     // Asocia la configuración JSON con el badge flotante habilitado
