@@ -382,6 +382,70 @@ const services = defineServices({
 
 ---
 
+## Soporte Global Privacy Control (GPC) & Do Not Track (DNT)
+
+El SDK detecta automáticamente la señal del estándar W3C **Global Privacy Control (`navigator.globalPrivacyControl === true`)** y **Do Not Track (`navigator.doNotTrack === "1"`)** enviada por navegadores como Firefox, Brave, DuckDuckGo o extensiones de privacidad.
+
+### Comportamiento y Cumplimiento:
+1. **Aplicación automática**: Si el usuario no ha expresado un consentimiento explícito previo y tiene GPC activado, el motor desactiva automáticamente las cookies y almacenamiento no esenciales.
+2. **Generación de Comprobante Legal**: Se emite un recibo firmado con `source: "gpc"` y `gpc: true`.
+3. **Purga Automática**: Se limpian de inmediato las cookies y Web Storage (`localStorage` / `sessionStorage`) de terceros.
+4. **Sincronización con Google Consent Mode**: Se actualiza el modo de consentimiento de Google como `denied` para analítica y publicidad.
+
+### Configuración en `consent.json`:
+```json
+{
+  "schemaVersion": 1,
+  "policyVersion": "2026-09-30",
+  "gpc": {
+    "enabled": true,
+    "respectSignal": true,
+    "mode": "auto-reject",
+    "categories": ["analytics", "marketing"]
+  },
+  "categories": {
+    "necessary": { "required": true, "label": "Necesarias", "description": "Técnicas" },
+    "analytics": { "required": false, "label": "Analítica", "description": "Métricas" },
+    "marketing": { "required": false, "label": "Marketing", "description": "Publicidad" }
+  }
+}
+```
+
+### API Programática:
+```ts
+import { Consent } from "@solvenza/cookies-compliance";
+
+// Consultar si la señal GPC está activa en el navegador
+if (Consent.isGpcActive()) {
+  console.log("Navegador con señal GPC / DNT activa.");
+}
+
+// Escuchar evento de detección de señal
+Consent.on("gpc:detected", ({ signal, autoApplied, choices }) => {
+  console.log("Señal de privacidad procesada:", { signal, autoApplied, choices });
+});
+```
+
+En React / Next:
+```tsx
+import { useGpc } from "@solvenza/cookies-compliance/react";
+
+export function PrivacyNotice() {
+  const isGpc = useGpc();
+  return isGpc ? <p>Señal de privacidad Global Privacy Control detectada.</p> : null;
+}
+```
+
+En Vue 3 / Nuxt 3:
+```vue
+<script setup>
+import { useGpc } from "@solvenza/cookies-compliance/vue";
+const isGpc = useGpc();
+</script>
+```
+
+---
+
 ### Vanilla HTML5
 
 Incrusta el script compilado y tu configuración. El botón flotante de revocación se activará automáticamente según lo definido en `consent.json`:

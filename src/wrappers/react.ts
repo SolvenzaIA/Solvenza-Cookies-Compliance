@@ -117,6 +117,18 @@ export function useSyncConsentLocale(locale?: string): void {
   }
 }
 
+/**
+ * React hook to check if Global Privacy Control (GPC) or Do Not Track (DNT) signal is active.
+ */
+export function useGpc(): boolean {
+  try {
+    const [isGpc] = useState<boolean>(() => Consent.isGpcActive());
+    return isGpc;
+  } catch {
+    return Consent.isGpcActive();
+  }
+}
+
 export interface ConsentGateFallbackContext {
   category?: string;
   service?: string;

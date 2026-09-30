@@ -84,6 +84,19 @@
         "reloadOnRevoke": { "type": "string", "enum": ["auto", "always", "never"] }
       }
     },
+    "gpc": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "respectSignal": { "type": "boolean", "default": true },
+        "mode": { "type": "string", "enum": ["auto-reject", "notice-only"], "default": "auto-reject" },
+        "categories": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "noticeText": { "type": "string" }
+      }
+    },
     "storage": {
       "type": "object",
       "properties": {

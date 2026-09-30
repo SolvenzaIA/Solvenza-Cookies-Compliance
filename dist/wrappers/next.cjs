@@ -42,6 +42,7 @@ __export(next_exports, {
   useConsent: () => useConsent,
   useConsentLocale: () => useConsentLocale,
   useConsentService: () => useConsentService,
+  useGpc: () => useGpc,
   useSyncConsentLocale: () => useSyncConsentLocale
 });
 module.exports = __toCommonJS(next_exports);
@@ -115,15 +116,16 @@ var StateManager = class {
     };
     this.config = null;
   }
-  init(config, choices, receipt) {
-    var _a;
+  init(config, choices, receipt, gpc) {
+    var _a, _b;
     this.config = config;
     this.state = {
       initialized: true,
       policyVersion: config.policyVersion,
       locale: ((_a = config.locale) == null ? void 0 : _a.default) || "es",
       receipt,
-      choices
+      choices,
+      gpc: (_b = gpc != null ? gpc : receipt == null ? void 0 : receipt.gpc) != null ? _b : false
     };
   }
   setLocale(locale) {
@@ -2873,6 +2875,46 @@ function resolveConfigPresets(config) {
   });
 }
 
+// src/core/gpc.ts
+function detectGpcSignal() {
+  if (typeof window === "undefined" && typeof navigator === "undefined") {
+    return false;
+  }
+  const nav = typeof navigator !== "undefined" ? navigator : null;
+  const win = typeof window !== "undefined" ? window : null;
+  if ((nav == null ? void 0 : nav.globalPrivacyControl) === true || (win == null ? void 0 : win.globalPrivacyControl) === true) {
+    return true;
+  }
+  if ((nav == null ? void 0 : nav.doNotTrack) === "1" || (win == null ? void 0 : win.doNotTrack) === "1" || (nav == null ? void 0 : nav.msDoNotTrack) === "1" || (win == null ? void 0 : win.external) && "msTrackingProtectionEnabled" in win.external && win.external.msTrackingProtectionEnabled()) {
+    return true;
+  }
+  return false;
+}
+function resolveGpcConfig(config) {
+  const gpc = config == null ? void 0 : config.gpc;
+  return {
+    enabled: (gpc == null ? void 0 : gpc.enabled) !== false,
+    respectSignal: (gpc == null ? void 0 : gpc.respectSignal) !== false,
+    mode: (gpc == null ? void 0 : gpc.mode) || "auto-reject",
+    categories: (gpc == null ? void 0 : gpc.categories) || [],
+    noticeText: (gpc == null ? void 0 : gpc.noticeText) || "Se\xF1al de Privacidad Global (GPC) detectada: cookies no esenciales desactivadas."
+  };
+}
+function applyGpcChoices(config, baseChoices) {
+  const result = __spreadValues({}, baseChoices || {});
+  const gpcOptions = resolveGpcConfig(config);
+  for (const [catId, catConfig] of Object.entries(config.categories)) {
+    if (catConfig.required || catId === "necessary") {
+      result[catId] = true;
+    } else {
+      if (gpcOptions.categories.length === 0 || gpcOptions.categories.includes(catId)) {
+        result[catId] = false;
+      }
+    }
+  }
+  return result;
+}
+
 // src/core/consent-engine.ts
 var ConsentEngine = class {
   constructor() {
@@ -2893,7 +2935,7 @@ var ConsentEngine = class {
   async init(configInput) {
     if (this.initPromise) return this.initPromise;
     this.initPromise = (async () => {
-      var _a, _b, _c, _d;
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
       let config;
       if (typeof configInput === "string") {
         const response = await fetch(configInput);
@@ -2918,12 +2960,60 @@ var ConsentEngine = class {
       const rawReceipt = ((_c = config.storage) == null ? void 0 : _c.type) === "memory" ? MemoryStore.get(cookieName) : CookieStore.get(cookieName);
       const savedReceipt = rawReceipt ? parseReceipt(rawReceipt) : null;
       const evalResult = evaluatePolicy(config, savedReceipt);
-      const activeReceipt = evalResult.isValid ? savedReceipt : null;
-      this.stateManager.init(config, evalResult.choices, activeReceipt);
+      const isGpcDetected = detectGpcSignal();
+      const gpcConfig = resolveGpcConfig(config);
+      const isGpcActive = isGpcDetected && gpcConfig.enabled && gpcConfig.respectSignal;
+      let activeReceipt = evalResult.isValid ? savedReceipt : null;
+      let activeChoices = evalResult.choices;
+      let autoAppliedGpc = false;
+      if (!evalResult.isValid && isGpcActive) {
+        if (gpcConfig.mode !== "notice-only") {
+          activeChoices = applyGpcChoices(config);
+          activeReceipt = createReceipt(
+            config.policyVersion,
+            activeChoices,
+            "gpc",
+            null,
+            (_d = config.security) == null ? void 0 : _d.secretKey
+          );
+          activeReceipt.gpc = true;
+          autoAppliedGpc = true;
+          const receiptJson = JSON.stringify(activeReceipt);
+          if (((_e = config.storage) == null ? void 0 : _e.type) === "memory") {
+            MemoryStore.set(cookieName, receiptJson);
+          } else {
+            CookieStore.set(cookieName, receiptJson, {
+              path: ((_f = config.storage) == null ? void 0 : _f.path) || "/",
+              maxAgeDays: (_h = (_g = config.consent) == null ? void 0 : _g.maxAgeDays) != null ? _h : 365,
+              sameSite: ((_i = config.storage) == null ? void 0 : _i.sameSite) || "Lax",
+              secure: (_j = config.storage) == null ? void 0 : _j.secure,
+              domain: (_k = config.storage) == null ? void 0 : _k.domain
+            });
+          }
+          for (const [catId, allowed] of Object.entries(activeChoices)) {
+            if (!allowed && catId !== "necessary") {
+              StorageCleaner.purgeCategory(config, catId);
+            }
+          }
+        }
+      }
+      this.stateManager.init(config, activeChoices, activeReceipt, isGpcDetected);
       this.stateManager.setLocale(initialLocale);
+      if (isGpcDetected) {
+        this.eventBus.emit("gpc:detected", {
+          signal: true,
+          autoApplied: autoAppliedGpc,
+          choices: activeChoices
+        });
+        this.dispatchDomEvent("solvenza:gpc", {
+          signal: true,
+          autoApplied: autoAppliedGpc,
+          choices: activeChoices
+        });
+      }
       GoogleConsentAdapter.initDefault();
-      if (evalResult.isValid) {
-        GoogleConsentAdapter.update(evalResult.choices);
+      if (evalResult.isValid || autoAppliedGpc) {
+        GoogleConsentAdapter.update(activeChoices);
         this.dispatchDomEvent("solvenza:restored", { state: this.getConsent() });
       }
       this.blockerRegistry.init(
@@ -2947,13 +3037,13 @@ var ConsentEngine = class {
         this.floatingBadge.render(resolvedConfig, {
           onClick: () => this.openPreferences()
         });
-        if (evalResult.isValid || badgeConfig.visibility === "always") {
+        if (evalResult.isValid || autoAppliedGpc || badgeConfig.visibility === "always") {
           this.showFloatingBadge();
         }
       }
-      (_d = this.resolveReady) == null ? void 0 : _d.call(this);
+      (_l = this.resolveReady) == null ? void 0 : _l.call(this);
       this.eventBus.emit("ready", { state: this.getConsent() });
-      if (!evalResult.isValid) {
+      if (!evalResult.isValid && !autoAppliedGpc) {
         this.showBanner();
       }
     })();
@@ -3088,6 +3178,12 @@ var ConsentEngine = class {
    */
   syncLocale(locale) {
     this.setLocale(locale);
+  }
+  /**
+   * Check if Global Privacy Control (GPC) or Do Not Track (DNT) signal is active.
+   */
+  isGpcActive() {
+    return detectGpcSignal();
   }
   restoreFloatingBadgeIfNeeded() {
     const config = this.getResolvedConfig();
@@ -3226,6 +3322,9 @@ var ConsentEngine = class {
       this.stateManager.getReceipt(),
       (_a = config.security) == null ? void 0 : _a.secretKey
     );
+    if (this.isGpcActive()) {
+      receipt.gpc = true;
+    }
     this.stateManager.updateChoices(receipt);
     for (const [catId, isAllowed] of Object.entries(choices)) {
       if (!isAllowed) {
@@ -3438,6 +3537,14 @@ function useSyncConsentLocale(locale) {
     }
   }
 }
+function useGpc() {
+  try {
+    const [isGpc] = (0, import_react.useState)(() => Consent.isGpcActive());
+    return isGpc;
+  } catch (e) {
+    return Consent.isGpcActive();
+  }
+}
 function ConsentGate({
   category,
   service,
@@ -3477,6 +3584,7 @@ function initNextConsent(configUrl = "/consent.json", initialLocale) {
   useConsent,
   useConsentLocale,
   useConsentService,
+  useGpc,
   useSyncConsentLocale
 });
 //# sourceMappingURL=next.cjs.map

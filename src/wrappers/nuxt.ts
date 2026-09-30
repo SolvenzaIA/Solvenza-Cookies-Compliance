@@ -4,6 +4,7 @@ export {
   useConsentService,
   useConsentLocale,
   useSyncConsentLocale,
+  useGpc,
   ConsentGate,
 } from "./vue.js";
 

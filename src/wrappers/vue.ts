@@ -150,6 +150,13 @@ export function useSyncConsentLocale(
 }
 
 /**
+ * Vue 3 Composable to check if Global Privacy Control (GPC) or Do Not Track (DNT) signal is active.
+ */
+export function useGpc(): Ref<boolean> {
+  return ref<boolean>(Consent.isGpcActive());
+}
+
+/**
  * Declarative Vue 3 Component to conditionally render content based on consent.
  *
  * @example

@@ -28,6 +28,7 @@ import { ResourceScanner } from "../diagnostics/resource-scanner.js";
 import { PolicyGenerator } from "../ui/policy-generator.js";
 import { I18nEngine } from "../i18n/engine.js";
 import { resolveConfigPresets } from "../presets/index.js";
+import { detectGpcSignal, resolveGpcConfig, applyGpcChoices } from "./gpc.js";
 
 export class ConsentEngine implements ConsentSDKInterface {
   private stateManager = new StateManager();
@@ -86,14 +87,71 @@ export class ConsentEngine implements ConsentSDKInterface {
       const savedReceipt = rawReceipt ? parseReceipt(rawReceipt) : null;
       const evalResult = evaluatePolicy(config, savedReceipt);
 
-      const activeReceipt = evalResult.isValid ? savedReceipt : null;
-      this.stateManager.init(config, evalResult.choices, activeReceipt);
+      // Global Privacy Control (GPC) evaluation
+      const isGpcDetected = detectGpcSignal();
+      const gpcConfig = resolveGpcConfig(config);
+      const isGpcActive = isGpcDetected && gpcConfig.enabled && gpcConfig.respectSignal;
+
+      let activeReceipt = evalResult.isValid ? savedReceipt : null;
+      let activeChoices = evalResult.choices;
+      let autoAppliedGpc = false;
+
+      if (!evalResult.isValid && isGpcActive) {
+        if (gpcConfig.mode !== "notice-only") {
+          activeChoices = applyGpcChoices(config);
+          activeReceipt = createReceipt(
+            config.policyVersion,
+            activeChoices,
+            "gpc",
+            null,
+            config.security?.secretKey,
+          );
+          activeReceipt.gpc = true;
+          autoAppliedGpc = true;
+
+          // Save GPC receipt
+          const receiptJson = JSON.stringify(activeReceipt);
+          if (config.storage?.type === "memory") {
+            MemoryStore.set(cookieName, receiptJson);
+          } else {
+            CookieStore.set(cookieName, receiptJson, {
+              path: config.storage?.path || "/",
+              maxAgeDays: config.consent?.maxAgeDays ?? 365,
+              sameSite: config.storage?.sameSite || "Lax",
+              secure: config.storage?.secure,
+              domain: config.storage?.domain,
+            });
+          }
+
+          // Purge optional storage on GPC auto-rejection
+          for (const [catId, allowed] of Object.entries(activeChoices)) {
+            if (!allowed && catId !== "necessary") {
+              StorageCleaner.purgeCategory(config, catId);
+            }
+          }
+        }
+      }
+
+      this.stateManager.init(config, activeChoices, activeReceipt, isGpcDetected);
       this.stateManager.setLocale(initialLocale);
+
+      if (isGpcDetected) {
+        this.eventBus.emit("gpc:detected", {
+          signal: true,
+          autoApplied: autoAppliedGpc,
+          choices: activeChoices,
+        });
+        this.dispatchDomEvent("solvenza:gpc", {
+          signal: true,
+          autoApplied: autoAppliedGpc,
+          choices: activeChoices,
+        });
+      }
 
       // Initialize Google Consent Mode defaults
       GoogleConsentAdapter.initDefault();
-      if (evalResult.isValid) {
-        GoogleConsentAdapter.update(evalResult.choices);
+      if (evalResult.isValid || autoAppliedGpc) {
+        GoogleConsentAdapter.update(activeChoices);
         this.dispatchDomEvent("solvenza:restored", { state: this.getConsent() });
       }
 
@@ -123,7 +181,7 @@ export class ConsentEngine implements ConsentSDKInterface {
         this.floatingBadge.render(resolvedConfig, {
           onClick: () => this.openPreferences(),
         });
-        if (evalResult.isValid || badgeConfig.visibility === "always") {
+        if (evalResult.isValid || autoAppliedGpc || badgeConfig.visibility === "always") {
           this.showFloatingBadge();
         }
       }
@@ -131,8 +189,8 @@ export class ConsentEngine implements ConsentSDKInterface {
       this.resolveReady?.();
       this.eventBus.emit("ready", { state: this.getConsent() });
 
-      // If missing receipt or policy version changed, display 1st layer banner
-      if (!evalResult.isValid) {
+      // If missing receipt and GPC did not auto-apply choices, display 1st layer banner
+      if (!evalResult.isValid && !autoAppliedGpc) {
         this.showBanner();
       }
     })();
@@ -300,6 +358,13 @@ export class ConsentEngine implements ConsentSDKInterface {
    */
   syncLocale(locale: string): void {
     this.setLocale(locale);
+  }
+
+  /**
+   * Check if Global Privacy Control (GPC) or Do Not Track (DNT) signal is active.
+   */
+  isGpcActive(): boolean {
+    return detectGpcSignal();
   }
 
   private restoreFloatingBadgeIfNeeded(): void {
@@ -470,6 +535,9 @@ export class ConsentEngine implements ConsentSDKInterface {
       this.stateManager.getReceipt(),
       config.security?.secretKey,
     );
+    if (this.isGpcActive()) {
+      receipt.gpc = true;
+    }
 
     this.stateManager.updateChoices(receipt);
 

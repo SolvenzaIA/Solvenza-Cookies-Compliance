@@ -1,5 +1,5 @@
-import { C as ConsentSDKInterface, a as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler, f as ConsentReceipt, D as DiagnosticReport, T as TranslationConfig, F as FloatingBadgeConfig, g as CategoryConfig, h as ServiceConfig } from './types-HxCOfAve.cjs';
-export { B as BannerUIConfig, i as ConsentEventDetailMap, L as LocaleConfig, P as PreferencesUIConfig, j as ServicePreset } from './types-HxCOfAve.cjs';
+import { C as ConsentSDKInterface, a as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler, f as ConsentReceipt, D as DiagnosticReport, T as TranslationConfig, F as FloatingBadgeConfig, g as CategoryConfig, h as ServiceConfig, G as GpcConfig } from './types-Dg9yrKP7.cjs';
+export { B as BannerUIConfig, i as ConsentEventDetailMap, L as LocaleConfig, P as PreferencesUIConfig, j as ServicePreset } from './types-Dg9yrKP7.cjs';
 export { SERVICE_PRESETS, defineServices, getPreset, hasPreset, resolveConfigPresets } from './presets.cjs';
 
 declare class ConsentEngine implements ConsentSDKInterface {
@@ -30,6 +30,10 @@ declare class ConsentEngine implements ConsentSDKInterface {
      * Synchronize active locale with parent application i18n state.
      */
     syncLocale(locale: string): void;
+    /**
+     * Check if Global Privacy Control (GPC) or Do Not Track (DNT) signal is active.
+     */
+    isGpcActive(): boolean;
     private restoreFloatingBadgeIfNeeded;
     private getResolvedConfig;
     withdraw(): void;
@@ -257,4 +261,20 @@ declare class StorageCleaner {
     static purgeCategory(config: ConsentConfig, category: string): StoragePurgeReport;
 }
 
-export { BUILTIN_TRANSLATIONS, CategoryConfig, ConfigValidationError, Consent, ConsentChoices, ConsentConfig, ConsentConfigBuilder, ConsentEngine, ConsentEvent, ConsentEventHandler, ConsentReceipt, ConsentSDKInterface, ConsentState, CookieStorageProvider, CookieStore, DiagnosticReport, FloatingBadge, FloatingBadgeConfig, GoogleConsentAdapter, I18nEngine, IframeGate, IframeResourceBlocker, ImageResourceBlocker, MemoryStorageProvider, MemoryStore, PolicyGenerator, ResourceGate, ResourceScanner, ScriptGate, ScriptResourceBlocker, ServiceConfig, StorageCleaner, StorageFactory, StoragePurgeReport, TranslationConfig, computeReceiptSignature, createReceipt, isReceiptExpired, parseReceipt, sanitizeHtml, validateConfig, verifyReceiptIntegrity };
+/**
+ * Detect Global Privacy Control (GPC) or Do Not Track (DNT) signal from the browser environment.
+ * Compliant with W3C Global Privacy Control specification and privacy standards.
+ *
+ * @returns boolean indicating if a privacy signal is active
+ */
+declare function detectGpcSignal(): boolean;
+/**
+ * Resolve GPC configuration options with defaults.
+ */
+declare function resolveGpcConfig(config?: ConsentConfig): Required<GpcConfig>;
+/**
+ * Calculate the resulting consent choices when applying a GPC signal.
+ */
+declare function applyGpcChoices(config: ConsentConfig, baseChoices?: ConsentChoices): ConsentChoices;
+
+export { BUILTIN_TRANSLATIONS, CategoryConfig, ConfigValidationError, Consent, ConsentChoices, ConsentConfig, ConsentConfigBuilder, ConsentEngine, ConsentEvent, ConsentEventHandler, ConsentReceipt, ConsentSDKInterface, ConsentState, CookieStorageProvider, CookieStore, DiagnosticReport, FloatingBadge, FloatingBadgeConfig, GoogleConsentAdapter, GpcConfig, I18nEngine, IframeGate, IframeResourceBlocker, ImageResourceBlocker, MemoryStorageProvider, MemoryStore, PolicyGenerator, ResourceGate, ResourceScanner, ScriptGate, ScriptResourceBlocker, ServiceConfig, StorageCleaner, StorageFactory, StoragePurgeReport, TranslationConfig, applyGpcChoices, computeReceiptSignature, createReceipt, detectGpcSignal, isReceiptExpired, parseReceipt, resolveGpcConfig, sanitizeHtml, validateConfig, verifyReceiptIntegrity };

@@ -55,6 +55,23 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
     - `SERVICE_PRESETS`: Catálogo completo exportado para consulta e inspección.
     - `hasPreset(id)`: Verificación booleana de existencia de preset.
   - **Punto de entrada dedicado**: `./presets` en `package.json` (`@solvenza/cookies-compliance/presets`).
+- **Soporte Oficial de Global Privacy Control (GPC) & Do Not Track (DNT)**:
+  - **Detección estándar W3C**: Reconocimiento automático de la señal `navigator.globalPrivacyControl === true` y `navigator.doNotTrack === "1"`.
+  - **Cumplimiento y aplicación legal automática**: Si no existe un consentimiento explícito previo, el SDK aplica automáticamente las elecciones restrictivas (desactivando categorías opcionales), genera un comprobante de recibo legal con `source: "gpc"` y `gpc: true`, purga el almacenamiento web de terceros y sincroniza Google Consent Mode en modo denegado.
+  - **Configuración declarativa en `gpc`**:
+    - `enabled`: activar/desactivar detección de GPC (por defecto: `true`).
+    - `respectSignal`: respetar la señal automáticamente (por defecto: `true`).
+    - `mode`: `"auto-reject"` o `"notice-only"`.
+    - `categories`: categorías específicas a las que aplicar la señal de privacidad.
+  - **Métodos y hooks exportados**:
+    - `Consent.isGpcActive()`: método central para consultar si la señal GPC está activa.
+    - `useGpc()` en React y Next.js.
+    - `useGpc()` en Vue 3 y Nuxt 3 (`Ref<boolean>`).
+    - `consentService.isGpcActive()` en Angular.
+    - Utilidades independientes: `detectGpcSignal()`, `resolveGpcConfig()`, `applyGpcChoices()`.
+  - **Eventos y telemetría**:
+    - Evento de bus `gpc:detected`: emite `{ signal: true, autoApplied: boolean, choices: ConsentChoices }`.
+    - CustomEvent nativo en DOM `solvenza:gpc`.
 
 ---
 

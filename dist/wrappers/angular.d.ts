@@ -1,5 +1,5 @@
 import { OnInit, OnDestroy, TemplateRef, ViewContainerRef } from '@angular/core';
-import { a as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler } from '../types-HxCOfAve.js';
+import { a as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler } from '../types-Dg9yrKP7.js';
 
 /**
  * Angular Consent Service injectable helper.
@@ -15,6 +15,10 @@ declare class ConsentService {
      * with the cookie compliance engine without boilerplate.
      */
     syncLocale(locale: string): void;
+    /**
+     * Check if Global Privacy Control (GPC) signal is active.
+     */
+    isGpcActive(): boolean;
     has(category: string): boolean;
     hasService(serviceId: string): boolean;
     acceptAll(): void;

@@ -118,6 +118,14 @@ export interface LocaleConfig {
   supported?: string[];
 }
 
+export interface GpcConfig {
+  enabled?: boolean;
+  respectSignal?: boolean;
+  mode?: "auto-reject" | "notice-only";
+  categories?: string[];
+  noticeText?: string;
+}
+
 export interface ConsentConfig {
   schemaVersion: number;
   policyVersion: string;
@@ -129,6 +137,7 @@ export interface ConsentConfig {
   csp?: {
     nonce?: string;
   };
+  gpc?: GpcConfig;
   storage?: {
     name?: string;
     type?: "cookie" | "memory";
@@ -165,9 +174,10 @@ export interface ConsentReceipt {
   policyVersion: string;
   decidedAt: string;
   updatedAt: string;
-  source: "banner" | "preferences" | "withdraw" | "programmatic";
+  source: "banner" | "preferences" | "withdraw" | "programmatic" | "gpc";
   choices: ConsentChoices;
   signature?: string;
+  gpc?: boolean;
 }
 
 export interface ConsentState {
@@ -176,6 +186,7 @@ export interface ConsentState {
   locale: string;
   receipt: ConsentReceipt | null;
   choices: ConsentChoices;
+  gpc?: boolean;
 }
 
 export type ConsentEvent =
@@ -186,6 +197,7 @@ export type ConsentEvent =
   | "floating-badge:shown"
   | "floating-badge:hidden"
   | "locale:changed"
+  | "gpc:detected"
   | "consent:changed"
   | "consent:accepted"
   | "consent:rejected"
@@ -205,6 +217,7 @@ export interface ConsentEventDetailMap {
   "floating-badge:shown": void;
   "floating-badge:hidden": void;
   "locale:changed": { locale: string; previousLocale: string };
+  "gpc:detected": { signal: boolean; autoApplied: boolean; choices: ConsentChoices };
   "consent:changed": { choices: ConsentChoices; receipt: ConsentReceipt };
   "consent:accepted": { choices: ConsentChoices; receipt: ConsentReceipt };
   "consent:rejected": { choices: ConsentChoices; receipt: ConsentReceipt };
@@ -238,6 +251,7 @@ export interface ConsentSDKInterface {
   getLocale(): string;
   setLocale(locale: string): void;
   syncLocale(locale: string): void;
+  isGpcActive(): boolean;
   has(category: string): boolean;
   hasService(service: string): boolean;
   acceptAll(): void;

@@ -23,6 +23,10 @@ declare function useConsentLocale(): string;
  * (such as react-i18next i18n.language or next-intl locale) with the consent library.
  */
 declare function useSyncConsentLocale(locale?: string): void;
+/**
+ * React hook to check if Global Privacy Control (GPC) or Do Not Track (DNT) signal is active.
+ */
+declare function useGpc(): boolean;
 interface ConsentGateFallbackContext {
     category?: string;
     service?: string;
@@ -54,4 +58,4 @@ interface ConsentGateProps {
  */
 declare function ConsentGate({ category, service, fallback, children, }: ConsentGateProps): any;
 
-export { ConsentGate, type ConsentGateFallbackContext, type ConsentGateProps, useConsent, useConsentLocale, useConsentService, useSyncConsentLocale };
+export { ConsentGate, type ConsentGateFallbackContext, type ConsentGateProps, useConsent, useConsentLocale, useConsentService, useGpc, useSyncConsentLocale };

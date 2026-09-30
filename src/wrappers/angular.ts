@@ -49,6 +49,13 @@ export class ConsentService {
     Consent.syncLocale(locale);
   }
 
+  /**
+   * Check if Global Privacy Control (GPC) signal is active.
+   */
+  isGpcActive(): boolean {
+    return Consent.isGpcActive();
+  }
+
   has(category: string): boolean {
     return Consent.has(category);
   }

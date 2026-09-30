@@ -20,6 +20,7 @@ export class StateManager {
     config: ConsentConfig,
     choices: ConsentChoices,
     receipt: ConsentReceipt | null,
+    gpc?: boolean,
   ): void {
     this.config = config;
     this.state = {
@@ -28,6 +29,7 @@ export class StateManager {
       locale: config.locale?.default || "es",
       receipt,
       choices,
+      gpc: gpc ?? receipt?.gpc ?? false,
     };
   }
 

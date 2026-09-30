@@ -22,6 +22,7 @@ import {
   resolveConfigPresets,
   hasPreset,
 } from "./presets/index.js";
+import { detectGpcSignal, resolveGpcConfig, applyGpcChoices } from "./core/gpc.js";
 
 export {
   Consent,
@@ -58,6 +59,9 @@ export {
   defineServices,
   resolveConfigPresets,
   hasPreset,
+  detectGpcSignal,
+  resolveGpcConfig,
+  applyGpcChoices,
 };
 
 export type * from "./core/types.js";

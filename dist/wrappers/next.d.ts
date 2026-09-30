@@ -1,5 +1,5 @@
-import { a as ConsentConfig } from '../types-HxCOfAve.js';
-export { ConsentGate, ConsentGateFallbackContext, ConsentGateProps, useConsent, useConsentLocale, useConsentService, useSyncConsentLocale } from './react.js';
+import { a as ConsentConfig } from '../types-Dg9yrKP7.js';
+export { ConsentGate, ConsentGateFallbackContext, ConsentGateProps, useConsent, useConsentLocale, useConsentService, useGpc, useSyncConsentLocale } from './react.js';
 import 'react';
 
 /**

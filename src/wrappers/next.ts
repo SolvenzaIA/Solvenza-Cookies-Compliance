@@ -6,6 +6,7 @@ export {
   useConsentService,
   useConsentLocale,
   useSyncConsentLocale,
+  useGpc,
   ConsentGate,
   type ConsentGateProps,
   type ConsentGateFallbackContext,

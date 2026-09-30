@@ -19,14 +19,17 @@ import {
   ScriptGate,
   ScriptResourceBlocker,
   StorageCleaner,
+  applyGpcChoices,
   computeReceiptSignature,
   createReceipt,
+  detectGpcSignal,
   isReceiptExpired,
   parseReceipt,
+  resolveGpcConfig,
   sanitizeHtml,
   validateConfig,
   verifyReceiptIntegrity
-} from "./chunk-UQJNVEOL.js";
+} from "./chunk-4PCAGYJ6.js";
 import {
   SERVICE_PRESETS,
   defineServices,
@@ -189,14 +192,17 @@ export {
   ScriptResourceBlocker,
   StorageCleaner,
   StorageFactory,
+  applyGpcChoices,
   computeReceiptSignature,
   createReceipt,
   defineServices,
+  detectGpcSignal,
   getPreset,
   hasPreset,
   isReceiptExpired,
   parseReceipt,
   resolveConfigPresets,
+  resolveGpcConfig,
   sanitizeHtml,
   validateConfig,
   verifyReceiptIntegrity

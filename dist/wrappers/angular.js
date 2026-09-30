@@ -1,6 +1,6 @@
 import {
   Consent
-} from "../chunk-UQJNVEOL.js";
+} from "../chunk-4PCAGYJ6.js";
 import "../chunk-6BS5OK6D.js";
 import {
   __decorateElement,
@@ -37,6 +37,12 @@ var ConsentService = class {
    */
   syncLocale(locale) {
     Consent.syncLocale(locale);
+  }
+  /**
+   * Check if Global Privacy Control (GPC) signal is active.
+   */
+  isGpcActive() {
+    return Consent.isGpcActive();
   }
   has(category) {
     return Consent.has(category);
