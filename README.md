@@ -30,7 +30,10 @@ npm install @solvenza/cookies-compliance
 ### CDN (1 sola línea)
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@solvenza/cookies-compliance@1/dist/consent.min.js" data-config="/consent.json"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/@solvenza/cookies-compliance@1/dist/consent.min.js"
+  data-config="/consent.json"
+></script>
 ```
 
 ---
@@ -82,8 +85,16 @@ Ejemplo de `consent.json`:
     }
   },
   "services": {
-    "ga4": { "category": "analytics", "label": "Google Analytics 4", "provider": "Google" },
-    "youtube": { "category": "marketing", "label": "YouTube Embed", "provider": "Google" }
+    "ga4": {
+      "category": "analytics",
+      "label": "Google Analytics 4",
+      "provider": "Google"
+    },
+    "youtube": {
+      "category": "marketing",
+      "label": "YouTube Embed",
+      "provider": "Google"
+    }
   }
 }
 ```
@@ -112,6 +123,7 @@ Puedes activarlo directamente en `consent.json`:
 ```
 
 O de forma abreviada:
+
 ```json
 {
   "ui": {
@@ -121,19 +133,21 @@ O de forma abreviada:
 ```
 
 ### Opciones de configuración:
-| Parámetro | Tipo | Por defecto | Descripción |
-|---|---|---|---|
-| `enabled` | `boolean` | `true` (si se declara objeto) | Activa o desactiva el widget flotante |
-| `position` | `"bottom-left"` \| `"bottom-right"` \| `"top-left"` \| `"top-right"` | `"bottom-left"` | Esquina de anclaje en pantalla |
-| `icon` | `"cookie"` \| `"shield"` \| `"settings"` | `"cookie"` | Icono SVG estilizado |
-| `label` | `string` | `"Cookies"` | Texto accesible y etiqueta en píldora |
-| `tooltip` | `string` | `"Configurar o declinar cookies"` | Texto descriptivo emergente al pasar el cursor (hover) |
-| `showLabel` | `boolean` | `false` | Muestra la etiqueta de texto junto al icono en forma de píldora |
-| `visibility` | `"after-consent"` \| `"always"` | `"after-consent"` | Muestra el botón tras cerrar el banner o en todo momento |
+
+| Parámetro    | Tipo                                                                 | Por defecto                       | Descripción                                                     |
+| ------------ | -------------------------------------------------------------------- | --------------------------------- | --------------------------------------------------------------- |
+| `enabled`    | `boolean`                                                            | `true` (si se declara objeto)     | Activa o desactiva el widget flotante                           |
+| `position`   | `"bottom-left"` \| `"bottom-right"` \| `"top-left"` \| `"top-right"` | `"bottom-left"`                   | Esquina de anclaje en pantalla                                  |
+| `icon`       | `"cookie"` \| `"shield"` \| `"settings"`                             | `"cookie"`                        | Icono SVG estilizado                                            |
+| `label`      | `string`                                                             | `"Cookies"`                       | Texto accesible y etiqueta en píldora                           |
+| `tooltip`    | `string`                                                             | `"Configurar o declinar cookies"` | Texto descriptivo emergente al pasar el cursor (hover)          |
+| `showLabel`  | `boolean`                                                            | `false`                           | Muestra la etiqueta de texto junto al icono en forma de píldora |
+| `visibility` | `"after-consent"` \| `"always"`                                      | `"after-consent"`                 | Muestra el botón tras cerrar el banner o en todo momento        |
 
 > **Ciclo de vida automático con el modal**: Para garantizar una experiencia de usuario impecable y sin elementos superpuestos, el botón flotante se oculta mientras el modal de preferencias está abierto. **En cuanto el modal se cierra** (mediante el botón 'X', clic en el backdrop, tecla Escape o al guardar la selección), **el botón flotante reaparece de inmediato**.
 
 ### API Programática:
+
 ```ts
 // Mostrar u ocultar manualmente
 Consent.showFloatingBadge();
@@ -168,7 +182,9 @@ El sistema de internacionalización (`I18nEngine`) está diseñado bajo el princ
    - Función declarativa para enlazar el estado de traducción de tu aplicación (`react-i18next`, `next-intl`, `@ngx-translate`, etc.).
 
 ### Idiomas Integrados por Defecto
+
 El SDK incluye diccionarios oficiales para la normativa española y europea sin necesidad de configurar textos:
+
 - **Español (`es`)** [Por defecto]
 - **Inglés (`en`)**
 - **Catalán (`ca`)**
@@ -220,6 +236,7 @@ El SDK incluye diccionarios oficiales para la normativa española y europea sin 
 ```
 
 ### Sincronización Programática:
+
 ```ts
 // 1. Sincronizar el idioma desde la app padre
 Consent.syncLocale("en");
@@ -233,21 +250,24 @@ Consent.on("locale:changed", ({ locale, previousLocale }) => {
 });
 
 // 4. Conmutación mediante CustomEvent del DOM (Zero-code / Microfrontends)
-document.dispatchEvent(new CustomEvent("solvenza:locale", { detail: { locale: "en" } }));
+document.dispatchEvent(
+  new CustomEvent("solvenza:locale", { detail: { locale: "en" } }),
+);
 ```
 
 ### Configuración con `ConsentConfigBuilder` (TypeScript):
+
 ```ts
 const config = new ConsentConfigBuilder("1.0.0")
   .setLocale("es", true, ["es", "en", "ca"])
   .addTranslation("en", {
     ui: {
       banner: { title: "Your privacy, your choice" },
-      floatingBadge: { tooltip: "Cookie Settings" }
+      floatingBadge: { tooltip: "Cookie Settings" },
     },
     categories: {
-      analytics: { label: "Analytics", description: "Aggregated telemetry." }
-    }
+      analytics: { label: "Analytics", description: "Aggregated telemetry." },
+    },
   })
   .build();
 ```
@@ -256,15 +276,18 @@ const config = new ConsentConfigBuilder("1.0.0")
 
 ## Purga Automática de Web Storage (localStorage, sessionStorage y Cookies)
 
-A partir de la versión **1.5.0**, cuando el usuario desmarca una categoría en el panel de preferencias o revoca su elección (`Consent.withdraw()`), el SDK no solo elimina las cookies en `document.cookie`, sino que también **purga de forma reactiva las claves guardadas en `localStorage` y `sessionStorage`** por bibliotecas de analítica o marketing (Google Analytics 4, PostHog, Mixpanel, Hotjar, etc.).
+A partir de la versión **1.5.1**, cuando el usuario desmarca una categoría en el panel de preferencias o revoca su elección (`Consent.withdraw()`), el SDK no solo elimina las cookies en `document.cookie`, sino que también **purga de forma reactiva las claves guardadas en `localStorage` y `sessionStorage`** por bibliotecas de analítica o marketing (Google Analytics 4, PostHog, Mixpanel, Hotjar, etc.).
 
 ### Soporte de Comodines (Glob Wildcards)
+
 Puedes declarar patrones exactos o con comodín `*`:
+
 - `_ga*`: coincide con `_ga`, `_gid`, `_ga_G123456`, etc.
 - `ph_*_posthog`: coincide con identificadores dinámicos de PostHog.
 - `*session*`: coincide con cualquier clave que contenga `session`.
 
 ### Configuración en `consent.json`:
+
 ```json
 {
   "categories": {
@@ -278,11 +301,7 @@ Puedes declarar patrones exactos o con comodín `*`:
     "ga4": {
       "category": "analytics",
       "label": "Google Analytics 4",
-      "cookies": [
-        { "name": "_ga" },
-        { "name": "_ga_*" },
-        { "name": "_gid" }
-      ],
+      "cookies": [{ "name": "_ga" }, { "name": "_ga_*" }, { "name": "_gid" }],
       "storageKeys": ["_ga*", "_gid*"]
     },
     "posthog": {
@@ -296,21 +315,23 @@ Puedes declarar patrones exactos o con comodín `*`:
 ```
 
 ### Opciones de purga disponibles:
-| Campo | Nivel | Descripción |
-|---|---|---|
-| `storageKeys` | Categoría o Servicio | Claves o patrones a purgar tanto de `localStorage` como de `sessionStorage` |
-| `localStorage` | Categoría o Servicio | Claves o patrones a purgar exclusivamente de `localStorage` |
-| `sessionStorage` | Categoría o Servicio | Claves o patrones a purgar exclusivamente de `sessionStorage` |
-| `cookies[].name` | Servicio | Nombres de cookies (soporta comodines como `_ga_*`) |
+
+| Campo            | Nivel                | Descripción                                                                 |
+| ---------------- | -------------------- | --------------------------------------------------------------------------- |
+| `storageKeys`    | Categoría o Servicio | Claves o patrones a purgar tanto de `localStorage` como de `sessionStorage` |
+| `localStorage`   | Categoría o Servicio | Claves o patrones a purgar exclusivamente de `localStorage`                 |
+| `sessionStorage` | Categoría o Servicio | Claves o patrones a purgar exclusivamente de `sessionStorage`               |
+| `cookies[].name` | Servicio             | Nombres de cookies (soporta comodines como `_ga_*`)                         |
 
 ### API Programática:
+
 ```ts
 import { Consent, StorageCleaner } from "@solvenza/cookies-compliance";
 
 // 1. Purgar manualmente el almacenamiento de una categoría
 const report = Consent.purgeCategory("analytics");
-console.log(report.purgedCookies);        // ["_ga", "_ga_G123456"]
-console.log(report.purgedLocalStorage);   // ["_ga", "ph_client_posthog"]
+console.log(report.purgedCookies); // ["_ga", "_ga_G123456"]
+console.log(report.purgedLocalStorage); // ["_ga", "ph_client_posthog"]
 console.log(report.purgedSessionStorage); // ["temp_analytics_session"]
 
 // 2. Escuchar eventos de purga
@@ -329,15 +350,17 @@ StorageCleaner.purgeLocalStorage(["_ga*", "temp_*"]);
 El SDK incluye un catálogo oficial de más de 20 presets predefinidos con todos los metadatos necesarios (proveedor legal, categorías por defecto, patrones de cookies con duración y propósito, claves de Web Storage y políticas oficiales):
 
 ### Catálogo de Servicios Soportados:
-| Categoría | Presets Disponibles |
-|---|---|
-| **Analítica** | `ga4`, `google_analytics`, `posthog`, `hotjar`, `clarity`, `matomo`, `plausible` |
-| **Marketing & Ads** | `meta_pixel`, `facebook_pixel`, `google_ads`, `tiktok_pixel`, `linkedin_insight`, `twitter_pixel`, `hubspot` |
-| **Media Embebida** | `youtube`, `vimeo`, `spotify` |
-| **Chat & Soporte** | `intercom`, `crisp` |
-| **Técnicas / Seguridad / Pagos** | `gtm`, `google_recaptcha`, `cloudflare`, `stripe`, `paypal` |
+
+| Categoría                        | Presets Disponibles                                                                                          |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Analítica**                    | `ga4`, `google_analytics`, `posthog`, `hotjar`, `clarity`, `matomo`, `plausible`                             |
+| **Marketing & Ads**              | `meta_pixel`, `facebook_pixel`, `google_ads`, `tiktok_pixel`, `linkedin_insight`, `twitter_pixel`, `hubspot` |
+| **Media Embebida**               | `youtube`, `vimeo`, `spotify`                                                                                |
+| **Chat & Soporte**               | `intercom`, `crisp`                                                                                          |
+| **Técnicas / Seguridad / Pagos** | `gtm`, `google_recaptcha`, `cloudflare`, `stripe`, `paypal`                                                  |
 
 ### Uso Declarativo en `consent.json`:
+
 Basta con especificar `"preset": "<nombre>"` para que el SDK hidrate automáticamente cookies, almacenamiento y proveedor:
 
 ```json
@@ -345,9 +368,21 @@ Basta con especificar `"preset": "<nombre>"` para que el SDK hidrate automática
   "schemaVersion": 1,
   "policyVersion": "2026-09-30",
   "categories": {
-    "necessary": { "required": true, "label": "Necesarias", "description": "Cookies técnicas de seguridad y pago." },
-    "analytics": { "required": false, "label": "Analítica", "description": "Medición del tráfico y uso." },
-    "marketing": { "required": false, "label": "Marketing", "description": "Publicidad y contenido embebido." }
+    "necessary": {
+      "required": true,
+      "label": "Necesarias",
+      "description": "Cookies técnicas de seguridad y pago."
+    },
+    "analytics": {
+      "required": false,
+      "label": "Analítica",
+      "description": "Medición del tráfico y uso."
+    },
+    "marketing": {
+      "required": false,
+      "label": "Marketing",
+      "description": "Publicidad y contenido embebido."
+    }
   },
   "services": {
     "ga4": { "preset": "ga4" },
@@ -360,15 +395,21 @@ Basta con especificar `"preset": "<nombre>"` para que el SDK hidrate automática
 ```
 
 ### Uso Programático en TypeScript / JavaScript:
+
 ```ts
-import { Consent, getPreset, defineServices, SERVICE_PRESETS } from "@solvenza/cookies-compliance";
+import {
+  Consent,
+  getPreset,
+  defineServices,
+  SERVICE_PRESETS,
+} from "@solvenza/cookies-compliance";
 // o importación directa:
 // import { getPreset, defineServices } from "@solvenza/cookies-compliance/presets";
 
 // 1. Obtener preset individual con personalizaciones
 const customGA4 = getPreset("ga4", {
   label: "Google Analytics (Región UE)",
-  provider: "Google Ireland Ltd."
+  provider: "Google Ireland Ltd.",
 });
 
 // 2. Definir múltiples servicios de forma concisa y tipada
@@ -376,7 +417,7 @@ const services = defineServices({
   ga4: "ga4",
   meta: "meta_pixel",
   hotjar: { preset: "hotjar", label: "Mapas de Calor UX" },
-  customApi: { category: "necessary", label: "API Interna de Autenticación" }
+  customApi: { category: "necessary", label: "API Interna de Autenticación" },
 });
 ```
 
@@ -387,12 +428,14 @@ const services = defineServices({
 El SDK detecta automáticamente la señal del estándar W3C **Global Privacy Control (`navigator.globalPrivacyControl === true`)** y **Do Not Track (`navigator.doNotTrack === "1"`)** enviada por navegadores como Firefox, Brave, DuckDuckGo o extensiones de privacidad.
 
 ### Comportamiento y Cumplimiento:
+
 1. **Aplicación automática**: Si el usuario no ha expresado un consentimiento explícito previo y tiene GPC activado, el motor desactiva automáticamente las cookies y almacenamiento no esenciales.
 2. **Generación de Comprobante Legal**: Se emite un recibo firmado con `source: "gpc"` y `gpc: true`.
 3. **Purga Automática**: Se limpian de inmediato las cookies y Web Storage (`localStorage` / `sessionStorage`) de terceros.
 4. **Sincronización con Google Consent Mode**: Se actualiza el modo de consentimiento de Google como `denied` para analítica y publicidad.
 
 ### Configuración en `consent.json`:
+
 ```json
 {
   "schemaVersion": 1,
@@ -404,14 +447,27 @@ El SDK detecta automáticamente la señal del estándar W3C **Global Privacy Con
     "categories": ["analytics", "marketing"]
   },
   "categories": {
-    "necessary": { "required": true, "label": "Necesarias", "description": "Técnicas" },
-    "analytics": { "required": false, "label": "Analítica", "description": "Métricas" },
-    "marketing": { "required": false, "label": "Marketing", "description": "Publicidad" }
+    "necessary": {
+      "required": true,
+      "label": "Necesarias",
+      "description": "Técnicas"
+    },
+    "analytics": {
+      "required": false,
+      "label": "Analítica",
+      "description": "Métricas"
+    },
+    "marketing": {
+      "required": false,
+      "label": "Marketing",
+      "description": "Publicidad"
+    }
   }
 }
 ```
 
 ### API Programática:
+
 ```ts
 import { Consent } from "@solvenza/cookies-compliance";
 
@@ -422,21 +478,29 @@ if (Consent.isGpcActive()) {
 
 // Escuchar evento de detección de señal
 Consent.on("gpc:detected", ({ signal, autoApplied, choices }) => {
-  console.log("Señal de privacidad procesada:", { signal, autoApplied, choices });
+  console.log("Señal de privacidad procesada:", {
+    signal,
+    autoApplied,
+    choices,
+  });
 });
 ```
 
 En React / Next:
+
 ```tsx
 import { useGpc } from "@solvenza/cookies-compliance/react";
 
 export function PrivacyNotice() {
   const isGpc = useGpc();
-  return isGpc ? <p>Señal de privacidad Global Privacy Control detectada.</p> : null;
+  return isGpc ? (
+    <p>Señal de privacidad Global Privacy Control detectada.</p>
+  ) : null;
 }
 ```
 
 En Vue 3 / Nuxt 3:
+
 ```vue
 <script setup>
 import { useGpc } from "@solvenza/cookies-compliance/vue";
@@ -455,18 +519,20 @@ Incrusta el script compilado y tu configuración. El botón flotante de revocaci
 <script src="./consent.min.js" data-config="./consent.json"></script>
 
 <!-- 2. Scripts y recursos bloqueados previamente -->
-<script 
-  type="text/plain" 
-  data-consent="analytics" 
-  data-service="ga4" 
-  data-src="https://www.googletagmanager.com/gtag/js?id=G-DEMO123">
-</script>
+<script
+  type="text/plain"
+  data-consent="analytics"
+  data-service="ga4"
+  data-src="https://www.googletagmanager.com/gtag/js?id=G-DEMO123"
+></script>
 
-<iframe 
-  data-consent="marketing" 
-  data-service="youtube" 
-  data-src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
-  width="560" height="315">
+<iframe
+  data-consent="marketing"
+  data-service="youtube"
+  data-src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+  width="560"
+  height="315"
+>
 </iframe>
 
 <!-- 3. Botón de revocación opcional en footer (adicional al badge flotante permanente) -->
@@ -480,7 +546,11 @@ Puedes sincronizar el idioma de la aplicación (ej. procedente de `react-i18next
 ```tsx
 import { useState, useEffect } from "react";
 import { Consent, ConsentConfigBuilder } from "@solvenza/cookies-compliance";
-import { useConsent, useSyncConsentLocale, ConsentGate } from "@solvenza/cookies-compliance/react";
+import {
+  useConsent,
+  useSyncConsentLocale,
+  ConsentGate,
+} from "@solvenza/cookies-compliance/react";
 
 export function App() {
   const [appLang, setAppLang] = useState("es");
@@ -526,14 +596,22 @@ export function App() {
       {/* Componente Declarativo ConsentGate */}
       <ConsentGate
         category="marketing"
-        fallback={(
+        fallback={
           <div className="cookie-blocked-placeholder">
-            <p>El reproductor de vídeo requiere permiso de cookies de marketing.</p>
-            <button onClick={() => Consent.openPreferences()}>Ajustes de Cookies</button>
+            <p>
+              El reproductor de vídeo requiere permiso de cookies de marketing.
+            </p>
+            <button onClick={() => Consent.openPreferences()}>
+              Ajustes de Cookies
+            </button>
           </div>
-        )}
+        }
       >
-        <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" width="560" height="315" />
+        <iframe
+          src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+          width="560"
+          height="315"
+        />
       </ConsentGate>
     </div>
   );
@@ -556,7 +634,9 @@ export function VideoPlayer() {
       fallback={({ openPreferences }) => (
         <div className="banner-blocked">
           <p>Vídeo bloqueado por privacidad.</p>
-          <button onClick={openPreferences}>Aceptar cookies de marketing</button>
+          <button onClick={openPreferences}>
+            Aceptar cookies de marketing
+          </button>
         </div>
       )}
     >
@@ -574,7 +654,7 @@ import Script from "next/script";
 
 export default function RootLayout({
   children,
-  params: { locale }
+  params: { locale },
 }: {
   children: React.ReactNode;
   params: { locale: string };
@@ -601,7 +681,11 @@ Carga la configuración con `provideAppInitializer` inyectando `ConsentService`.
 
 ```typescript
 // app.config.ts
-import { ApplicationConfig, provideAppInitializer, inject } from "@angular/core";
+import {
+  ApplicationConfig,
+  provideAppInitializer,
+  inject,
+} from "@angular/core";
 import { ConsentService } from "@solvenza/cookies-compliance/angular";
 
 export const appConfig: ApplicationConfig = {
@@ -613,7 +697,10 @@ export const appConfig: ApplicationConfig = {
         schemaVersion: 1,
         policyVersion: "2026-08-23",
         locale: { default: "es", autoDetect: true },
-        policy: { privacyUrl: "/politica-privacidad", cookiesUrl: "/politica-cookies" },
+        policy: {
+          privacyUrl: "/politica-privacidad",
+          cookiesUrl: "/politica-cookies",
+        },
         ui: {
           floatingBadge: {
             enabled: true,
@@ -623,9 +710,21 @@ export const appConfig: ApplicationConfig = {
           },
         },
         categories: {
-          necessary: { required: true, label: "Necesarias", description: "Imprescindibles." },
-          analytics: { required: false, label: "Analítica", description: "Medición agregada." },
-          marketing: { required: false, label: "Marketing", description: "Vídeo y contenido interactivo." }
+          necessary: {
+            required: true,
+            label: "Necesarias",
+            description: "Imprescindibles.",
+          },
+          analytics: {
+            required: false,
+            label: "Analítica",
+            description: "Medición agregada.",
+          },
+          marketing: {
+            required: false,
+            label: "Marketing",
+            description: "Vídeo y contenido interactivo.",
+          },
         },
       });
     }),
@@ -638,7 +737,10 @@ Uso de la directiva estructural `*consentGate` en componentes standalone de Angu
 ```typescript
 // video-player.component.ts
 import { Component } from "@angular/core";
-import { ConsentGateDirective, ConsentService } from "@solvenza/cookies-compliance/angular";
+import {
+  ConsentGateDirective,
+  ConsentService,
+} from "@solvenza/cookies-compliance/angular";
 
 @Component({
   selector: "app-video-player",
@@ -647,7 +749,11 @@ import { ConsentGateDirective, ConsentService } from "@solvenza/cookies-complian
   template: `
     <!-- Renderizado condicional reactivo -->
     <div *consentGate="'marketing'; else videoBlocked">
-      <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" width="560" height="315"></iframe>
+      <iframe
+        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+        width="560"
+        height="315"
+      ></iframe>
     </div>
 
     <ng-template #videoBlocked>
@@ -673,7 +779,11 @@ Usa los composables reactivos y el componente declarativo `<ConsentGate>`:
 
 ```vue
 <script setup lang="ts">
-import { useConsent, useSyncConsentLocale, ConsentGate } from "@solvenza/cookies-compliance/vue";
+import {
+  useConsent,
+  useSyncConsentLocale,
+  ConsentGate,
+} from "@solvenza/cookies-compliance/vue";
 import { useI18n } from "vue-i18n";
 
 const { locale } = useI18n();
@@ -685,7 +795,9 @@ const isAnalyticsAllowed = useConsent("analytics");
 
 <template>
   <div>
-    <p>Estado de analítica: {{ isAnalyticsAllowed ? "Permitida" : "Bloqueada" }}</p>
+    <p>
+      Estado de analítica: {{ isAnalyticsAllowed ? "Permitida" : "Bloqueada" }}
+    </p>
 
     <!-- Renderizado declarativo condicional -->
     <ConsentGate category="marketing">
@@ -694,7 +806,10 @@ const isAnalyticsAllowed = useConsent("analytics");
       </template>
       <template #fallback>
         <div class="blocked-card">
-          <p>Vídeo bloqueado por privacidad. Acepta cookies de Marketing para reproducirlo.</p>
+          <p>
+            Vídeo bloqueado por privacidad. Acepta cookies de Marketing para
+            reproducirlo.
+          </p>
         </div>
       </template>
     </ConsentGate>
@@ -703,6 +818,7 @@ const isAnalyticsAllowed = useConsent("analytics");
 ```
 
 Plugin global en `main.ts`:
+
 ```ts
 import { createApp } from "vue";
 import { createConsentPlugin } from "@solvenza/cookies-compliance/vue";
@@ -758,7 +874,7 @@ function enqueue_solvenza_cookies() {
         "solvenza-cookies",
         get_template_directory_uri() . "/vendor/consent.min.js",
         array(),
-        "1.5.0",
+        "1.5.1",
         false // En <head> para cumplir LSSI antes de scripts de analítica
     );
     // Asocia la configuración JSON con el badge flotante habilitado
@@ -814,6 +930,7 @@ La librería incluye componentes declarativos y utilidades para generar automát
 ### 1. Configuración de datos del Titular (`legalEntity` y `legalNotice`)
 
 En `consent.json`:
+
 ```json
 {
   "schemaVersion": 1,
@@ -836,6 +953,7 @@ En `consent.json`:
 ```
 
 O con `ConsentConfigBuilder`:
+
 ```typescript
 const config = new ConsentConfigBuilder("2026-08-23")
   .setLegalEntity({
@@ -843,10 +961,10 @@ const config = new ConsentConfigBuilder("2026-08-23")
     tradeName: "Mi Marca",
     taxId: "B-12345678",
     address: "Calle Principal 123, Madrid",
-    email: "privacidad@mi-sitio.com"
+    email: "privacidad@mi-sitio.com",
   })
   .setLegalNotice({
-    jurisdiction: "Juzgados y Tribunales de Madrid"
+    jurisdiction: "Juzgados y Tribunales de Madrid",
   })
   .build();
 ```
@@ -856,7 +974,11 @@ const config = new ConsentConfigBuilder("2026-08-23")
 ### 2. Uso en React & Next.js
 
 ```tsx
-import { CookiePolicy, LegalNotice, PrivacyPolicy } from "@solvenza/cookies-compliance/react";
+import {
+  CookiePolicy,
+  LegalNotice,
+  PrivacyPolicy,
+} from "@solvenza/cookies-compliance/react";
 // O desde "@solvenza/cookies-compliance/next"
 
 export function CookiePolicyPage() {
@@ -884,7 +1006,11 @@ export function CookiePolicyPage() {
 
 ```vue
 <script setup lang="ts">
-import { CookiePolicy, LegalNotice, PrivacyPolicy } from "@solvenza/cookies-compliance/vue";
+import {
+  CookiePolicy,
+  LegalNotice,
+  PrivacyPolicy,
+} from "@solvenza/cookies-compliance/vue";
 // O desde "@solvenza/cookies-compliance/nuxt"
 </script>
 
@@ -951,12 +1077,12 @@ jobs:
 
 ### Entradas (Inputs) de la GitHub Action:
 
-| Input | Descripción | Valor por defecto |
-|---|---|---|
-| `config-path` | Ruta relativa al archivo `consent.json` | `./consent.json` |
-| `src-dir` | Directorio con archivos fuente a escanear (`.html`, `.jsx`, `.tsx`, `.vue`, etc.) | `./` |
-| `url` | URL en vivo a auditar (ej: `https://staging.mi-sitio.com`) | _(Opcional)_ |
-| `fail-on-error` | Bloquear el pipeline con código de salida no nulo si se detectan violaciones críticas | `true` |
+| Input           | Descripción                                                                           | Valor por defecto |
+| --------------- | ------------------------------------------------------------------------------------- | ----------------- |
+| `config-path`   | Ruta relativa al archivo `consent.json`                                               | `./consent.json`  |
+| `src-dir`       | Directorio con archivos fuente a escanear (`.html`, `.jsx`, `.tsx`, `.vue`, etc.)     | `./`              |
+| `url`           | URL en vivo a auditar (ej: `https://staging.mi-sitio.com`)                            | _(Opcional)_      |
+| `fail-on-error` | Bloquear el pipeline con código de salida no nulo si se detectan violaciones críticas | `true`            |
 
 ### Resumen automático en el Step Summary de GitHub:
 
@@ -987,7 +1113,7 @@ import { LssiAuditor } from "@solvenza/cookies-compliance/audit";
 const report = await LssiAuditor.run({
   configPath: "./consent.json",
   srcDir: "./src",
-  url: "https://staging.mi-sitio.com"
+  url: "https://staging.mi-sitio.com",
 });
 
 console.log(`Puntuación: ${report.score}/100 - Cumple: ${report.compliant}`);
@@ -999,15 +1125,15 @@ console.log(`Puntuación: ${report.score}/100 - Cumple: ${report.compliant}`);
 
 El repositorio incluye ejemplos interactivos listos para ejecutar:
 
-| Directorio | Framework / Stack | Características clave |
-|---|---|---|
-| [`examples/vanilla-html/`](./examples/vanilla-html) | Vanilla HTML5 / JS | Inclusión vía `<script data-config="...">`, iframe gate nativo y CSS personalizado |
-| [`examples/react-app/`](./examples/react-app) | React 18+ & Vite | `useConsent`, `useSyncConsentLocale`, `<ConsentGate>` y tabla de política dinámica |
-| [`examples/next-app/`](./examples/next-app) | Next.js (App Router) | Script con `strategy="beforeInteractive"`, componentes de cliente y SSR |
-| [`examples/vue-app/`](./examples/vue-app) | Vue 3 & Vite | Composables reactivos `useConsent`, `useGpc`, `useSyncConsentLocale` y `<ConsentGate>` |
-| [`examples/nuxt-app/`](./examples/nuxt-app) | Nuxt 3 | Módulo / plugin SSR universal `@solvenza/cookies-compliance/nuxt` |
-| [`examples/angular-app/`](./examples/angular-app) | Angular 17+ Standalone | `ConsentService`, directiva estructural `*consentGate` y `provideAppInitializer` |
-| [`playground/`](./playground) | Sandbox Interactivo | Panel de pruebas con simulador de presets, purga de Web Storage e inspección de recibos |
+| Directorio                                          | Framework / Stack      | Características clave                                                                   |
+| --------------------------------------------------- | ---------------------- | --------------------------------------------------------------------------------------- |
+| [`examples/vanilla-html/`](./examples/vanilla-html) | Vanilla HTML5 / JS     | Inclusión vía `<script data-config="...">`, iframe gate nativo y CSS personalizado      |
+| [`examples/react-app/`](./examples/react-app)       | React 18+ & Vite       | `useConsent`, `useSyncConsentLocale`, `<ConsentGate>` y tabla de política dinámica      |
+| [`examples/next-app/`](./examples/next-app)         | Next.js (App Router)   | Script con `strategy="beforeInteractive"`, componentes de cliente y SSR                 |
+| [`examples/vue-app/`](./examples/vue-app)           | Vue 3 & Vite           | Composables reactivos `useConsent`, `useGpc`, `useSyncConsentLocale` y `<ConsentGate>`  |
+| [`examples/nuxt-app/`](./examples/nuxt-app)         | Nuxt 3                 | Módulo / plugin SSR universal `@solvenza/cookies-compliance/nuxt`                       |
+| [`examples/angular-app/`](./examples/angular-app)   | Angular 17+ Standalone | `ConsentService`, directiva estructural `*consentGate` y `provideAppInitializer`        |
+| [`playground/`](./playground)                       | Sandbox Interactivo    | Panel de pruebas con simulador de presets, purga de Web Storage e inspección de recibos |
 
 ---
 

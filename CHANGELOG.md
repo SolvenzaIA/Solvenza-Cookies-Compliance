@@ -6,9 +6,10 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ---
 
-## [1.5.0] - 2026-09-30
+## [1.5.1] - 2026-09-30
 
 ### Añadido
+
 - **Motor de Purga Automática de Web Storage (`localStorage` & `sessionStorage`)**:
   - **Soporte de `localStorage` y `sessionStorage`**: Purga de identificadores, tokens y estados almacenados por scripts de terceros en el almacenamiento web del navegador cuando el usuario revoca una categoría o ejecuta `withdraw()`.
   - **Coincidencia por comodines y glob patterns**: Soporte para patrones con comodín `*` (ej: `_ga*`, `_ga_*`, `ph_*_posthog`, `*session*`, `mp_*`) y nombres exactos.
@@ -106,6 +107,7 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 ## [1.4.0] - 2026-09-30
 
 ### Añadido
+
 - **Mecanismo de Sincronización Multilingüe con la Aplicación Padre (`i18n` Zero Boilerplate)**:
   - **Sin selectores intrusivos**: El banner y el modal de preferencias no añaden desplegables ni selectores de idioma propios, garantizando que la aplicación padre sea la única fuente de verdad sobre el idioma del usuario.
   - **Observador reactivo del documento**: Integración nativa de `MutationObserver` en `document.documentElement` para detectar cambios dinámicos en `<html lang="...">` y sincronizar banner, modal y badge al instante sin recarga ni código adicional.
@@ -129,6 +131,7 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 ## [1.3.0] - 2026-09-29
 
 ### Añadido
+
 - **Botón Flotante de Revocación Permanente (`FloatingBadge`)**:
   - Elemento flotante configurable mediante `ui.floatingBadge` en `consent.json` o programmatic API.
   - Permite a los usuarios volver a abrir el modal de preferencias en cualquier momento para reconfigurar o declinar consentimientos (requisito estricto de la AEPD y RGPD).
@@ -147,6 +150,7 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 ## [1.2.1] - 2026-08-24
 
 ### Añadido
+
 - **Borrado Automático de Cookies de Servicios Revocados (`clearServiceCookies`)**:
   - Eliminación automática en `document.cookie` de cookies propias y de terceros declaradas cuando un usuario desautoriza una categoría o revoca consentimientos.
 - **Eventos Nativos del DOM (`solvenza:show`, `solvenza:preferences`, `solvenza:updated`, `solvenza:restored`)**:
@@ -159,6 +163,7 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 ## [1.2.0] - 2026-08-24
 
 ### Añadido
+
 - **Soporte para Subdominios Wildcard (`*.dominio.com`)**:
   - Añadida la opción `storage.domain` en `ConsentConfig` y `CookieOptions` (`src/storage/cookie-store.ts`).
   - Sincronización automática de preferencias y revocaciones de cookies a través de todos los subdominios de primer y segundo nivel (`.dominio.com`).
@@ -168,6 +173,7 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 ## [1.0.0] - 2026-08-23
 
 ### Añadido
+
 - **Motor Core**: Singleton `ConsentEngine`, bus de eventos pub/sub `EventBus`, gestor de estado `StateManager` y registro de bloqueo previo de recursos `BlockerRegistry`.
 - **Firma Anti-Manipulación SHA-256 HMAC**: Verificación de integridad de recibos en cookies local-first con la opción `security.secretKey`.
 - **Seguridad CSP & XSS**: Inyección de estilos con soporte para `nonce` (`csp.nonce`), sanitización HTML estricta de textos y saneamiento de URLs con esquemas `javascript:`.
