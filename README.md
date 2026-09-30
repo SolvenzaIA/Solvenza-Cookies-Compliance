@@ -416,7 +416,7 @@ Puedes sincronizar el idioma de la aplicación (ej. procedente de `react-i18next
 ```tsx
 import { useState, useEffect } from "react";
 import { Consent, ConsentConfigBuilder } from "@solvenza/cookies-compliance";
-import { useConsent, useSyncConsentLocale } from "@solvenza/cookies-compliance/react";
+import { useConsent, useSyncConsentLocale, ConsentGate } from "@solvenza/cookies-compliance/react";
 
 export function App() {
   const [appLang, setAppLang] = useState("es");
@@ -441,6 +441,11 @@ export function App() {
         label: "Analítica de uso",
         description: "Permite medir de forma agregada el uso de la web.",
       })
+      .addCategory("marketing", {
+        required: false,
+        label: "Marketing y Vídeo",
+        description: "Permite reproducir vídeos y contenido interactivo.",
+      })
       .build();
 
     void Consent.init(config);
@@ -453,15 +458,51 @@ export function App() {
         <button onClick={() => setAppLang("en")}>EN</button>
       </header>
       <p>Analítica: {isAnalyticsAllowed ? "Activa" : "Bloqueada"}</p>
-      <button onClick={() => Consent.openPreferences()}>Ajustes de Cookies</button>
+
+      {/* Componente Declarativo ConsentGate */}
+      <ConsentGate
+        category="marketing"
+        fallback={(
+          <div className="cookie-blocked-placeholder">
+            <p>El reproductor de vídeo requiere permiso de cookies de marketing.</p>
+            <button onClick={() => Consent.openPreferences()}>Ajustes de Cookies</button>
+          </div>
+        )}
+      >
+        <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" width="560" height="315" />
+      </ConsentGate>
     </div>
   );
 }
 ```
 
-### Next.js (App Router)
+### Next.js (App Router & Pages)
 
-Configura el SDK en el `RootLayout` con `strategy="beforeInteractive"`. Al cambiar el atributo `lang` en `<html>` (por ejemplo con `next-intl` o rutas localizadas `/app/[locale]/layout.tsx`), la librería sincroniza el banner, modal y badge automáticamente:
+Importa hooks y el componente `<ConsentGate>` directamente desde `@solvenza/cookies-compliance/next`:
+
+```tsx
+// app/components/VideoPlayer.tsx
+"use client";
+import { ConsentGate, useConsent } from "@solvenza/cookies-compliance/next";
+
+export function VideoPlayer() {
+  return (
+    <ConsentGate
+      category="marketing"
+      fallback={({ openPreferences }) => (
+        <div className="banner-blocked">
+          <p>Vídeo bloqueado por privacidad.</p>
+          <button onClick={openPreferences}>Aceptar cookies de marketing</button>
+        </div>
+      )}
+    >
+      <iframe src="https://www.youtube.com/embed/..." />
+    </ConsentGate>
+  );
+}
+```
+
+Configura el SDK en el `RootLayout` con `strategy="beforeInteractive"`:
 
 ```tsx
 // app/[locale]/layout.tsx
@@ -520,11 +561,46 @@ export const appConfig: ApplicationConfig = {
         categories: {
           necessary: { required: true, label: "Necesarias", description: "Imprescindibles." },
           analytics: { required: false, label: "Analítica", description: "Medición agregada." },
+          marketing: { required: false, label: "Marketing", description: "Vídeo y contenido interactivo." }
         },
       });
     }),
   ],
 };
+```
+
+Uso de la directiva estructural `*consentGate` en componentes standalone de Angular:
+
+```typescript
+// video-player.component.ts
+import { Component } from "@angular/core";
+import { ConsentGateDirective, ConsentService } from "@solvenza/cookies-compliance/angular";
+
+@Component({
+  selector: "app-video-player",
+  standalone: true,
+  imports: [ConsentGateDirective],
+  template: `
+    <!-- Renderizado condicional reactivo -->
+    <div *consentGate="'marketing'; else videoBlocked">
+      <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" width="560" height="315"></iframe>
+    </div>
+
+    <ng-template #videoBlocked>
+      <div class="video-placeholder">
+        <p>Vídeo bloqueado. Requiere consentimiento de marketing.</p>
+        <button (click)="openCookies()">Configurar cookies</button>
+      </div>
+    </ng-template>
+  `,
+})
+export class VideoPlayerComponent {
+  constructor(private consentService: ConsentService) {}
+
+  openCookies() {
+    this.consentService.openPreferences();
+  }
+}
 ```
 
 ### Vue 3 (Composition API & Componente ConsentGate)

@@ -37,6 +37,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/wrappers/react.ts
 var react_exports = {};
 __export(react_exports, {
+  ConsentGate: () => ConsentGate,
   useConsent: () => useConsent,
   useConsentLocale: () => useConsentLocale,
   useConsentService: () => useConsentService,
@@ -3356,70 +3357,110 @@ var Consent = globalScope.__ConsentSDK_Instance__;
 
 // src/wrappers/react.ts
 function useConsent(category) {
-  const [allowed, setAllowed] = (0, import_react.useState)(() => Consent.has(category));
-  (0, import_react.useEffect)(() => {
-    const update = () => {
-      setAllowed(Consent.has(category));
-    };
-    update();
-    const unsub1 = Consent.on("consent:changed", update);
-    const unsub2 = Consent.on("consent:accepted", update);
-    const unsub3 = Consent.on("consent:rejected", update);
-    const unsub4 = Consent.on("consent:withdrawn", update);
-    const unsub5 = Consent.on("ready", update);
-    return () => {
-      unsub1();
-      unsub2();
-      unsub3();
-      unsub4();
-      unsub5();
-    };
-  }, [category]);
-  return allowed;
+  try {
+    const [allowed, setAllowed] = (0, import_react.useState)(() => Consent.has(category));
+    (0, import_react.useEffect)(() => {
+      const update = () => {
+        setAllowed(Consent.has(category));
+      };
+      update();
+      const unsub1 = Consent.on("consent:changed", update);
+      const unsub2 = Consent.on("consent:accepted", update);
+      const unsub3 = Consent.on("consent:rejected", update);
+      const unsub4 = Consent.on("consent:withdrawn", update);
+      const unsub5 = Consent.on("ready", update);
+      return () => {
+        unsub1();
+        unsub2();
+        unsub3();
+        unsub4();
+        unsub5();
+      };
+    }, [category]);
+    return allowed;
+  } catch (e) {
+    return Consent.has(category);
+  }
 }
 function useConsentService(serviceId) {
-  const [allowed, setAllowed] = (0, import_react.useState)(() => Consent.hasService(serviceId));
-  (0, import_react.useEffect)(() => {
-    const update = () => {
-      setAllowed(Consent.hasService(serviceId));
-    };
-    update();
-    const unsub1 = Consent.on("consent:changed", update);
-    const unsub2 = Consent.on("consent:accepted", update);
-    const unsub3 = Consent.on("consent:rejected", update);
-    const unsub4 = Consent.on("consent:withdrawn", update);
-    const unsub5 = Consent.on("ready", update);
-    return () => {
-      unsub1();
-      unsub2();
-      unsub3();
-      unsub4();
-      unsub5();
-    };
-  }, [serviceId]);
-  return allowed;
+  try {
+    const [allowed, setAllowed] = (0, import_react.useState)(() => Consent.hasService(serviceId));
+    (0, import_react.useEffect)(() => {
+      const update = () => {
+        setAllowed(Consent.hasService(serviceId));
+      };
+      update();
+      const unsub1 = Consent.on("consent:changed", update);
+      const unsub2 = Consent.on("consent:accepted", update);
+      const unsub3 = Consent.on("consent:rejected", update);
+      const unsub4 = Consent.on("consent:withdrawn", update);
+      const unsub5 = Consent.on("ready", update);
+      return () => {
+        unsub1();
+        unsub2();
+        unsub3();
+        unsub4();
+        unsub5();
+      };
+    }, [serviceId]);
+    return allowed;
+  } catch (e) {
+    return Consent.hasService(serviceId);
+  }
 }
 function useConsentLocale() {
-  const [locale, setLocale] = (0, import_react.useState)(() => Consent.getLocale());
-  (0, import_react.useEffect)(() => {
-    const update = () => setLocale(Consent.getLocale());
-    update();
-    const unsub = Consent.on("locale:changed", (detail) => {
-      setLocale(detail.locale);
-    });
-    return () => unsub();
-  }, []);
-  return locale;
+  try {
+    const [locale, setLocale] = (0, import_react.useState)(() => Consent.getLocale());
+    (0, import_react.useEffect)(() => {
+      const update = () => setLocale(Consent.getLocale());
+      update();
+      const unsub = Consent.on("locale:changed", (detail) => {
+        setLocale(detail.locale);
+      });
+      return () => unsub();
+    }, []);
+    return locale;
+  } catch (e) {
+    return Consent.getLocale();
+  }
 }
 function useSyncConsentLocale(locale) {
-  (0, import_react.useEffect)(() => {
+  try {
+    (0, import_react.useEffect)(() => {
+      if (locale) {
+        Consent.syncLocale(locale);
+      }
+    }, [locale]);
+  } catch (e) {
     if (locale) {
       Consent.syncLocale(locale);
     }
-  }, [locale]);
+  }
+}
+function ConsentGate({
+  category,
+  service,
+  fallback = null,
+  children
+}) {
+  const isCategoryAllowed = category ? useConsent(category) : true;
+  const isServiceAllowed = service ? useConsentService(service) : true;
+  const isAllowed = category ? isCategoryAllowed : service ? isServiceAllowed : true;
+  if (isAllowed) {
+    return children != null ? children : null;
+  }
+  if (typeof fallback === "function") {
+    return fallback({
+      category,
+      service,
+      openPreferences: () => Consent.openPreferences()
+    });
+  }
+  return fallback;
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  ConsentGate,
   useConsent,
   useConsentLocale,
   useConsentService,

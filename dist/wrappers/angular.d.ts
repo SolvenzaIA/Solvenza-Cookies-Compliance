@@ -1,8 +1,9 @@
+import { OnInit, OnDestroy, TemplateRef, ViewContainerRef } from '@angular/core';
 import { a as ConsentConfig, b as ConsentState, c as ConsentChoices, S as StoragePurgeReport, d as ConsentEvent, e as ConsentEventHandler } from '../types-HxCOfAve.js';
 
 /**
- * Angular Consent Service helper.
- * Compatible with AOT and JIT Angular applications.
+ * Angular Consent Service injectable helper.
+ * Compatible with standalone, NgModule, AOT, and SSR Angular applications.
  */
 declare class ConsentService {
     init(config: ConsentConfig | string): Promise<void>;
@@ -25,5 +26,37 @@ declare class ConsentService {
     purgeStorage(categoryOrService?: string): StoragePurgeReport[];
     on<E extends ConsentEvent>(event: E, handler: ConsentEventHandler<E>): () => void;
 }
+/**
+ * Angular Structural Directive to conditionally render elements based on consent.
+ *
+ * @example
+ * ```html
+ * <!-- Render video only if marketing consent is granted -->
+ * <div *consentGate="'marketing'; else videoBlocked">
+ *   <iframe src="https://www.youtube.com/embed/..." />
+ * </div>
+ *
+ * <ng-template #videoBlocked>
+ *   <div class="blocked-alert">
+ *     <p>Este vídeo requiere cookies de marketing.</p>
+ *     <button (click)="openPreferences()">Configurar cookies</button>
+ *   </div>
+ * </ng-template>
+ * ```
+ */
+declare class ConsentGateDirective implements OnInit, OnDestroy {
+    private templateRef;
+    private viewContainer;
+    category?: string;
+    service?: string;
+    elseTemplate?: TemplateRef<any>;
+    private hasView;
+    private hasElseView;
+    private unsubs;
+    constructor(templateRef: TemplateRef<any>, viewContainer: ViewContainerRef);
+    ngOnInit(): void;
+    ngOnDestroy(): void;
+    private updateView;
+}
 
-export { ConsentService };
+export { ConsentGateDirective, ConsentService };

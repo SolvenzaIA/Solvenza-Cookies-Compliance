@@ -26,8 +26,12 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 - **Wrapper Oficial para Vue 3 (`@solvenza/cookies-compliance/vue`)**:
   - **Composables Reactivos**: `useConsent(category)`, `useConsentService(serviceId)`, `useConsentLocale()`.
   - **Sincronización sin Boilerplate**: `useSyncConsentLocale(locale)` compatible con `vue-i18n` (`watch` reactivo).
-  - **Componente Declarativo `<ConsentGate>`**: Renderizado condicional mediante slots (`#default` y `#fallback`) según permisos de categoría o servicio.
-  - **Plugin Vue 3**: `createConsentPlugin(configUrl)` para inyección global de `$consent` y registro automático de `<ConsentGate>`.
+- **Componente Declarativo `<ConsentGate>` Multimarco (React, Next.js, Vue 3, Nuxt 3 y Angular)**:
+  - **React 18+ & 19 (`@solvenza/cookies-compliance/react`)**: Componente `<ConsentGate category="..." service="..." fallback={...}>{children}</ConsentGate>` con soporte de fallback estático o función render-prop `({ openPreferences }) => ...`.
+  - **Next.js (App Router / Pages) (`@solvenza/cookies-compliance/next`)**: Re-exportación completa y soporte universal/SSR de `<ConsentGate>`, `useConsent`, `useConsentService`, `useConsentLocale` y `useSyncConsentLocale`.
+  - **Vue 3 (`@solvenza/cookies-compliance/vue`)**: Componente `<ConsentGate :category="..." :service="...">` con slots reactivos `#default` y `#fallback`.
+  - **Nuxt 3 (`@solvenza/cookies-compliance/nuxt`)**: Compatibilidad SSR-safe y registro automático.
+  - **Angular 17+ & 20 (`@solvenza/cookies-compliance/angular`)**: Directiva estructural `*consentGate="'marketing'; else videoBlocked"` y servicio inyectable `@Injectable() ConsentService`.
 - **Catálogo de Presets de Servicios Comunes (`@solvenza/cookies-compliance/presets`)**:
   - **Más de 20 servicios preconfigurados según directrices LSSI/AEPD/RGPD**:
     - **Analítica**: Google Analytics 4 (`ga4`), PostHog (`posthog`), Hotjar (`hotjar`), Microsoft Clarity (`clarity`), Matomo (`matomo`), Plausible (`plausible`).
