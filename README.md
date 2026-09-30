@@ -881,6 +881,22 @@ console.log(`Puntuación: ${report.score}/100 - Cumple: ${report.compliant}`);
 
 ---
 
+## Ejemplos de integración por framework
+
+El repositorio incluye ejemplos interactivos listos para ejecutar:
+
+| Directorio | Framework / Stack | Características clave |
+|---|---|---|
+| [`examples/vanilla-html/`](./examples/vanilla-html) | Vanilla HTML5 / JS | Inclusión vía `<script data-config="...">`, iframe gate nativo y CSS personalizado |
+| [`examples/react-app/`](./examples/react-app) | React 18+ & Vite | `useConsent`, `useSyncConsentLocale`, `<ConsentGate>` y tabla de política dinámica |
+| [`examples/next-app/`](./examples/next-app) | Next.js (App Router) | Script con `strategy="beforeInteractive"`, componentes de cliente y SSR |
+| [`examples/vue-app/`](./examples/vue-app) | Vue 3 & Vite | Composables reactivos `useConsent`, `useGpc`, `useSyncConsentLocale` y `<ConsentGate>` |
+| [`examples/nuxt-app/`](./examples/nuxt-app) | Nuxt 3 | Módulo / plugin SSR universal `@solvenza/cookies-compliance/nuxt` |
+| [`examples/angular-app/`](./examples/angular-app) | Angular 17+ Standalone | `ConsentService`, directiva estructural `*consentGate` y `provideAppInitializer` |
+| [`playground/`](./playground) | Sandbox Interactivo | Panel de pruebas con simulador de presets, purga de Web Storage e inspección de recibos |
+
+---
+
 ## Entorno de desarrollo local
 
 1. Clona el repositorio:
@@ -900,6 +916,10 @@ console.log(`Puntuación: ${report.score}/100 - Cumple: ${report.compliant}`);
 4. Inicia el playground interactivo:
    ```bash
    npm run playground
+   ```
+5. Inicia el ejemplo de Vue 3:
+   ```bash
+   cd examples/vue-app && npm install && npm run dev
    ```
 
 ---

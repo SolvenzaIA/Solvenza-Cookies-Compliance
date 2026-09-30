@@ -23,9 +23,12 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
     - Evento de bus `storage:purged`: emite `{ category, report: StoragePurgeReport }`.
     - Evento DOM nativo `solvenza:storage:purged`: despachado en `document` para telemetría y diagnósticos.
   - **Wrappers actualizados**: Métodos `purgeCategory` y `purgeStorage` añadidos a `ConsentService` en `@solvenza/cookies-compliance/angular`.
-- **Wrapper Oficial para Vue 3 (`@solvenza/cookies-compliance/vue`)**:
-  - **Composables Reactivos**: `useConsent(category)`, `useConsentService(serviceId)`, `useConsentLocale()`.
+- **Wrapper Oficial para Vue 3 (`@solvenza/cookies-compliance/vue`) y Nuxt 3 (`@solvenza/cookies-compliance/nuxt`)**:
+  - **Composables Reactivos**: `useConsent(category)`, `useConsentService(serviceId)`, `useConsentLocale()`, `useGpc()`.
   - **Sincronización sin Boilerplate**: `useSyncConsentLocale(locale)` compatible con `vue-i18n` (`watch` reactivo).
+  - **Aplicaciones de ejemplo oficiales**:
+    - `examples/vue-app/`: Aplicación completa Vue 3 + Vite + TypeScript con composables, `<ConsentGate>`, generador de tabla de política dinámico e inspector reactivo.
+    - `examples/nuxt-app/`: Aplicación universal SSR Nuxt 3 con `@solvenza/cookies-compliance/nuxt`.
 - **Componente Declarativo `<ConsentGate>` Multimarco (React, Next.js, Vue 3, Nuxt 3 y Angular)**:
   - **React 18+ & 19 (`@solvenza/cookies-compliance/react`)**: Componente `<ConsentGate category="..." service="..." fallback={...}>{children}</ConsentGate>` con soporte de fallback estático o función render-prop `({ openPreferences }) => ...`.
   - **Next.js (App Router / Pages) (`@solvenza/cookies-compliance/next`)**: Re-exportación completa y soporte universal/SSR de `<ConsentGate>`, `useConsent`, `useConsentService`, `useConsentLocale` y `useSyncConsentLocale`.

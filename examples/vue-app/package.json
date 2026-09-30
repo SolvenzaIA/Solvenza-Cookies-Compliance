@@ -1,0 +1,21 @@
+{
+  "name": "example-vue-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@solvenza/cookies-compliance": "file:../../",
+    "vue": "^3.4.30"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.5",
+    "typescript": "^5.5.4",
+    "vite": "^6.2.0",
+    "vue-tsc": "^2.0.24"
+  }
+}
