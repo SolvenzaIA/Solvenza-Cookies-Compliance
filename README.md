@@ -276,7 +276,7 @@ const config = new ConsentConfigBuilder("1.0.0")
 
 ## Purga Automática de Web Storage (localStorage, sessionStorage y Cookies)
 
-A partir de la versión **1.5.1**, cuando el usuario desmarca una categoría en el panel de preferencias o revoca su elección (`Consent.withdraw()`), el SDK no solo elimina las cookies en `document.cookie`, sino que también **purga de forma reactiva las claves guardadas en `localStorage` y `sessionStorage`** por bibliotecas de analítica o marketing (Google Analytics 4, PostHog, Mixpanel, Hotjar, etc.).
+A partir de la versión **1.5.3**, cuando el usuario desmarca una categoría en el panel de preferencias o revoca su elección (`Consent.withdraw()`), el SDK no solo elimina las cookies en `document.cookie`, sino que también **purga de forma reactiva las claves guardadas en `localStorage` y `sessionStorage`** por bibliotecas de analítica o marketing (Google Analytics 4, PostHog, Mixpanel, Hotjar, etc.).
 
 ### Soporte de Comodines (Glob Wildcards)
 
@@ -874,7 +874,7 @@ function enqueue_solvenza_cookies() {
         "solvenza-cookies",
         get_template_directory_uri() . "/vendor/consent.min.js",
         array(),
-        "1.5.1",
+        "1.5.3",
         false // En <head> para cumplir LSSI antes de scripts de analítica
     );
     // Asocia la configuración JSON con el badge flotante habilitado

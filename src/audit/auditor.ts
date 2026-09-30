@@ -323,7 +323,7 @@ export class LssiAuditor {
    */
   static async auditLiveUrl(url: string, findings: AuditFinding[]): Promise<void> {
     try {
-      const res = await fetch(url, { headers: { "User-Agent": "Solvenza-LSSI-Auditor/1.5.1" } });
+      const res = await fetch(url, { headers: { "User-Agent": "Solvenza-LSSI-Auditor/1.5.3" } });
       if (!res.ok) {
         findings.push({
           id: "URL_FETCH_FAILED",
